@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Save, FolderOpen } from "lucide-react";
+import { X, Save, FolderOpen, HardDrive } from "lucide-react";
 import { ws, type FileType } from "../lib/workspace";
+import { fsAccess } from "../lib/fsAccess";
 
 interface Props {
   open: boolean;
@@ -9,6 +10,7 @@ interface Props {
   defaultContent?: string;
   defaultType?: FileType;
   projectId: string | null;
+  rootHandle: FileSystemDirectoryHandle | null;
   onClose: () => void;
   onSaved: () => void;
 }
@@ -27,6 +29,7 @@ export function SaveResultModal({
   defaultContent = "",
   defaultType = "summary",
   projectId,
+  rootHandle,
   onClose,
   onSaved,
 }: Props) {
@@ -35,15 +38,32 @@ export function SaveResultModal({
   const [type, setType] = useState<FileType>(defaultType);
   const [folderId, setFolderId] = useState("");
   const [saved, setSaved] = useState(false);
+  const [fsSaving, setFsSaving] = useState(false);
 
   const folders = projectId
     ? ws.getFolders(projectId).filter((f) => f.parentId === null)
     : [];
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!projectId || !folderId || !title.trim()) return;
-    ws.createFile(projectId, folderId, title.trim(), content, type);
+    const file = ws.createFile(projectId, folderId, title.trim(), content, type);
     setSaved(true);
+
+    // Write to real filesystem if connected
+    if (rootHandle) {
+      setFsSaving(true);
+      try {
+        const projectName = ws.getProjectName(projectId);
+        const folderPath = ws.getFolderPath(folderId);
+        const rootFolder = folderPath[0] ?? "MISC";
+        const subPath = folderPath.slice(1);
+        await fsAccess.writeFile(rootHandle, projectName, subPath.length > 0 ? [rootFolder, ...subPath] : [rootFolder], title.trim(), content);
+      } catch (e) {
+        console.warn("FS write failed", e);
+      }
+      setFsSaving(false);
+    }
+
     setTimeout(() => {
       setSaved(false);
       onSaved();
@@ -197,7 +217,7 @@ export function SaveResultModal({
                   }}
                 >
                   <Save style={{ width: 14, height: 14 }} />
-                  {saved ? "저장됨!" : "저장하기"}
+                  {fsSaving ? "디스크에 쓰는 중..." : saved ? "저장됨!" : rootHandle ? "저장 + 파일 생성" : "저장하기"}
                 </button>
               </div>
             </div>

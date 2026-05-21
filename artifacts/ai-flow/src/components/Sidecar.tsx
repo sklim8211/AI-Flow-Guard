@@ -16,8 +16,12 @@ import {
   Save,
   ChevronDown,
   Trash2,
+  HardDrive,
+  Unplug,
+  Link,
 } from "lucide-react";
 import { ws } from "../lib/workspace";
+import { fsAccess } from "../lib/fsAccess";
 import { WorkspaceView } from "./WorkspaceView";
 import { SaveResultModal } from "./SaveResultModal";
 import { FileViewModal } from "./FileViewModal";
@@ -148,6 +152,48 @@ export function Sidecar() {
   const [creatingProject, setCreatingProject] = useState(false);
   const [wsRefresh, setWsRefresh] = useState(0);
 
+  // Local filesystem
+  const [rootHandle, setRootHandle] = useState<FileSystemDirectoryHandle | null>(null);
+  const [rootFolderName, setRootFolderName] = useState<string | null>(null);
+  const [fsConnecting, setFsConnecting] = useState(false);
+
+  // Restore FS handle on mount
+  useEffect(() => {
+    fsAccess.hasRoot().then(async (has) => {
+      if (has) {
+        const name = await fsAccess.getRootName();
+        setRootFolderName(name);
+        // Don't auto-request permission — wait for user interaction
+      }
+    });
+  }, []);
+
+  const handleConnectFs = async () => {
+    setFsConnecting(true);
+    const handle = await fsAccess.pickRootFolder();
+    if (handle) {
+      setRootHandle(handle);
+      setRootFolderName(handle.name);
+    }
+    setFsConnecting(false);
+  };
+
+  const handleReconnectFs = async () => {
+    setFsConnecting(true);
+    const handle = await fsAccess.getRootHandle();
+    if (handle) {
+      setRootHandle(handle);
+      setRootFolderName(handle.name);
+    }
+    setFsConnecting(false);
+  };
+
+  const handleDisconnectFs = async () => {
+    await fsAccess.clearRoot();
+    setRootHandle(null);
+    setRootFolderName(null);
+  };
+
   const refreshWorkspace = useCallback(() => {
     setProjects(ws.getProjects());
     setActiveProjectId(ws.getActiveProjectId());
@@ -191,12 +237,21 @@ export function Sidecar() {
       });
   };
 
-  const handleCreateProject = () => {
+  const handleCreateProject = async () => {
     if (!newProjectName.trim()) return;
-    ws.createProject(newProjectName.trim());
+    const project = ws.createProject(newProjectName.trim());
     setNewProjectName("");
     setCreatingProject(false);
     refreshWorkspace();
+    // Also create actual folders on disk if connected
+    if (rootHandle) {
+      try {
+        const DEFAULT_FOLDERS = ["CURRENT","NEXT","ANCHORS","SUMMARIES","PROMPTS","CODE","SAFE","TEMP"];
+        await fsAccess.createProjectFolders(rootHandle, project.name, DEFAULT_FOLDERS);
+      } catch (e) {
+        console.warn("FS folder creation failed", e);
+      }
+    }
   };
 
   const handleSwitchProject = (id: string) => {
@@ -365,6 +420,30 @@ export function Sidecar() {
             {/* ── Workspace tab ── */}
             {tab === "workspace" && (
               <div className="flex-1 flex flex-col overflow-hidden">
+                {/* Local folder connection bar */}
+                <div className="px-3 py-2.5 flex items-center gap-2" style={{ borderBottom: "1px solid #f1f5f9", background: rootHandle ? "#f0fdf4" : rootFolderName ? "#fffbeb" : "#f8fafc" }}>
+                  <HardDrive style={{ width: 12, height: 12, color: rootHandle ? "#16a34a" : rootFolderName ? "#d97706" : "#94a3b8", flexShrink: 0 }} />
+                  <span className="flex-1 text-[10px] font-semibold truncate" style={{ color: rootHandle ? "#15803d" : rootFolderName ? "#b45309" : "#94a3b8" }}>
+                    {rootHandle ? rootFolderName : rootFolderName ? `${rootFolderName} (재연결 필요)` : "로컬 폴더 미연결"}
+                  </span>
+                  {rootHandle ? (
+                    <button onClick={handleDisconnectFs} className="text-[10px] text-slate-400 hover:text-red-500 transition-colors flex items-center gap-0.5">
+                      <Unplug style={{ width: 10, height: 10 }} />
+                    </button>
+                  ) : rootFolderName ? (
+                    <button onClick={handleReconnectFs} disabled={fsConnecting} className="text-[10px] text-amber-600 hover:text-amber-800 font-semibold transition-colors">
+                      {fsConnecting ? "연결중..." : "재연결"}
+                    </button>
+                  ) : fsAccess.isSupported() ? (
+                    <button onClick={handleConnectFs} disabled={fsConnecting} className="text-[10px] font-semibold flex items-center gap-0.5 transition-colors" style={{ color: "#3b82f6" }}>
+                      <Link style={{ width: 10, height: 10 }} />
+                      {fsConnecting ? "선택중..." : "연결"}
+                    </button>
+                  ) : (
+                    <span className="text-[10px] text-slate-300">Chrome 필요</span>
+                  )}
+                </div>
+
                 {/* Project selector */}
                 <div className="px-3 py-3" style={{ borderBottom: "1px solid #f1f5f9" }}>
                   {projects.length === 0 ? (
@@ -566,6 +645,7 @@ export function Sidecar() {
       <SaveResultModal
         open={saveModalOpen}
         projectId={activeProjectId}
+        rootHandle={rootHandle}
         defaultTitle={activePrompt ? `${activePrompt.label} — ${new Date().toLocaleDateString("ko-KR")}` : ""}
         defaultType="summary"
         onClose={() => setSaveModalOpen(false)}

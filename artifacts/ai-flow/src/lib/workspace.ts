@@ -207,4 +207,22 @@ export const ws = {
       this.getFiles().filter((f) => f.id !== id)
     );
   },
+
+  /* ── Filesystem path helpers ────────────────── */
+  getFolderPath(folderId: string): string[] {
+    const folders = this.getFolders();
+    const path: string[] = [];
+    let current = folders.find((f) => f.id === folderId);
+    while (current) {
+      path.unshift(current.name);
+      current = current.parentId
+        ? folders.find((f) => f.id === current!.parentId)
+        : undefined;
+    }
+    return path;
+  },
+
+  getProjectName(projectId: string): string {
+    return this.getProjects().find((p) => p.id === projectId)?.name ?? projectId;
+  },
 };
