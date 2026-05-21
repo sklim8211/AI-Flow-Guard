@@ -41,16 +41,32 @@ const PROMPTS = [
     icon: CheckCircle2,
     color: "#10b981",
     defaultFolder: "CURRENT",
-    prompt: `Please summarize our conversation so I can resume work. Use this structure:
+    prompt: `Please summarize our conversation so I can resume work later.
 
-TITLE: [short file-friendly title]
-DATE: [today's date]
+Start the output with this YAML metadata header. Use the schema EXACTLY as shown — keep all field names and ordering, but replace every value inside square brackets with a real value. Do NOT keep the brackets or any inline comments in your output.
+
+Schema:
+
+---
+version: v1
+created_at: [YYYY-MM-DD HH:mm in local time]
+kind: resume
+summary: [one short single-line description of where we are]
+keywords: [3-5 comma-separated searchable keywords]
+---
+
+Then write the body in this structure:
+
 CURRENT: [what we were working on in 1-2 sentences]
 NEXT: [the most important next step]
 ISSUE: [any blockers or open questions]
-KEYWORDS: [3-5 searchable keywords]
 
-Keep it short, structured, and easy to paste at the start of a new session.`,
+Keep it short, structured, and easy to paste at the start of a new session.
+
+End the output with ONE line in this exact format:
+filename: resume_[short-slug].md
+
+Wrap the entire output (header + body + filename line) inside a single fenced markdown code block so I can copy it as one piece.`,
   },
   {
     id: "summary",
@@ -59,16 +75,33 @@ Keep it short, structured, and easy to paste at the start of a new session.`,
     icon: FileText,
     color: "#3b82f6",
     defaultFolder: "SUMMARIES",
-    prompt: `Please create a compact work summary of what we accomplished. Use this structure:
+    prompt: `Please create a compact work summary of what we accomplished.
 
-TITLE: [short descriptive title]
-DATE: [today's date]
+Start the output with this YAML metadata header. Use the schema EXACTLY as shown — keep all field names and ordering, but replace every value inside square brackets with a real value. Do NOT keep the brackets or any inline comments in your output.
+
+Schema:
+
+---
+version: v1
+created_at: [YYYY-MM-DD HH:mm in local time]
+kind: summary
+summary: [one short single-line description of this session]
+keywords: [3-5 comma-separated searchable keywords]
+---
+
+Then write the body in this structure:
+
 COMPLETED: [list of things we finished]
 DECISIONS: [important decisions we made]
 ARTIFACTS: [files, links, or outputs created]
 NOTES: [anything worth remembering]
 
-Keep it concise and saveable.`,
+Keep it concise and saveable.
+
+End the output with ONE line in this exact format:
+filename: summary_[short-slug].md
+
+Wrap the entire output (header + body + filename line) inside a single fenced markdown code block so I can copy it as one piece.`,
   },
   {
     id: "anchors",
@@ -77,7 +110,21 @@ Keep it concise and saveable.`,
     icon: Anchor,
     color: "#8b5cf6",
     defaultFolder: "ANCHORS",
-    prompt: `Please extract the key anchor points from our conversation — the moments, decisions, and breakthroughs that shaped the direction of this work. Use this structure:
+    prompt: `Please extract the key anchor points from our conversation — the moments, decisions, and breakthroughs that shaped the direction of this work.
+
+Start the output with this YAML metadata header. Use the schema EXACTLY as shown — keep all field names and ordering, but replace every value inside square brackets with a real value. Do NOT keep the brackets or any inline comments in your output.
+
+Schema:
+
+---
+version: v1
+created_at: [YYYY-MM-DD HH:mm in local time]
+kind: anchors
+summary: [one short single-line description of the key shift this session]
+keywords: [3-5 comma-separated searchable keywords]
+---
+
+Then write the body in this structure:
 
 ANCHORS:
 - [moment or decision 1]
@@ -88,7 +135,12 @@ ANCHORS:
 TURNING POINT: [the single most important shift in this session]
 CORE INSIGHT: [the key idea we landed on]
 
-Keep it minimal and high-signal.`,
+Keep it minimal and high-signal.
+
+End the output with ONE line in this exact format:
+filename: anchors_[short-slug].md
+
+Wrap the entire output (header + body + filename line) inside a single fenced markdown code block so I can copy it as one piece.`,
   },
   {
     id: "compress",
@@ -97,14 +149,33 @@ Keep it minimal and high-signal.`,
     icon: Minimize2,
     color: "#f97316",
     defaultFolder: "CURRENT",
-    prompt: `Please compress everything we know so far into the smallest possible summary I can paste at the start of a new conversation. Include:
+    prompt: `Please compress everything we know so far into the smallest possible summary I can paste at the start of a new conversation.
+
+Start the output with this YAML metadata header. Use the schema EXACTLY as shown — keep all field names and ordering, but replace every value inside square brackets with a real value. Do NOT keep the brackets or any inline comments in your output.
+
+Schema:
+
+---
+version: v1
+created_at: [YYYY-MM-DD HH:mm in local time]
+kind: compress
+summary: [one short single-line description of the compressed context]
+keywords: [3-5 comma-separated searchable keywords]
+---
+
+Then write the body in this structure:
 
 CONTEXT: [project/task background in 2-3 sentences]
 STATE: [exactly where we are right now]
 CONSTRAINTS: [any important limits or requirements]
 NEXT: [first action to take]
 
-Make it dense and paste-ready.`,
+Make it dense and paste-ready.
+
+End the output with ONE line in this exact format:
+filename: compress_[short-slug].md
+
+Wrap the entire output (header + body + filename line) inside a single fenced markdown code block so I can copy it as one piece.`,
   },
   {
     id: "next",
@@ -113,7 +184,21 @@ Make it dense and paste-ready.`,
     icon: ListTodo,
     color: "#ef4444",
     defaultFolder: "NEXT",
-    prompt: `Based on our conversation, please generate my next action list. Use this structure:
+    prompt: `Based on our conversation, please generate my next action list.
+
+Start the output with this YAML metadata header. Use the schema EXACTLY as shown — keep all field names and ordering, but replace every value inside square brackets with a real value. Do NOT keep the brackets or any inline comments in your output.
+
+Schema:
+
+---
+version: v1
+created_at: [YYYY-MM-DD HH:mm in local time]
+kind: next
+summary: [one short single-line description of the most urgent action]
+keywords: [3-5 comma-separated searchable keywords]
+---
+
+Then write the body in this structure:
 
 IMMEDIATE: [the single next action to do right now]
 TODAY: [2-3 things to complete today]
@@ -121,7 +206,12 @@ THIS WEEK: [1-2 bigger goals for this week]
 BLOCKERS: [anything that needs to be resolved first]
 NOTES: [any helpful context for these actions]
 
-Keep it action-oriented and specific.`,
+Keep it action-oriented and specific.
+
+End the output with ONE line in this exact format:
+filename: next_[short-slug].md
+
+Wrap the entire output (header + body + filename line) inside a single fenced markdown code block so I can copy it as one piece.`,
   },
   {
     id: "backup",

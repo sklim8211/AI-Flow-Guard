@@ -25,8 +25,8 @@ AI(ChatGPT/Claude)로 작업하는 비전문가가 **컨텍스트를 잃지 않�
 ### 메타데이터 패턴 (앞으로 모든 새 표준 프롬프트의 필수 요구사항)
 
 각 표준 프롬프트는 AI에게 **결과물 첫머리에 메타데이터 헤더를 포함**하도록 요청해야 한다. 현재 적용 상태:
-- ✅ `Backup Snapshot` (v1/created_at/summary/changes_from_previous/restoration_hint/risk_level)
-- ⏳ 기존 5개 프롬프트(Resume/Summary/Anchors/Compress/Next)는 아직 메타데이터 헤더 미적용 — "다음 작업 후보" 1번 항목 참조
+- ✅ `Backup Snapshot` (version/created_at/summary/changes_from_previous/restoration_hint/risk_level)
+- ✅ `Resume / Summary / Anchors / Compress / Next` — 공통 스키마 (version/created_at/kind/summary/keywords) + 결과물 마지막 줄에 `filename: <kind>_<slug>.md` 자동 제안
 
 예시:
 
@@ -100,11 +100,11 @@ UI 어디서든 위와 같은 것을 암시해선 안 된다. "AI 응답은 자�
 
 | 아이콘 | 기능 | 표준 프롬프트 출력 | 저장 폴더 |
 |------|-----|-----------------|---------|
-| Resume | 작업 재개 프롬프트 | (메타데이터 헤더 없음 — 업그레이드 후보) | CURRENT |
-| Summary | 작업 요약 | 동상 | SUMMARIES |
-| Anchors | 핵심 결정 추출 | 동상 | ANCHORS |
-| Compress | 컨텍스트 압축 | 동상 | CURRENT |
-| Next | 다음 할 일 추출 | 동상 | NEXT |
+| Resume | 작업 재개 프롬프트 | ✅ 공통 메타 헤더 + filename | CURRENT |
+| Summary | 작업 요약 | ✅ 공통 메타 헤더 + filename | SUMMARIES |
+| Anchors | 핵심 결정 추출 | ✅ 공통 메타 헤더 + filename | ANCHORS |
+| Compress | 컨텍스트 압축 | ✅ 공통 메타 헤더 + filename | CURRENT |
+| Next | 다음 할 일 추출 | ✅ 공통 메타 헤더 + filename | NEXT |
 | Backup | 큰 수정 전 안전망 스냅샷 | ✅ 메타데이터 헤더 포함 | SAFE |
 | Restore | 백업으로 컨텍스트 복원 | (입력 프롬프트 — 메타 헤더 N/A) | CURRENT |
 | 🚨 SOS | 위기 상황 가이드 모달 (Compress/Backup/Restore로 라우팅) | — | — |
@@ -128,11 +128,10 @@ UI 어디서든 위와 같은 것을 암시해선 안 된다. "AI 응답은 자�
 
 ## 다음 작업 후보 (우선순위순)
 
-1. **기존 5개 프롬프트 메타데이터 헤더 업그레이드** (Resume/Summary/Anchors/Compress/Next) — 결과물에 항상 `version`, `created_at`, `summary` 같은 헤더 부착해서 나중에 검색·정렬 가능하게. Backup Snapshot의 헤더 패턴을 그대로 차용.
+1. **저장 모달에서 `filename:` 자동 파싱** — 이제 7개 프롬프트 모두 결과물 끝에 `filename: ...md` 한 줄을 남기므로, 붙여넣으면 파일명·폴더 자동 추출하여 저장 제안 (임팩트 큼)
 2. **앱 시작 시 최근 CURRENT 자동 표시** (문제 #7) — 작은 작업으로 재진입 마찰 크게 감소
-3. **타임라인 뷰** (문제 #10) — 시간순 ANCHOR/SUMMARY/NEXT를 한 화면에
-4. **저장 모달에서 `filename:` 자동 파싱** — Backup 프롬프트가 결과물 끝에 `filename: backup_v[N]_...md` 한 줄을 남기므로, 사용자가 결과를 붙여넣으면 파일명 자동 추출하여 SAFE/ 폴더에 저장 제안
-5. **SOS 모달 다국어/상황 확장** — 지금은 3가지 시나리오. "AI가 너무 길게 답함", "방향이 헷갈림" 같은 추가 시나리오 후보
+3. **타임라인 뷰** (문제 #10) — 메타 헤더의 `created_at`/`kind`/`summary`를 시간순으로 한 화면에
+4. **SOS 모달 시나리오 확장** — 지금은 3가지. "AI가 너무 길게 답함", "방향이 헷갈림" 추가 후보
 
 ## User preferences
 
