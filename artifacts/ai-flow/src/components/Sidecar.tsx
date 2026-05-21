@@ -229,6 +229,7 @@ Schema:
 ---
 version: [vN — next number if previous backups exist in this conversation, otherwise v1]
 created_at: [YYYY-MM-DD HH:mm in local time]
+kind: backup
 summary: [one short single-line summary of the current state]
 changes_from_previous: |-
   - [bullet 1: what changed since previous backup]
