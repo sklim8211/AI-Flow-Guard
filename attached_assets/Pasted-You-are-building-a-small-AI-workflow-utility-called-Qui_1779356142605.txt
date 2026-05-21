@@ -1,0 +1,292 @@
+You are building a small AI workflow utility called:
+
+Quiet Question Sidecar
+
+This is NOT a dashboard.
+This is NOT a project management tool.
+This is NOT an AI replacement.
+
+The product is:
+
+A quiet sidecar that helps people keep flow while working with AI.
+
+The feeling should be:
+
+* calm
+* lightweight
+* minimal
+* always nearby
+* non-intrusive
+* Apple-like utility feeling
+* small floating helper
+* fast open/close
+* designed for daily AI work sessions
+
+⸻
+
+Core Concept
+
+When people work with AI for long conversations, they lose:
+
+* context
+* flow
+* decisions
+* next steps
+* important moments
+
+This tool helps users:
+
+* resume work
+* summarize work
+* extract anchors
+* compress current state
+* prepare next actions
+
+BUT:
+
+The tool itself does NOT summarize.
+
+Instead:
+
+The tool provides high-quality standardized prompts that users copy into AI systems like ChatGPT or Claude.
+
+The AI performs the actual summarization.
+
+The user saves the result.
+
+⸻
+
+IMPORTANT PRODUCT DIRECTION
+
+Do NOT build:
+
+* large dashboard
+* productivity suite
+* complex workspace
+* kanban
+* task manager
+* analytics system
+* enterprise UI
+* cluttered panels
+
+Instead build:
+
+* tiny floating utility
+* quiet popup
+* prompt execution helper
+* AI workflow sidecar
+
+The UI should feel:
+
+* compact
+* elegant
+* soft
+* minimal
+* fast
+* lightweight
+
+Think:
+
+* Raycast
+* Spotlight
+* small macOS utilities
+* tiny floating helper
+
+NOT:
+
+* Notion
+* Jira
+* ClickUp
+* big SaaS dashboard
+
+⸻
+
+Main UI
+
+Default State
+
+Small floating icon at bottom-right.
+
+Above it:
+
+A tiny one-line status message.
+
+Example:
+
+* “↗ Ready to Resume”
+* “✓ Work Summary Ready”
+* “● Save Current State”
+
+Very small and subtle.
+
+⸻
+
+On Click
+
+Open a SMALL popup.
+
+Maximum width around:
+240px–280px.
+
+The popup contains:
+
+Prompt Buttons
+
+1. Resume Work
+2. Work Summary
+3. Extract Anchors
+4. Compress Current State
+5. Next Actions
+
+Each button:
+
+* small
+* elegant
+* compact
+* icon + label
+* one-line description
+
+⸻
+
+Example Flow
+
+User clicks:
+
+“Resume Work”
+
+Then:
+
+A modal or popup appears with a COPYABLE PROMPT.
+
+The user clicks:
+
+“Copy”
+
+Then pastes into ChatGPT.
+
+AI generates structured summary.
+
+User saves important parts.
+
+⸻
+
+Prompt Quality
+
+The prompts should ask AI to generate results in a SAVABLE format.
+
+Example structure:
+
+* TITLE
+* DATE/TIME
+* CURRENT
+* NEXT
+* ISSUE
+* KEYWORDS
+
+The prompts should request:
+
+* short structure
+* searchable format
+* file-name-friendly title
+* compact output
+* minimal unnecessary explanation
+
+⸻
+
+Minimal State Area
+
+At bottom of popup:
+
+Tiny state section.
+
+Only:
+
+CURRENT:
+(one line)
+
+NEXT:
+(one line)
+
+That’s it.
+
+No large editor.
+
+No huge notes panel.
+
+⸻
+
+Technical Requirements
+
+Please build this as:
+
+* React
+* Tailwind
+* modern minimal UI
+* responsive
+* smooth transitions
+* floating fixed component
+* localStorage persistence
+* copy-to-clipboard support
+
+No backend required yet.
+
+No authentication.
+
+No database yet.
+
+Focus only on:
+
+* interaction feel
+* popup flow
+* prompt copy workflow
+* minimal beautiful UI
+
+⸻
+
+Visual Style
+
+Very important:
+
+The UI should feel:
+
+* premium
+* calm
+* quiet
+* subtle
+* highly usable
+* minimal
+
+Avoid:
+
+* bright colors
+* clutter
+* large cards
+* too much text
+* enterprise feeling
+
+Preferred palette:
+
+* dark gray
+* soft white
+* muted blue
+* subtle shadows
+* glassmorphism allowed lightly
+
+⸻
+
+Goal
+
+The product should feel like:
+
+“A tiny AI workflow companion that quietly helps users stay in flow.”
+
+Build a realistic interactive prototype.
+
+Prioritize:
+
+1. simplicity
+2. interaction feel
+3. small size
+4. prompt-copy workflow
+5. minimal UI
+6. calm aesthetic
