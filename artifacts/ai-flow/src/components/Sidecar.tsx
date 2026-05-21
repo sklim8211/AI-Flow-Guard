@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles,
@@ -11,8 +11,17 @@ import {
   Copy,
   Check,
   ChevronRight,
-  ChevronLeft,
+  FolderOpen,
+  Plus,
+  Save,
+  ChevronDown,
+  Trash2,
 } from "lucide-react";
+import { ws } from "../lib/workspace";
+import { WorkspaceView } from "./WorkspaceView";
+import { SaveResultModal } from "./SaveResultModal";
+import { FileViewModal } from "./FileViewModal";
+import type { WFile } from "../lib/workspace";
 
 const PROMPTS = [
   {
@@ -21,6 +30,7 @@ const PROMPTS = [
     description: "이어서 작업하기",
     icon: CheckCircle2,
     color: "#10b981",
+    defaultFolder: "CURRENT",
     prompt: `Please summarize our conversation so I can resume work. Use this structure:
 
 TITLE: [short file-friendly title]
@@ -38,6 +48,7 @@ Keep it short, structured, and easy to paste at the start of a new session.`,
     description: "세션 결과 정리",
     icon: FileText,
     color: "#3b82f6",
+    defaultFolder: "SUMMARIES",
     prompt: `Please create a compact work summary of what we accomplished. Use this structure:
 
 TITLE: [short descriptive title]
@@ -55,6 +66,7 @@ Keep it concise and saveable.`,
     description: "핵심 전환점 추출",
     icon: Anchor,
     color: "#8b5cf6",
+    defaultFolder: "ANCHORS",
     prompt: `Please extract the key anchor points from our conversation — the moments, decisions, and breakthroughs that shaped the direction of this work. Use this structure:
 
 ANCHORS:
@@ -74,6 +86,7 @@ Keep it minimal and high-signal.`,
     description: "맥락 압축 요약",
     icon: Minimize2,
     color: "#f97316",
+    defaultFolder: "CURRENT",
     prompt: `Please compress everything we know so far into the smallest possible summary I can paste at the start of a new conversation. Include:
 
 CONTEXT: [project/task background in 2-3 sentences]
@@ -89,6 +102,7 @@ Make it dense and paste-ready.`,
     description: "다음 할 일 목록",
     icon: ListTodo,
     color: "#ef4444",
+    defaultFolder: "NEXT",
     prompt: `Based on our conversation, please generate my next action list. Use this structure:
 
 IMMEDIATE: [the single next action to do right now]
@@ -101,19 +115,44 @@ Keep it action-oriented and specific.`,
   },
 ];
 
+type PanelTab = "prompts" | "workspace";
+
 export function Sidecar() {
   const [panelOpen, setPanelOpen] = useState(false);
+  const [tab, setTab] = useState<PanelTab>("prompts");
+
   const [activePrompt, setActivePrompt] = useState<{
     label: string;
     prompt: string;
   } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [showSave, setShowSave] = useState(false);
+  const [saveModalOpen, setSaveModalOpen] = useState(false);
+
+  const [viewFile, setViewFile] = useState<WFile | null>(null);
+
   const [currentState, setCurrentState] = useState(
     () => localStorage.getItem("sidecar_current") || ""
   );
   const [nextState, setNextState] = useState(
     () => localStorage.getItem("sidecar_next") || ""
   );
+
+  // Workspace state
+  const [projects, setProjects] = useState(() => ws.getProjects());
+  const [activeProjectId, setActiveProjectId] = useState<string | null>(
+    () => ws.getActiveProjectId()
+  );
+  const [projectMenuOpen, setProjectMenuOpen] = useState(false);
+  const [newProjectName, setNewProjectName] = useState("");
+  const [creatingProject, setCreatingProject] = useState(false);
+  const [wsRefresh, setWsRefresh] = useState(0);
+
+  const refreshWorkspace = useCallback(() => {
+    setProjects(ws.getProjects());
+    setActiveProjectId(ws.getActiveProjectId());
+    setWsRefresh((n) => n + 1);
+  }, []);
 
   useEffect(() => {
     localStorage.setItem("sidecar_current", currentState);
@@ -126,22 +165,20 @@ export function Sidecar() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (activePrompt) setActivePrompt(null);
-        else setPanelOpen(false);
+        if (viewFile) { setViewFile(null); return; }
+        if (saveModalOpen) { setSaveModalOpen(false); return; }
+        if (activePrompt) { setActivePrompt(null); return; }
+        setPanelOpen(false);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activePrompt]);
+  }, [activePrompt, saveModalOpen, viewFile]);
 
   const handleCopy = () => {
     if (!activePrompt) return;
-    navigator.clipboard
-      .writeText(activePrompt.prompt)
-      .then(() => {
-        setCopied(true);
-        setTimeout(() => { setCopied(false); setActivePrompt(null); }, 1200);
-      })
+    navigator.clipboard.writeText(activePrompt.prompt)
+      .then(() => { setCopied(true); setTimeout(() => { setCopied(false); setShowSave(true); }, 800); })
       .catch(() => {
         const el = document.createElement("textarea");
         el.value = activePrompt.prompt;
@@ -150,18 +187,35 @@ export function Sidecar() {
         document.execCommand("copy");
         document.body.removeChild(el);
         setCopied(true);
-        setTimeout(() => { setCopied(false); setActivePrompt(null); }, 1200);
+        setTimeout(() => { setCopied(false); setShowSave(true); }, 800);
       });
   };
 
+  const handleCreateProject = () => {
+    if (!newProjectName.trim()) return;
+    ws.createProject(newProjectName.trim());
+    setNewProjectName("");
+    setCreatingProject(false);
+    refreshWorkspace();
+  };
+
+  const handleSwitchProject = (id: string) => {
+    ws.setActiveProject(id);
+    setActiveProjectId(id);
+    setProjectMenuOpen(false);
+    setWsRefresh((n) => n + 1);
+  };
+
+  const activeProject = projects.find((p) => p.id === activeProjectId) ?? null;
+
   return (
     <>
-      {/* Narrow icon-only sidebar — always visible */}
+      {/* ── Narrow icon sidebar ─────────────────────────── */}
       <div
         className="fixed top-0 right-0 h-full flex flex-col items-center py-4 gap-1 z-[9999]"
         style={{
           width: 52,
-          background: "rgba(255,255,255,0.95)",
+          background: "rgba(255,255,255,0.96)",
           borderLeft: "1px solid #e2e8f0",
           backdropFilter: "blur(8px)",
           boxShadow: "-2px 0 12px rgba(0,0,0,0.05)",
@@ -170,177 +224,264 @@ export function Sidecar() {
         {/* Toggle button */}
         <button
           onClick={() => setPanelOpen((v) => !v)}
-          title={panelOpen ? "패널 닫기" : "패널 열기"}
           className="relative group w-9 h-9 rounded-xl flex items-center justify-center mb-2 transition-all"
           style={{
             background: panelOpen ? "#0f172a" : "#f1f5f9",
             color: panelOpen ? "#fff" : "#64748b",
           }}
         >
-          <Sparkles className="w-4 h-4" />
-          {/* Tooltip */}
-          <span
-            className="pointer-events-none absolute right-full mr-2 px-2 py-1 rounded-md text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity"
-            style={{
-              background: "#0f172a",
-              color: "#fff",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-            }}
-          >
-            {panelOpen ? "패널 닫기" : "QQ Sidecar 열기"}
+          <Sparkles style={{ width: 16, height: 16 }} />
+          <span className="tooltip-left">
+            {panelOpen ? "패널 닫기" : "QQ Sidecar"}
           </span>
         </button>
 
-        <div
-          style={{
-            width: 20,
-            height: 1,
-            background: "#e2e8f0",
-            margin: "2px 0 6px",
-          }}
-        />
+        <div style={{ width: 20, height: 1, background: "#e2e8f0", margin: "2px 0 6px" }} />
 
-        {/* Prompt icon buttons */}
+        {/* Prompt icons */}
         {PROMPTS.map((item) => (
           <button
             key={item.id}
-            onClick={() =>
-              setActivePrompt({ label: item.label, prompt: item.prompt })
-            }
+            onClick={() => { setActivePrompt({ label: item.label, prompt: item.prompt }); setShowSave(false); }}
             className="relative group w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95"
             style={{ color: item.color }}
-            title={item.label}
           >
             <div
               className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"
               style={{ background: item.color + "14" }}
             />
-            <item.icon className="w-4.5 h-4.5 relative z-10" style={{ width: 18, height: 18 }} />
-            {/* Tooltip */}
-            <span
-              className="pointer-events-none absolute right-full mr-2 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity"
-              style={{
-                background: "#0f172a",
-                color: "#fff",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-              }}
-            >
+            <item.icon className="relative z-10" style={{ width: 18, height: 18 }} />
+            <span className="tooltip-left">
               <span className="block font-semibold">{item.label}</span>
-              <span className="block text-slate-400 text-[10px] mt-0.5">{item.description}</span>
+              <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>{item.description}</span>
             </span>
           </button>
         ))}
+
+        <div style={{ width: 20, height: 1, background: "#e2e8f0", margin: "6px 0 2px" }} />
+
+        {/* Workspace icon */}
+        <button
+          onClick={() => { setPanelOpen(true); setTab("workspace"); }}
+          className="relative group w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+          style={{ color: "#64748b" }}
+        >
+          <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: "#f1f5f9" }} />
+          <FolderOpen className="relative z-10" style={{ width: 17, height: 17 }} />
+          <span className="tooltip-left">
+            <span className="block font-semibold">Workspace</span>
+            <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>프로젝트 & 파일</span>
+          </span>
+        </button>
       </div>
 
-      {/* Expandable side panel */}
+      {/* ── Expandable panel ────────────────────────────── */}
       <AnimatePresence>
         {panelOpen && (
           <motion.div
             initial={{ x: 260, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: 260, opacity: 0 }}
-            transition={{ type: "spring", bounce: 0.1, duration: 0.3 }}
+            transition={{ type: "spring", bounce: 0.08, duration: 0.28 }}
             className="fixed top-0 right-[52px] h-full flex flex-col z-[9998]"
             style={{
-              width: 240,
-              background: "rgba(255,255,255,0.97)",
+              width: 248,
+              background: "rgba(255,255,255,0.98)",
               borderLeft: "1px solid #e2e8f0",
               boxShadow: "-4px 0 24px rgba(0,0,0,0.07)",
             }}
           >
             {/* Panel header */}
-            <div
-              className="flex items-center justify-between px-4 py-4"
-              style={{ borderBottom: "1px solid #f1f5f9" }}
-            >
-              <div>
-                <p className="text-xs font-bold text-slate-700">QQ Sidecar</p>
-                <p className="text-[10px] text-slate-400">AI Flow Companion</p>
-              </div>
-              <button
-                onClick={() => setPanelOpen(false)}
-                className="text-slate-400 hover:text-slate-700 transition-colors"
-              >
-                <ChevronRight className="w-4 h-4" />
+            <div className="flex items-center justify-between px-4 py-3.5" style={{ borderBottom: "1px solid #f1f5f9" }}>
+              <p className="text-xs font-bold text-slate-700">QQ Sidecar</p>
+              <button onClick={() => setPanelOpen(false)} className="text-slate-400 hover:text-slate-700 transition-colors">
+                <ChevronRight style={{ width: 15, height: 15 }} />
               </button>
             </div>
 
-            {/* Prompt list in panel */}
-            <div className="flex-1 overflow-y-auto py-2">
-              <p
-                className="px-4 pt-2 pb-2 text-[10px] font-bold tracking-widest uppercase"
-                style={{ color: "#94a3b8" }}
-              >
-                Prompts
-              </p>
-              {PROMPTS.map((item) => (
+            {/* Tabs */}
+            <div className="flex px-3 pt-2 pb-0 gap-1">
+              {(["prompts", "workspace"] as PanelTab[]).map((t) => (
                 <button
-                  key={item.id}
-                  onClick={() =>
-                    setActivePrompt({ label: item.label, prompt: item.prompt })
-                  }
-                  className="w-full flex items-start gap-3 px-4 py-3 hover:bg-slate-50 active:bg-slate-100 transition-colors text-left group cursor-pointer"
+                  key={t}
+                  onClick={() => setTab(t)}
+                  className="flex-1 py-1.5 rounded-lg text-[11px] font-semibold transition-all"
+                  style={{
+                    background: tab === t ? "#0f172a" : "transparent",
+                    color: tab === t ? "#fff" : "#94a3b8",
+                  }}
                 >
-                  <item.icon
-                    className="w-4 h-4 mt-0.5 shrink-0"
-                    style={{ color: item.color, width: 16, height: 16 }}
-                  />
-                  <div>
-                    <p className="text-xs font-semibold text-slate-700">
-                      {item.label}
-                    </p>
-                    <p className="text-[10px] text-slate-400 mt-0.5">
-                      {item.description}
-                    </p>
-                  </div>
+                  {t === "prompts" ? "Prompts" : "Workspace"}
                 </button>
               ))}
             </div>
 
-            {/* Session state */}
-            <div
-              className="px-4 py-4 space-y-3"
-              style={{
-                borderTop: "1px solid #f1f5f9",
-                background: "#f8fafc",
-              }}
-            >
-              <p
-                className="text-[10px] font-bold tracking-widest uppercase"
-                style={{ color: "#94a3b8" }}
-              >
-                Session State
-              </p>
-              <div>
-                <label className="text-[10px] font-semibold text-slate-500 block mb-1">
-                  CURRENT
-                </label>
-                <input
-                  type="text"
-                  value={currentState}
-                  onChange={(e) => setCurrentState(e.target.value)}
-                  placeholder="지금 뭐 하고 있나요?"
-                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-slate-400 transition-colors"
-                />
+            {/* ── Prompts tab ── */}
+            {tab === "prompts" && (
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <div className="flex-1 overflow-y-auto py-2">
+                  {PROMPTS.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => { setActivePrompt({ label: item.label, prompt: item.prompt }); setShowSave(false); }}
+                      className="w-full flex items-start gap-3 px-4 py-3 hover:bg-slate-50 active:bg-slate-100 transition-colors text-left group cursor-pointer"
+                    >
+                      <item.icon className="mt-0.5 shrink-0" style={{ width: 15, height: 15, color: item.color }} />
+                      <div>
+                        <p className="text-xs font-semibold text-slate-700">{item.label}</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">{item.description}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Session state */}
+                <div className="px-4 py-4 space-y-3" style={{ borderTop: "1px solid #f1f5f9", background: "#f8fafc" }}>
+                  <p className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "#94a3b8" }}>Session State</p>
+                  <div>
+                    <label className="text-[10px] font-semibold text-slate-500 block mb-1">CURRENT</label>
+                    <input
+                      type="text"
+                      value={currentState}
+                      onChange={(e) => setCurrentState(e.target.value)}
+                      placeholder="지금 뭐 하고 있나요?"
+                      className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-slate-400 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold text-slate-500 block mb-1">NEXT</label>
+                    <input
+                      type="text"
+                      value={nextState}
+                      onChange={(e) => setNextState(e.target.value)}
+                      placeholder="다음 단계는?"
+                      className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-slate-400 transition-colors"
+                    />
+                  </div>
+                </div>
               </div>
-              <div>
-                <label className="text-[10px] font-semibold text-slate-500 block mb-1">
-                  NEXT
-                </label>
-                <input
-                  type="text"
-                  value={nextState}
-                  onChange={(e) => setNextState(e.target.value)}
-                  placeholder="다음 단계는?"
-                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-slate-400 transition-colors"
-                />
+            )}
+
+            {/* ── Workspace tab ── */}
+            {tab === "workspace" && (
+              <div className="flex-1 flex flex-col overflow-hidden">
+                {/* Project selector */}
+                <div className="px-3 py-3" style={{ borderBottom: "1px solid #f1f5f9" }}>
+                  {projects.length === 0 ? (
+                    <div className="text-center py-2">
+                      <p className="text-[11px] text-slate-400 mb-2">프로젝트가 없습니다</p>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <button
+                        onClick={() => setProjectMenuOpen((v) => !v)}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-slate-50 transition-colors text-left"
+                        style={{ border: "1px solid #e2e8f0" }}
+                      >
+                        <FolderOpen style={{ width: 13, height: 13, color: "#f59e0b", flexShrink: 0 }} />
+                        <span className="flex-1 text-xs font-semibold text-slate-700 truncate">
+                          {activeProject?.name ?? "프로젝트 선택"}
+                        </span>
+                        <ChevronDown style={{ width: 12, height: 12, color: "#94a3b8" }} />
+                      </button>
+                      {projectMenuOpen && (
+                        <div
+                          className="absolute left-0 right-0 top-full mt-1 rounded-xl overflow-hidden z-10"
+                          style={{ background: "#fff", border: "1px solid #e2e8f0", boxShadow: "0 8px 24px rgba(0,0,0,0.1)" }}
+                        >
+                          {projects.map((p) => (
+                            <div key={p.id} className="flex items-center group">
+                              <button
+                                onClick={() => handleSwitchProject(p.id)}
+                                className="flex-1 text-left px-3 py-2 text-xs hover:bg-slate-50 transition-colors"
+                                style={{ color: p.id === activeProjectId ? "#0f172a" : "#64748b", fontWeight: p.id === activeProjectId ? 700 : 400 }}
+                              >
+                                {p.name}
+                              </button>
+                              <button
+                                onClick={() => { if (confirm(`"${p.name}" 프로젝트를 삭제할까요?`)) { ws.deleteProject(p.id); refreshWorkspace(); setProjectMenuOpen(false); } }}
+                                className="p-2 opacity-0 group-hover:opacity-100 hover:text-red-500 text-slate-300 transition-all"
+                              >
+                                <Trash2 style={{ width: 11, height: 11 }} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* New project */}
+                  {creatingProject ? (
+                    <div className="flex gap-1.5 mt-2">
+                      <input
+                        autoFocus
+                        type="text"
+                        value={newProjectName}
+                        onChange={(e) => setNewProjectName(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter") handleCreateProject(); if (e.key === "Escape") setCreatingProject(false); }}
+                        placeholder="프로젝트 이름..."
+                        className="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-slate-400"
+                      />
+                      <button
+                        onClick={handleCreateProject}
+                        className="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                        style={{ background: "#0f172a", color: "#fff" }}
+                      >
+                        생성
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => { setCreatingProject(true); setProjectMenuOpen(false); }}
+                      className="mt-2 w-full flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-semibold text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-colors"
+                    >
+                      <Plus style={{ width: 12, height: 12 }} />
+                      새 프로젝트
+                    </button>
+                  )}
+                </div>
+
+                {/* Folder tree */}
+                <div className="flex-1 overflow-y-auto py-2">
+                  {activeProjectId ? (
+                    <WorkspaceView
+                      projectId={activeProjectId}
+                      onOpenFile={(f) => setViewFile(f)}
+                      onNewFile={(folderId, folderName) => {
+                        setSaveModalOpen(true);
+                      }}
+                      refresh={wsRefresh}
+                      onRefresh={refreshWorkspace}
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-12 px-4 gap-2 text-center">
+                      <FolderOpen style={{ width: 28, height: 28, color: "#cbd5e1" }} />
+                      <p className="text-[11px] text-slate-400">프로젝트를 만들면<br />폴더 구조가 자동 생성됩니다</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Save button */}
+                {activeProjectId && (
+                  <div className="px-3 py-3" style={{ borderTop: "1px solid #f1f5f9" }}>
+                    <button
+                      onClick={() => setSaveModalOpen(true)}
+                      className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-semibold transition-all"
+                      style={{ background: "#f8fafc", border: "1px solid #e2e8f0", color: "#64748b" }}
+                    >
+                      <Save style={{ width: 13, height: 13 }} />
+                      결과 저장
+                    </button>
+                  </div>
+                )}
               </div>
-            </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Prompt Modal */}
+      {/* ── Prompt Modal ────────────────────────────────── */}
       <AnimatePresence>
         {activePrompt && (
           <>
@@ -351,52 +492,36 @@ export function Sidecar() {
               transition={{ duration: 0.15 }}
               className="fixed inset-0 z-[99998]"
               style={{ background: "rgba(15,23,42,0.2)", backdropFilter: "blur(4px)" }}
-              onClick={() => setActivePrompt(null)}
+              onClick={() => { setActivePrompt(null); setShowSave(false); }}
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 6 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 6 }}
               transition={{ type: "spring", bounce: 0.15, duration: 0.25 }}
-              className="fixed inset-0 flex items-center justify-center z-[99999] px-6"
-              style={{ paddingRight: 72 }}
+              className="fixed inset-0 flex items-center justify-center z-[99999]"
+              style={{ paddingRight: 68, paddingLeft: 24 }}
             >
               <div
                 className="w-full max-w-md overflow-hidden"
-                style={{
-                  background: "#fff",
-                  border: "1px solid #e2e8f0",
-                  borderRadius: 20,
-                  boxShadow: "0 20px 60px rgba(0,0,0,0.12)",
-                }}
+                style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 20, boxShadow: "0 20px 60px rgba(0,0,0,0.12)" }}
               >
-                {/* Modal header */}
-                <div
-                  className="flex items-center justify-between px-5 py-4"
-                  style={{ borderBottom: "1px solid #f1f5f9" }}
-                >
-                  <p className="text-sm font-bold text-slate-800">
-                    {activePrompt.label}
-                  </p>
-                  <button
-                    onClick={() => setActivePrompt(null)}
-                    className="text-slate-400 hover:text-slate-700 transition-colors"
-                  >
-                    <X className="w-4 h-4" />
+                {/* Header */}
+                <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid #f1f5f9" }}>
+                  <p className="text-sm font-bold text-slate-800">{activePrompt.label}</p>
+                  <button onClick={() => { setActivePrompt(null); setShowSave(false); }} className="text-slate-400 hover:text-slate-700 transition-colors">
+                    <X style={{ width: 16, height: 16 }} />
                   </button>
                 </div>
 
                 {/* Prompt text */}
-                <div
-                  className="px-5 py-4 max-h-64 overflow-y-auto"
-                  style={{ background: "#f8fafc" }}
-                >
+                <div className="px-5 py-4 max-h-56 overflow-y-auto" style={{ background: "#f8fafc" }}>
                   <pre className="text-xs text-slate-600 whitespace-pre-wrap font-mono leading-relaxed">
                     {activePrompt.prompt}
                   </pre>
                 </div>
 
-                {/* Copy button */}
+                {/* Actions */}
                 <div className="px-5 py-4" style={{ borderTop: "1px solid #f1f5f9" }}>
                   <p className="text-[10px] text-slate-400 mb-3">
                     이 프롬프트를 복사해서 ChatGPT나 Claude에 붙여넣으세요.
@@ -410,24 +535,49 @@ export function Sidecar() {
                       border: copied ? "1px solid #bbf7d0" : "none",
                     }}
                   >
-                    {copied ? (
-                      <>
-                        <Check className="w-4 h-4" />
-                        복사됨!
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-4 h-4" />
-                        Copy Prompt
-                      </>
-                    )}
+                    {copied ? <><Check style={{ width: 15, height: 15 }} /> 복사됨!</> : <><Copy style={{ width: 15, height: 15 }} /> Copy Prompt</>}
                   </button>
+
+                  {/* Save result button — appears after copy */}
+                  <AnimatePresence>
+                    {showSave && (
+                      <motion.button
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        onClick={() => { setSaveModalOpen(true); }}
+                        className="mt-2 w-full py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all"
+                        style={{ background: "#f8fafc", border: "1px solid #e2e8f0", color: "#64748b" }}
+                      >
+                        <Save style={{ width: 15, height: 15 }} />
+                        AI 응답 저장하기
+                      </motion.button>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
             </motion.div>
           </>
         )}
       </AnimatePresence>
+
+      {/* ── Save Result Modal ───────────────────────────── */}
+      <SaveResultModal
+        open={saveModalOpen}
+        projectId={activeProjectId}
+        defaultTitle={activePrompt ? `${activePrompt.label} — ${new Date().toLocaleDateString("ko-KR")}` : ""}
+        defaultType="summary"
+        onClose={() => setSaveModalOpen(false)}
+        onSaved={() => { refreshWorkspace(); setTab("workspace"); setPanelOpen(true); }}
+      />
+
+      {/* ── File View Modal ─────────────────────────────── */}
+      <FileViewModal
+        file={viewFile}
+        onClose={() => setViewFile(null)}
+        onRefresh={refreshWorkspace}
+      />
     </>
   );
 }

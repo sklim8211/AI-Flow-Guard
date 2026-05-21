@@ -1,0 +1,278 @@
+좋습니다.
+지금 필요한 건:
+
+“2차 확장 프롬프트”
+
+입니다.
+
+즉 이미 만든:
+
+Quiet Question Sidecar UI
+
+위에,
+
+“프로젝트/폴더/저장 구조”
+
+를 추가하는 프롬프트.
+
+⸻
+
+그리고 중요한 건:
+이건 단순 기능 추가가 아니라:
+
+서비스의 기억 구조 추가
+
+라는 점입니다.
+
+즉 이제 리플릿에게는:
+
+이 서비스는 단순 popup utility가 아니다.
+AI 작업 흐름과 저장 구조를 함께 관리한다.
+
+를 이해시켜야 합니다.
+
+⸻
+
+그래서 아래 프롬프트는:
+
+“Workspace Expansion Prompt”
+
+입니다.
+
+즉:
+기존 popup 위에:
+
+* 프로젝트 생성
+* 폴더 구조
+* 파일 저장
+* 코드 저장
+* 서브폴더 관리
+
+를 추가하게 만드는 용도입니다.
+
+⸻
+
+The app now needs to evolve from a simple popup utility into a lightweight AI workflow workspace.
+
+IMPORTANT:
+Do NOT turn this into a large enterprise SaaS tool.
+
+The system should still feel:
+
+* lightweight
+* calm
+* local-first
+* minimal
+* personal
+* fast
+* non-intrusive
+
+Think:
+“A small AI work memory system.”
+
+NOT:
+“Complex project management software.”
+
+⸻
+
+NEW CORE DIRECTION
+
+The product should now support:
+
+* project creation
+* folder structure
+* AI summary storage
+* code storage
+* anchor archive
+* lightweight file organization
+* fast context resume
+
+The goal is:
+
+Help users preserve long-term AI work context.
+
+⸻
+
+PROJECT STRUCTURE
+
+When a new project is created:
+
+Automatically generate a lightweight folder structure.
+
+Example:
+
+/ProjectName
+/CURRENT
+/NEXT
+/ANCHORS
+/SUMMARIES
+/PROMPTS
+/CODE
+/SAFE
+/TEMP
+
+This structure should be visible inside the UI.
+
+⸻
+
+FILE TYPES
+
+The system should support saving:
+
+* AI summaries
+* markdown notes
+* prompt results
+* code snippets
+* anchor notes
+* temporary notes
+
+Prefer:
+
+* markdown-style storage
+* lightweight text files
+* local-first structure
+
+No heavy database required yet.
+
+⸻
+
+REQUIRED USER ACTIONS
+
+The user should be able to:
+
+* create projects
+* create folders
+* create subfolders
+* rename folders
+* move files
+* delete files
+* delete folders
+* save AI outputs
+* save code snippets
+* reopen saved summaries quickly
+
+⸻
+
+VERY IMPORTANT
+
+Do NOT create a complicated file explorer.
+
+The feeling should remain:
+
+* simple
+* elegant
+* quiet
+* lightweight
+
+Think:
+
+* Obsidian vault feeling
+* small local workspace
+* AI memory archive
+
+NOT:
+
+* Google Drive
+* enterprise cloud storage
+* complex IDE
+
+⸻
+
+CONNECTION TO THE SIDECAR
+
+The floating sidecar popup still remains the primary interaction tool.
+
+Example flow:
+
+1. User clicks:
+    “Resume Work”
+2. Prompt is copied.
+3. User pastes into ChatGPT.
+4. AI generates structured summary.
+5. User clicks:
+    “Save Result”
+6. Result is stored inside:
+    /SUMMARIES
+    or
+    /CURRENT
+
+This workflow is the heart of the system.
+
+⸻
+
+CODE STORAGE
+
+The workspace should also support:
+
+* saving code snippets
+* organizing coding files
+* storing implementation notes
+
+Inside:
+
+/CODE
+
+Users should also be able to create subfolders such as:
+
+/CODE/frontend
+/CODE/backend
+/CODE/ui
+/CODE/archive
+
+⸻
+
+LOCAL-FIRST DIRECTION
+
+Prioritize:
+
+* local persistence
+* lightweight storage
+* fast reopening
+* minimal friction
+
+Avoid requiring:
+
+* accounts
+* cloud sync
+* heavy backend
+* authentication systems
+
+at this stage.
+
+⸻
+
+UI DIRECTION
+
+The workspace UI should still feel:
+
+* compact
+* elegant
+* calm
+* Apple-like
+* minimal
+
+Avoid:
+
+* large dashboards
+* noisy interfaces
+* complicated layouts
+
+The sidecar popup should remain small and focused.
+
+The workspace area should feel secondary and lightweight.
+
+⸻
+
+GOAL
+
+The final feeling should be:
+
+“A quiet AI workflow companion with lightweight memory and file structure.”
+
+The user should feel:
+
+* organized
+* calm
+* able to resume work instantly
+* able to preserve long AI conversations
+* able to store code and summaries naturally
