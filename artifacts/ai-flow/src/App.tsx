@@ -13,7 +13,7 @@ function Home() {
     <div className="min-h-[100dvh] w-full flex items-center justify-center bg-zinc-950 text-white selection:bg-zinc-800">
       <div className="text-center opacity-40">
         <h1 className="text-sm font-medium tracking-wide uppercase">Quiet Question Sidecar</h1>
-        <p className="mt-2 text-xs">Look in the bottom right corner.</p>
+        <p className="mt-2 text-xs">Select a prompt from the panel on the right.</p>
       </div>
     </div>
   );

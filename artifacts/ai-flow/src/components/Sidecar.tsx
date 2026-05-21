@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles,
@@ -8,9 +8,9 @@ import {
   Minimize2,
   Anchor,
   X,
-  Copy
+  Copy,
+  Check,
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 
 const PROMPTS = [
   {
@@ -27,7 +27,7 @@ NEXT: [the most important next step]
 ISSUE: [any blockers or open questions]
 KEYWORDS: [3-5 searchable keywords]
 
-Keep it short, structured, and easy to paste at the start of a new session.`
+Keep it short, structured, and easy to paste at the start of a new session.`,
   },
   {
     id: "summary",
@@ -43,7 +43,7 @@ DECISIONS: [important decisions we made]
 ARTIFACTS: [files, links, or outputs created]
 NOTES: [anything worth remembering]
 
-Keep it concise and saveable.`
+Keep it concise and saveable.`,
   },
   {
     id: "anchors",
@@ -61,7 +61,7 @@ ANCHORS:
 TURNING POINT: [the single most important shift in this session]
 CORE INSIGHT: [the key idea we landed on]
 
-Keep it minimal and high-signal.`
+Keep it minimal and high-signal.`,
   },
   {
     id: "compress",
@@ -75,7 +75,7 @@ STATE: [exactly where we are right now]
 CONSTRAINTS: [any important limits or requirements]
 NEXT: [first action to take]
 
-Make it dense and paste-ready.`
+Make it dense and paste-ready.`,
   },
   {
     id: "next",
@@ -90,19 +90,24 @@ THIS WEEK: [1-2 bigger goals for this week]
 BLOCKERS: [anything that needs to be resolved first]
 NOTES: [any helpful context for these actions]
 
-Keep it action-oriented and specific.`
-  }
+Keep it action-oriented and specific.`,
+  },
 ];
 
 export function Sidecar() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [activePrompt, setActivePrompt] = useState<{ label: string; prompt: string } | null>(null);
-  
-  const [currentState, setCurrentState] = useState(() => localStorage.getItem("sidecar_current") || "");
-  const [nextState, setNextState] = useState(() => localStorage.getItem("sidecar_next") || "");
-  
-  const { toast } = useToast();
-  
+  const [activePrompt, setActivePrompt] = useState<{
+    label: string;
+    prompt: string;
+  } | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const [currentState, setCurrentState] = useState(
+    () => localStorage.getItem("sidecar_current") || ""
+  );
+  const [nextState, setNextState] = useState(
+    () => localStorage.getItem("sidecar_next") || ""
+  );
+
   useEffect(() => {
     localStorage.setItem("sidecar_current", currentState);
   }, [currentState]);
@@ -111,154 +116,191 @@ export function Sidecar() {
     localStorage.setItem("sidecar_next", nextState);
   }, [nextState]);
 
-  // Handle escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        if (activePrompt) setActivePrompt(null);
-        else setIsOpen(false);
-      }
+      if (e.key === "Escape") setActivePrompt(null);
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activePrompt]);
+  }, []);
 
-  const handleCopy = async () => {
+  const handleCopy = () => {
     if (!activePrompt) return;
-    try {
-      await navigator.clipboard.writeText(activePrompt.prompt);
-      toast({
-        description: "Prompt copied to clipboard",
-        duration: 2000,
+    navigator.clipboard
+      .writeText(activePrompt.prompt)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => {
+          setCopied(false);
+          setActivePrompt(null);
+        }, 1200);
+      })
+      .catch(() => {
+        const el = document.createElement("textarea");
+        el.value = activePrompt.prompt;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand("copy");
+        document.body.removeChild(el);
+        setCopied(true);
+        setTimeout(() => {
+          setCopied(false);
+          setActivePrompt(null);
+        }, 1200);
       });
-      setActivePrompt(null);
-      setIsOpen(false);
-    } catch (err) {
-      toast({
-        variant: "destructive",
-        description: "Failed to copy prompt"
-      });
-    }
   };
 
   return (
     <>
-      <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-3">
-        {/* Status Hint */}
-        <AnimatePresence>
-          {!isOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 6 }}
-              transition={{ duration: 0.2 }}
-              className="text-xs text-zinc-400 font-medium tracking-wide mr-2 flex items-center gap-1.5"
-            >
-              <span>Ready to Resume</span>
-              <div className="w-1 h-1 rounded-full bg-blue-400/80 animate-pulse" />
-            </motion.div>
-          )}
-        </AnimatePresence>
+      {/* Always-visible side panel */}
+      <div className="fixed top-0 right-0 h-full w-[260px] bg-zinc-950 border-l border-zinc-800/60 flex flex-col z-[9999]">
+        {/* Header */}
+        <div className="flex items-center gap-2.5 px-4 py-4 border-b border-zinc-800/60">
+          <div className="w-6 h-6 rounded-lg bg-zinc-800 flex items-center justify-center">
+            <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-zinc-200 tracking-wide">
+              QQ Sidecar
+            </p>
+            <p className="text-[10px] text-zinc-600">AI Flow Companion</p>
+          </div>
+          <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-500/70 animate-pulse" />
+        </div>
 
-        {/* Floating Trigger */}
-        <motion.button
-          onClick={() => setIsOpen(!isOpen)}
-          className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 shadow-2xl flex items-center justify-center text-zinc-300 hover:text-white hover:border-zinc-700 transition-colors focus:outline-none"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <Sparkles className="w-5 h-5" />
-        </motion.button>
+        {/* Prompt Buttons */}
+        <div className="flex-1 overflow-y-auto py-2">
+          <p className="px-4 pt-2 pb-1 text-[10px] font-bold text-zinc-600 tracking-widest uppercase">
+            Prompts
+          </p>
+          {PROMPTS.map((item) => (
+            <button
+              key={item.id}
+              data-testid={`prompt-${item.id}`}
+              onClick={() =>
+                setActivePrompt({ label: item.label, prompt: item.prompt })
+              }
+              className="w-full flex items-start gap-3 px-4 py-3 hover:bg-zinc-900 transition-colors text-left group"
+            >
+              <item.icon className="w-4 h-4 mt-0.5 text-zinc-500 group-hover:text-blue-400 transition-colors shrink-0" />
+              <div>
+                <p className="text-xs font-medium text-zinc-300 group-hover:text-white transition-colors">
+                  {item.label}
+                </p>
+                <p className="text-[10px] text-zinc-600 mt-0.5">
+                  {item.description}
+                </p>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {/* State Fields */}
+        <div className="border-t border-zinc-800/60 px-4 py-4 space-y-4">
+          <p className="text-[10px] font-bold text-zinc-600 tracking-widest uppercase -mb-2">
+            Session State
+          </p>
+          <div>
+            <label className="text-[10px] font-semibold text-zinc-500 tracking-wider block mb-1">
+              CURRENT
+            </label>
+            <input
+              type="text"
+              value={currentState}
+              onChange={(e) => setCurrentState(e.target.value)}
+              placeholder="What are we doing?"
+              className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs text-zinc-300 placeholder:text-zinc-700 focus:outline-none focus:border-zinc-700 transition-colors"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-semibold text-zinc-500 tracking-wider block mb-1">
+              NEXT
+            </label>
+            <input
+              type="text"
+              value={nextState}
+              onChange={(e) => setNextState(e.target.value)}
+              placeholder="What's the next step?"
+              className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs text-zinc-300 placeholder:text-zinc-700 focus:outline-none focus:border-zinc-700 transition-colors"
+            />
+          </div>
+        </div>
       </div>
 
-      {/* Main Popup */}
-      <AnimatePresence>
-        {isOpen && !activePrompt && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.96, y: 12 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 12 }}
-            transition={{ type: "spring", bounce: 0.15, duration: 0.3 }}
-            className="fixed bottom-24 right-6 z-[9999] w-[280px] bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
-          >
-            <div className="p-2 space-y-1">
-              {PROMPTS.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => setActivePrompt({ label: item.label, prompt: item.prompt })}
-                  className="w-full flex flex-col items-start gap-0.5 p-3 rounded-xl hover:bg-white/5 transition-colors group text-left"
-                >
-                  <div className="flex items-center gap-2.5 text-zinc-200 group-hover:text-blue-400 transition-colors">
-                    <item.icon className="w-4 h-4" />
-                    <span className="text-sm font-medium">{item.label}</span>
-                  </div>
-                  <span className="text-xs text-zinc-500 pl-6">{item.description}</span>
-                </button>
-              ))}
-            </div>
-
-            <div className="border-t border-zinc-800 bg-zinc-950/50 p-4 space-y-3">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-zinc-500 tracking-wider">CURRENT</label>
-                <input
-                  type="text"
-                  value={currentState}
-                  onChange={(e) => setCurrentState(e.target.value)}
-                  placeholder="What are we doing?"
-                  className="w-full bg-transparent border-none text-xs text-zinc-300 placeholder:text-zinc-700 focus:outline-none focus:ring-0"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-zinc-500 tracking-wider">NEXT</label>
-                <input
-                  type="text"
-                  value={nextState}
-                  onChange={(e) => setNextState(e.target.value)}
-                  placeholder="What's the next step?"
-                  className="w-full bg-transparent border-none text-xs text-zinc-300 placeholder:text-zinc-700 focus:outline-none focus:ring-0"
-                />
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Prompt Modal */}
+      {/* Prompt Modal Overlay */}
       <AnimatePresence>
         {activePrompt && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.96, y: 12 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 12 }}
-            transition={{ type: "spring", bounce: 0.15, duration: 0.3 }}
-            className="fixed bottom-24 right-6 z-[9999] w-[320px] bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
-          >
-            <div className="flex items-center justify-between p-4 border-b border-zinc-800">
-              <span className="text-sm font-medium text-zinc-200">{activePrompt.label}</span>
-              <button
-                onClick={() => setActivePrompt(null)}
-                className="text-zinc-500 hover:text-zinc-300 transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            
-            <div className="p-4 bg-zinc-950/50 max-h-[300px] overflow-y-auto">
-              <pre className="text-xs text-zinc-400 whitespace-pre-wrap font-mono leading-relaxed">
-                {activePrompt.prompt}
-              </pre>
-            </div>
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="fixed inset-0 bg-black/50 z-[99998]"
+              onClick={() => setActivePrompt(null)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 8 }}
+              transition={{ type: "spring", bounce: 0.15, duration: 0.25 }}
+              className="fixed inset-0 flex items-center justify-center z-[99999] px-6"
+            >
+              <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden">
+                {/* Modal Header */}
+                <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
+                  <p className="text-sm font-semibold text-zinc-200">
+                    {activePrompt.label}
+                  </p>
+                  <button
+                    onClick={() => setActivePrompt(null)}
+                    className="text-zinc-600 hover:text-zinc-300 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
 
-            <div className="p-4 border-t border-zinc-800">
-              <button
-                onClick={handleCopy}
-                className="w-full py-2.5 px-4 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-colors"
-              >
-                <Copy className="w-4 h-4" />
-                Copy Prompt
-              </button>
-            </div>
-          </motion.div>
+                {/* Prompt Text */}
+                <div className="px-5 py-4 bg-zinc-950/60 max-h-64 overflow-y-auto">
+                  <pre className="text-xs text-zinc-400 whitespace-pre-wrap font-mono leading-relaxed">
+                    {activePrompt.prompt}
+                  </pre>
+                </div>
+
+                {/* Copy Button */}
+                <div className="px-5 py-4 border-t border-zinc-800">
+                  <p className="text-[10px] text-zinc-600 mb-3">
+                    Copy and paste this into ChatGPT, Claude, or any AI.
+                  </p>
+                  <button
+                    onClick={handleCopy}
+                    className="w-full py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-all"
+                    style={{
+                      background: copied
+                        ? "rgba(34,197,94,0.15)"
+                        : "rgba(59,130,246,0.12)",
+                      color: copied ? "rgb(134,239,172)" : "rgb(147,197,253)",
+                      border: copied
+                        ? "1px solid rgba(34,197,94,0.2)"
+                        : "1px solid rgba(59,130,246,0.2)",
+                    }}
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-4 h-4" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4" />
+                        Copy Prompt
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </>
