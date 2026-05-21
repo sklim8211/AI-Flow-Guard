@@ -19,6 +19,7 @@ import {
   HardDrive,
   Unplug,
   Link,
+  PanelRight,
 } from "lucide-react";
 import { ws } from "../lib/workspace";
 import { fsAccess } from "../lib/fsAccess";
@@ -263,11 +264,31 @@ export function Sidecar() {
 
   const activeProject = projects.find((p) => p.id === activeProjectId) ?? null;
 
+  // ── Side panel mode (narrow window / popup) ─────────────
+  const [isSidePanel, setIsSidePanel] = useState(() => window.innerWidth <= 440);
+
+  useEffect(() => {
+    const check = () => setIsSidePanel(window.innerWidth <= 440);
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  const openAsSidePanel = () => {
+    const w = 380;
+    const h = window.screen.availHeight;
+    const left = window.screen.availWidth - w;
+    window.open(
+      window.location.href,
+      "qq_sidecar",
+      `width=${w},height=${h},left=${left},top=0,resizable=yes`
+    );
+  };
+
   return (
     <>
       {/* ── Narrow icon sidebar ─────────────────────────── */}
       <div
-        className="fixed top-0 right-0 h-full flex flex-col items-center py-4 gap-1 z-[9999]"
+        className={`fixed top-0 h-full flex flex-col items-center py-4 gap-1 z-[9999] ${isSidePanel ? "right-0" : "right-0"}`}
         style={{
           width: 52,
           background: "rgba(255,255,255,0.96)",
@@ -328,30 +349,55 @@ export function Sidecar() {
             <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>프로젝트 & 파일</span>
           </span>
         </button>
+
+        {/* Open as Side Panel — only in normal (wide) mode */}
+        {!isSidePanel && (
+          <>
+            <div style={{ width: 20, height: 1, background: "#e2e8f0", margin: "6px 0 2px" }} />
+            <button
+              onClick={openAsSidePanel}
+              className="relative group w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+              style={{ color: "#94a3b8" }}
+            >
+              <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: "#f1f5f9" }} />
+              <PanelRight className="relative z-10" style={{ width: 15, height: 15 }} />
+              <span className="tooltip-left">
+                <span className="block font-semibold">사이드 패널로 열기</span>
+                <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>화면 옆에 고정 창으로</span>
+              </span>
+            </button>
+          </>
+        )}
       </div>
 
       {/* ── Expandable panel ────────────────────────────── */}
       <AnimatePresence>
-        {panelOpen && (
+        {(panelOpen || isSidePanel) && (
           <motion.div
-            initial={{ x: 260, opacity: 0 }}
+            initial={isSidePanel ? false : { x: 260, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
-            exit={{ x: 260, opacity: 0 }}
+            exit={isSidePanel ? {} : { x: 260, opacity: 0 }}
             transition={{ type: "spring", bounce: 0.08, duration: 0.28 }}
-            className="fixed top-0 right-[52px] h-full flex flex-col z-[9998]"
+            className={isSidePanel
+              ? "fixed top-0 left-0 right-[52px] h-full flex flex-col z-[9998]"
+              : "fixed top-0 right-[52px] h-full flex flex-col z-[9998]"
+            }
             style={{
-              width: 248,
+              width: isSidePanel ? undefined : 248,
               background: "rgba(255,255,255,0.98)",
-              borderLeft: "1px solid #e2e8f0",
-              boxShadow: "-4px 0 24px rgba(0,0,0,0.07)",
+              borderLeft: isSidePanel ? "none" : "1px solid #e2e8f0",
+              borderRight: isSidePanel ? "1px solid #e2e8f0" : "none",
+              boxShadow: isSidePanel ? "none" : "-4px 0 24px rgba(0,0,0,0.07)",
             }}
           >
             {/* Panel header */}
             <div className="flex items-center justify-between px-4 py-3.5" style={{ borderBottom: "1px solid #f1f5f9" }}>
               <p className="text-xs font-bold text-slate-700">QQ Sidecar</p>
-              <button onClick={() => setPanelOpen(false)} className="text-slate-400 hover:text-slate-700 transition-colors">
-                <ChevronRight style={{ width: 15, height: 15 }} />
-              </button>
+              {!isSidePanel && (
+                <button onClick={() => setPanelOpen(false)} className="text-slate-400 hover:text-slate-700 transition-colors">
+                  <ChevronRight style={{ width: 15, height: 15 }} />
+                </button>
+              )}
             </div>
 
             {/* Tabs */}
