@@ -22,6 +22,9 @@ import {
   PanelRight,
   LifeBuoy,
   RotateCcw,
+  Siren,
+  Download,
+  ArrowRight,
 } from "lucide-react";
 import { ws } from "../lib/workspace";
 import { fsAccess } from "../lib/fsAccess";
@@ -227,6 +230,18 @@ export function Sidecar() {
   const [rootFolderName, setRootFolderName] = useState<string | null>(null);
   const [fsConnecting, setFsConnecting] = useState(false);
 
+  // PWA install
+  const [installEvent, setInstallEvent] = useState<{ prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> } | null>(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  // SOS recovery mode
+  const [showSOS, setShowSOS] = useState(false);
+
+  // Onboarding (first-visit only)
+  const [showOnboarding, setShowOnboarding] = useState(
+    () => !localStorage.getItem("qq_onboarded")
+  );
+
   // Restore FS handle on mount
   useEffect(() => {
     fsAccess.hasRoot().then(async (has) => {
@@ -283,13 +298,65 @@ export function Sidecar() {
       if (e.key === "Escape") {
         if (viewFile) { setViewFile(null); return; }
         if (saveModalOpen) { setSaveModalOpen(false); return; }
+        if (showSOS) { setShowSOS(false); return; }
+        if (showOnboarding) { return; } // onboarding must be dismissed via button
         if (activePrompt) { setActivePrompt(null); return; }
         setPanelOpen(false);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activePrompt, saveModalOpen, viewFile]);
+  }, [activePrompt, saveModalOpen, viewFile, showSOS, showOnboarding]);
+
+  // PWA install detection
+  useEffect(() => {
+    const standalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      // iOS Safari
+      (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+    if (standalone) setIsInstalled(true);
+
+    const onBeforeInstall = (e: Event) => {
+      e.preventDefault();
+      setInstallEvent(e as unknown as typeof installEvent);
+    };
+    const onInstalled = () => {
+      setIsInstalled(true);
+      setInstallEvent(null);
+    };
+    window.addEventListener("beforeinstallprompt", onBeforeInstall);
+    window.addEventListener("appinstalled", onInstalled);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", onBeforeInstall);
+      window.removeEventListener("appinstalled", onInstalled);
+    };
+  }, []);
+
+  const handleInstallApp = async () => {
+    if (!installEvent) return;
+    try {
+      await installEvent.prompt();
+      const result = await installEvent.userChoice;
+      if (result.outcome === "accepted") setIsInstalled(true);
+      setInstallEvent(null);
+    } catch {
+      // user dismissed or browser rejected
+    }
+  };
+
+  const dismissOnboarding = () => {
+    localStorage.setItem("qq_onboarded", "1");
+    setShowOnboarding(false);
+  };
+
+  const openPromptFromSOS = (promptId: string) => {
+    const p = PROMPTS.find((x) => x.id === promptId);
+    if (!p) return;
+    setActivePrompt({ label: p.label, prompt: p.prompt });
+    setShowSave(false);
+    setShowSOS(false);
+    setPanelOpen(true);
+  };
 
   const handleCopy = () => {
     if (!activePrompt) return;
@@ -424,6 +491,22 @@ export function Sidecar() {
 
         <div style={{ width: 20, height: 1, background: "#e2e8f0", margin: "6px 0 2px" }} />
 
+        {/* SOS Recovery icon — prominent red */}
+        <button
+          onClick={() => setShowSOS(true)}
+          className="relative group w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+          style={{ color: "#dc2626" }}
+        >
+          <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: "#fee2e2" }} />
+          <Siren className="relative z-10" style={{ width: 18, height: 18 }} />
+          <span className="tooltip-left">
+            <span className="block font-semibold">SOS 복구 모드</span>
+            <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>AI가 이상해졌을 때</span>
+          </span>
+        </button>
+
+        <div style={{ width: 20, height: 1, background: "#e2e8f0", margin: "6px 0 2px" }} />
+
         {/* Workspace icon */}
         <button
           onClick={() => { setPanelOpen(true); setTab("workspace"); }}
@@ -437,6 +520,24 @@ export function Sidecar() {
             <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>프로젝트 & 파일</span>
           </span>
         </button>
+
+        {/* Install as app — only when installable and not already installed */}
+        {installEvent && !isInstalled && (
+          <>
+            <div style={{ width: 20, height: 1, background: "#e2e8f0", margin: "6px 0 2px" }} />
+            <button
+              onClick={handleInstallApp}
+              className="relative group w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+              style={{ color: "#0f172a", background: "#fef3c7" }}
+            >
+              <Download className="relative z-10" style={{ width: 15, height: 15 }} />
+              <span className="tooltip-left">
+                <span className="block font-semibold">앱으로 설치</span>
+                <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>바탕화면에서 바로 실행</span>
+              </span>
+            </button>
+          </>
+        )}
 
         {/* Open as Side Panel — only in normal (wide) mode */}
         {!isSidePanel && (
@@ -843,6 +944,138 @@ export function Sidecar() {
         onClose={() => setViewFile(null)}
         onRefresh={refreshWorkspace}
       />
+
+      {/* ── SOS Recovery Modal ──────────────────────────── */}
+      <AnimatePresence>
+        {showSOS && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            className="fixed inset-0 z-[10000] flex items-center justify-center p-4"
+            style={{ background: "rgba(15,23,42,0.55)", backdropFilter: "blur(4px)" }}
+            onClick={() => setShowSOS(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.96, y: 10, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.96, y: 10, opacity: 0 }}
+              transition={{ type: "spring", bounce: 0.15, duration: 0.3 }}
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-label="SOS 복구 모드"
+              className="w-full max-w-md rounded-2xl overflow-hidden"
+              style={{ background: "#fff", boxShadow: "0 24px 60px rgba(0,0,0,0.25)" }}
+            >
+              <div className="px-6 pt-6 pb-4 flex items-start gap-3" style={{ background: "linear-gradient(135deg,#fee2e2,#fff)" }}>
+                <Siren style={{ width: 28, height: 28, color: "#dc2626", flexShrink: 0, marginTop: 2 }} />
+                <div className="flex-1">
+                  <p className="text-base font-bold text-slate-800">SOS 복구 모드</p>
+                  <p className="text-xs text-slate-500 mt-1">지금 무슨 일이 벌어졌나요? 상황에 맞는 프롬프트를 열어드릴게요.</p>
+                </div>
+                <button onClick={() => setShowSOS(false)} className="text-slate-400 hover:text-slate-700 transition-colors">
+                  <X style={{ width: 16, height: 16 }} />
+                </button>
+              </div>
+
+              <div className="px-4 py-3 space-y-2">
+                {[
+                  { id: "compress", emoji: "🌀", title: "AI가 컨텍스트를 잃었어요", desc: "헛소리 시작 / 이전 대화 못 기억함. 압축본을 만들어 새 세션에 붙여넣으세요.", action: "압축 프롬프트 열기" },
+                  { id: "backup", emoji: "🛟", title: "큰 수정 전, 무서워요", desc: "지금 상태 그대로 백업 스냅샷을 받아 SAFE 폴더에 저장하세요.", action: "백업 프롬프트 열기" },
+                  { id: "restore", emoji: "↺", title: "백업으로 돌아가야 해요", desc: "이미 저장해둔 백업 파일을 AI에게 붙여넣어 컨텍스트를 복원하세요.", action: "복원 프롬프트 열기" },
+                ].map((step) => (
+                  <button
+                    key={step.id}
+                    onClick={() => openPromptFromSOS(step.id)}
+                    className="w-full text-left rounded-xl p-3 flex items-start gap-3 transition-all hover:scale-[1.01] active:scale-100"
+                    style={{ background: "#f8fafc", border: "1px solid #e2e8f0" }}
+                  >
+                    <span style={{ fontSize: 22, lineHeight: 1, marginTop: 2 }}>{step.emoji}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-slate-800">{step.title}</p>
+                      <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">{step.desc}</p>
+                      <p className="text-[11px] font-semibold mt-1.5 flex items-center gap-1" style={{ color: "#dc2626" }}>
+                        {step.action} <ArrowRight style={{ width: 11, height: 11 }} />
+                      </p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              <div className="px-6 py-3 text-[10px] text-slate-400 text-center" style={{ borderTop: "1px solid #f1f5f9" }}>
+                프롬프트를 카피해서 ChatGPT/Claude에 붙여넣으면 됩니다. 우리는 AI에 연결되지 않은 안전망입니다.
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Onboarding Card (first visit only) ──────────── */}
+      <AnimatePresence>
+        {showOnboarding && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.22 }}
+            className="fixed inset-0 z-[10001] flex items-center justify-center p-4"
+            style={{ background: "rgba(15,23,42,0.6)", backdropFilter: "blur(6px)" }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 16, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.95, y: 16, opacity: 0 }}
+              transition={{ type: "spring", bounce: 0.18, duration: 0.4 }}
+              role="dialog"
+              aria-modal="true"
+              aria-label="QQ Sidecar 환영합니다"
+              className="w-full max-w-md rounded-2xl overflow-hidden"
+              style={{ background: "#fff", boxShadow: "0 30px 70px rgba(0,0,0,0.3)" }}
+            >
+              <div className="px-7 pt-7 pb-2 flex items-start gap-3" style={{ background: "linear-gradient(135deg,#f1f5f9,#fff)" }}>
+                <Sparkles style={{ width: 24, height: 24, color: "#0f172a", flexShrink: 0, marginTop: 4 }} />
+                <div>
+                  <p className="text-lg font-bold text-slate-800">QQ Sidecar에 오신 걸 환영해요</p>
+                  <p className="text-xs text-slate-500 mt-1">30초 안에 핵심만 짚어드릴게요.</p>
+                </div>
+              </div>
+
+              <div className="px-7 py-4 space-y-3">
+                {[
+                  { n: "1", title: "이건 AI 안전망이에요", desc: "ChatGPT나 Claude로 작업할 때 컨텍스트를 잃지 않도록 도와줍니다. AI에 직접 연결되지 않아요." },
+                  { n: "2", title: "오른쪽 사이드바의 아이콘을 누르세요", desc: "프롬프트가 카피됩니다. AI 대화창에 붙여넣고, 받은 답변을 우리 앱에 다시 저장하세요." },
+                  { n: "3", title: "위기 상황엔 빨간 🚨 SOS", desc: "AI가 이상해지거나 큰 수정 전, 사이드바의 빨간 아이콘을 누르면 상황별 가이드가 열려요." },
+                ].map((s) => (
+                  <div key={s.n} className="flex items-start gap-3">
+                    <span
+                      className="flex items-center justify-center rounded-full text-xs font-bold shrink-0"
+                      style={{ width: 22, height: 22, background: "#0f172a", color: "#fff" }}
+                    >
+                      {s.n}
+                    </span>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-slate-800">{s.title}</p>
+                      <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">{s.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="px-7 py-4" style={{ borderTop: "1px solid #f1f5f9" }}>
+                <button
+                  onClick={dismissOnboarding}
+                  className="w-full py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all hover:opacity-90 active:scale-[0.99]"
+                  style={{ background: "#0f172a", color: "#fff" }}
+                >
+                  시작하기 <ArrowRight style={{ width: 14, height: 14 }} />
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
