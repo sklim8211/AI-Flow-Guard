@@ -420,29 +420,80 @@ export function Sidecar() {
             {/* ── Workspace tab ── */}
             {tab === "workspace" && (
               <div className="flex-1 flex flex-col overflow-hidden">
-                {/* Local folder connection bar */}
-                <div className="px-3 py-2.5 flex items-center gap-2" style={{ borderBottom: "1px solid #f1f5f9", background: rootHandle ? "#f0fdf4" : rootFolderName ? "#fffbeb" : "#f8fafc" }}>
-                  <HardDrive style={{ width: 12, height: 12, color: rootHandle ? "#16a34a" : rootFolderName ? "#d97706" : "#94a3b8", flexShrink: 0 }} />
-                  <span className="flex-1 text-[10px] font-semibold truncate" style={{ color: rootHandle ? "#15803d" : rootFolderName ? "#b45309" : "#94a3b8" }}>
-                    {rootHandle ? rootFolderName : rootFolderName ? `${rootFolderName} (재연결 필요)` : "로컬 폴더 미연결"}
-                  </span>
-                  {rootHandle ? (
-                    <button onClick={handleDisconnectFs} className="text-[10px] text-slate-400 hover:text-red-500 transition-colors flex items-center gap-0.5">
-                      <Unplug style={{ width: 10, height: 10 }} />
+                {/* ── Local folder status bar (when connected) ── */}
+                {rootHandle && (
+                  <div className="px-3 py-2 flex items-center gap-2" style={{ borderBottom: "1px solid #dcfce7", background: "#f0fdf4" }}>
+                    <HardDrive style={{ width: 11, height: 11, color: "#16a34a", flexShrink: 0 }} />
+                    <span className="flex-1 text-[10px] font-semibold text-emerald-700 truncate">
+                      📁 {rootFolderName}
+                    </span>
+                    <button
+                      onClick={handleDisconnectFs}
+                      title="연결 해제"
+                      className="text-slate-300 hover:text-red-400 transition-colors"
+                    >
+                      <Unplug style={{ width: 11, height: 11 }} />
                     </button>
-                  ) : rootFolderName ? (
-                    <button onClick={handleReconnectFs} disabled={fsConnecting} className="text-[10px] text-amber-600 hover:text-amber-800 font-semibold transition-colors">
-                      {fsConnecting ? "연결중..." : "재연결"}
+                  </div>
+                )}
+
+                {/* ── Reconnect bar (was connected, page refreshed) ── */}
+                {!rootHandle && rootFolderName && (
+                  <div className="px-3 py-2 flex items-center gap-2" style={{ borderBottom: "1px solid #fde68a", background: "#fffbeb" }}>
+                    <HardDrive style={{ width: 11, height: 11, color: "#d97706", flexShrink: 0 }} />
+                    <span className="flex-1 text-[10px] font-semibold text-amber-700 truncate">
+                      {rootFolderName}
+                    </span>
+                    <button
+                      onClick={handleReconnectFs}
+                      disabled={fsConnecting}
+                      className="text-[10px] font-bold text-amber-600 hover:text-amber-800 transition-colors disabled:opacity-50"
+                    >
+                      {fsConnecting ? "연결중…" : "재연결"}
                     </button>
-                  ) : fsAccess.isSupported() ? (
-                    <button onClick={handleConnectFs} disabled={fsConnecting} className="text-[10px] font-semibold flex items-center gap-0.5 transition-colors" style={{ color: "#3b82f6" }}>
-                      <Link style={{ width: 10, height: 10 }} />
-                      {fsConnecting ? "선택중..." : "연결"}
+                    <button onClick={handleDisconnectFs} className="text-slate-300 hover:text-red-400 transition-colors">
+                      <X style={{ width: 10, height: 10 }} />
                     </button>
-                  ) : (
-                    <span className="text-[10px] text-slate-300">Chrome 필요</span>
-                  )}
-                </div>
+                  </div>
+                )}
+
+                {/* ── Choose folder CTA (never connected) ── */}
+                {!rootHandle && !rootFolderName && (
+                  <div className="mx-3 mt-3 mb-1 rounded-xl overflow-hidden" style={{ border: "1px solid #e2e8f0" }}>
+                    {fsAccess.isSupported() ? (
+                      <button
+                        onClick={handleConnectFs}
+                        disabled={fsConnecting}
+                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 active:bg-slate-100 transition-colors text-left disabled:opacity-60"
+                      >
+                        <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "#eff6ff" }}>
+                          <HardDrive style={{ width: 15, height: 15, color: "#3b82f6" }} />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-slate-700">
+                            {fsConnecting ? "폴더 선택 중…" : "Choose Workspace Folder"}
+                          </p>
+                          <p className="text-[10px] text-slate-400 mt-0.5">
+                            로컬 폴더에 파일을 직접 저장합니다
+                          </p>
+                        </div>
+                      </button>
+                    ) : (
+                      <div className="px-4 py-3 flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "#fef3c7" }}>
+                          <HardDrive style={{ width: 15, height: 15, color: "#d97706" }} />
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-slate-600">브라우저 미지원</p>
+                          <p className="text-[10px] text-slate-400 mt-0.5 leading-relaxed">
+                            Local folder access is not supported in this browser.<br />
+                            Please use <strong>Chrome</strong> or <strong>Edge</strong>.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Project selector */}
                 <div className="px-3 py-3" style={{ borderBottom: "1px solid #f1f5f9" }}>
