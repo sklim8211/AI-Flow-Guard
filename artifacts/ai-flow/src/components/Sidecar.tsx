@@ -16,8 +16,9 @@ const PROMPTS = [
   {
     id: "resume",
     label: "Resume Work",
-    description: "Get back into flow",
+    description: "이어서 작업하기",
     icon: CheckCircle2,
+    color: "text-emerald-600",
     prompt: `Please summarize our conversation so I can resume work. Use this structure:
 
 TITLE: [short file-friendly title]
@@ -32,8 +33,9 @@ Keep it short, structured, and easy to paste at the start of a new session.`,
   {
     id: "summary",
     label: "Work Summary",
-    description: "Save session artifacts",
+    description: "세션 결과 정리",
     icon: FileText,
+    color: "text-blue-600",
     prompt: `Please create a compact work summary of what we accomplished. Use this structure:
 
 TITLE: [short descriptive title]
@@ -48,8 +50,9 @@ Keep it concise and saveable.`,
   {
     id: "anchors",
     label: "Extract Anchors",
-    description: "Find turning points",
+    description: "핵심 전환점 추출",
     icon: Anchor,
+    color: "text-violet-600",
     prompt: `Please extract the key anchor points from our conversation — the moments, decisions, and breakthroughs that shaped the direction of this work. Use this structure:
 
 ANCHORS:
@@ -65,9 +68,10 @@ Keep it minimal and high-signal.`,
   },
   {
     id: "compress",
-    label: "Compress State",
-    description: "Minimize context size",
+    label: "Compress Context",
+    description: "맥락 압축 요약",
     icon: Minimize2,
+    color: "text-orange-600",
     prompt: `Please compress everything we know so far into the smallest possible summary I can paste at the start of a new conversation. Include:
 
 CONTEXT: [project/task background in 2-3 sentences]
@@ -80,8 +84,9 @@ Make it dense and paste-ready.`,
   {
     id: "next",
     label: "Next Actions",
-    description: "Plan upcoming tasks",
+    description: "다음 할 일 목록",
     icon: ListTodo,
+    color: "text-rose-600",
     prompt: `Based on our conversation, please generate my next action list. Use this structure:
 
 IMMEDIATE: [the single next action to do right now]
@@ -100,7 +105,6 @@ export function Sidecar() {
     prompt: string;
   } | null>(null);
   const [copied, setCopied] = useState(false);
-
   const [currentState, setCurrentState] = useState(
     () => localStorage.getItem("sidecar_current") || ""
   );
@@ -130,10 +134,7 @@ export function Sidecar() {
       .writeText(activePrompt.prompt)
       .then(() => {
         setCopied(true);
-        setTimeout(() => {
-          setCopied(false);
-          setActivePrompt(null);
-        }, 1200);
+        setTimeout(() => { setCopied(false); setActivePrompt(null); }, 1200);
       })
       .catch(() => {
         const el = document.createElement("textarea");
@@ -143,51 +144,45 @@ export function Sidecar() {
         document.execCommand("copy");
         document.body.removeChild(el);
         setCopied(true);
-        setTimeout(() => {
-          setCopied(false);
-          setActivePrompt(null);
-        }, 1200);
+        setTimeout(() => { setCopied(false); setActivePrompt(null); }, 1200);
       });
   };
 
   return (
     <>
-      {/* Always-visible side panel */}
-      <div className="fixed top-0 right-0 h-full w-[260px] bg-zinc-950 border-l border-zinc-800/60 flex flex-col z-[9999]">
+      {/* Always-visible side panel — light theme */}
+      <div className="fixed top-0 right-0 h-full w-[260px] bg-white border-l border-slate-200 flex flex-col z-[9999] shadow-sm">
         {/* Header */}
-        <div className="flex items-center gap-2.5 px-4 py-4 border-b border-zinc-800/60">
-          <div className="w-6 h-6 rounded-lg bg-zinc-800 flex items-center justify-center">
-            <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
+        <div className="flex items-center gap-2.5 px-4 py-4 border-b border-slate-100">
+          <div className="w-7 h-7 rounded-xl bg-slate-100 flex items-center justify-center">
+            <Sparkles className="w-3.5 h-3.5 text-slate-500" />
           </div>
           <div>
-            <p className="text-xs font-semibold text-zinc-200 tracking-wide">
+            <p className="text-xs font-bold text-slate-700 tracking-wide">
               QQ Sidecar
             </p>
-            <p className="text-[10px] text-zinc-600">AI Flow Companion</p>
+            <p className="text-[10px] text-slate-400">AI Flow Companion</p>
           </div>
-          <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-500/70 animate-pulse" />
+          <div className="ml-auto w-2 h-2 rounded-full bg-emerald-400" />
         </div>
 
         {/* Prompt Buttons */}
         <div className="flex-1 overflow-y-auto py-2">
-          <p className="px-4 pt-2 pb-1 text-[10px] font-bold text-zinc-600 tracking-widest uppercase">
+          <p className="px-4 pt-2 pb-2 text-[10px] font-bold text-slate-400 tracking-widest uppercase">
             Prompts
           </p>
           {PROMPTS.map((item) => (
             <button
               key={item.id}
-              data-testid={`prompt-${item.id}`}
-              onClick={() =>
-                setActivePrompt({ label: item.label, prompt: item.prompt })
-              }
-              className="w-full flex items-start gap-3 px-4 py-3 hover:bg-zinc-900 transition-colors text-left group"
+              onClick={() => setActivePrompt({ label: item.label, prompt: item.prompt })}
+              className="w-full flex items-start gap-3 px-4 py-3 hover:bg-slate-50 active:bg-slate-100 transition-colors text-left group cursor-pointer"
             >
-              <item.icon className="w-4 h-4 mt-0.5 text-zinc-500 group-hover:text-blue-400 transition-colors shrink-0" />
+              <item.icon className={`w-4 h-4 mt-0.5 ${item.color} shrink-0`} />
               <div>
-                <p className="text-xs font-medium text-zinc-300 group-hover:text-white transition-colors">
+                <p className="text-xs font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">
                   {item.label}
                 </p>
-                <p className="text-[10px] text-zinc-600 mt-0.5">
+                <p className="text-[10px] text-slate-400 mt-0.5">
                   {item.description}
                 </p>
               </div>
@@ -195,33 +190,33 @@ export function Sidecar() {
           ))}
         </div>
 
-        {/* State Fields */}
-        <div className="border-t border-zinc-800/60 px-4 py-4 space-y-4">
-          <p className="text-[10px] font-bold text-zinc-600 tracking-widest uppercase -mb-2">
+        {/* Session State */}
+        <div className="border-t border-slate-100 px-4 py-4 space-y-3 bg-slate-50/50">
+          <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">
             Session State
           </p>
           <div>
-            <label className="text-[10px] font-semibold text-zinc-500 tracking-wider block mb-1">
+            <label className="text-[10px] font-semibold text-slate-500 block mb-1">
               CURRENT
             </label>
             <input
               type="text"
               value={currentState}
               onChange={(e) => setCurrentState(e.target.value)}
-              placeholder="What are we doing?"
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs text-zinc-300 placeholder:text-zinc-700 focus:outline-none focus:border-zinc-700 transition-colors"
+              placeholder="지금 뭐 하고 있나요?"
+              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-slate-400 transition-colors"
             />
           </div>
           <div>
-            <label className="text-[10px] font-semibold text-zinc-500 tracking-wider block mb-1">
+            <label className="text-[10px] font-semibold text-slate-500 block mb-1">
               NEXT
             </label>
             <input
               type="text"
               value={nextState}
               onChange={(e) => setNextState(e.target.value)}
-              placeholder="What's the next step?"
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs text-zinc-300 placeholder:text-zinc-700 focus:outline-none focus:border-zinc-700 transition-colors"
+              placeholder="다음 단계는?"
+              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-slate-400 transition-colors"
             />
           </div>
         </div>
@@ -236,7 +231,7 @@ export function Sidecar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
-              className="fixed inset-0 bg-black/50 z-[99998]"
+              className="fixed inset-0 bg-black/20 z-[99998] backdrop-blur-sm"
               onClick={() => setActivePrompt(null)}
             />
             <motion.div
@@ -246,49 +241,44 @@ export function Sidecar() {
               transition={{ type: "spring", bounce: 0.15, duration: 0.25 }}
               className="fixed inset-0 flex items-center justify-center z-[99999] px-6"
             >
-              <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden">
+              <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
                 {/* Modal Header */}
-                <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
-                  <p className="text-sm font-semibold text-zinc-200">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+                  <p className="text-sm font-bold text-slate-800">
                     {activePrompt.label}
                   </p>
                   <button
                     onClick={() => setActivePrompt(null)}
-                    className="text-zinc-600 hover:text-zinc-300 transition-colors"
+                    className="text-slate-400 hover:text-slate-700 transition-colors"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
 
                 {/* Prompt Text */}
-                <div className="px-5 py-4 bg-zinc-950/60 max-h-64 overflow-y-auto">
-                  <pre className="text-xs text-zinc-400 whitespace-pre-wrap font-mono leading-relaxed">
+                <div className="px-5 py-4 bg-slate-50 max-h-64 overflow-y-auto">
+                  <pre className="text-xs text-slate-600 whitespace-pre-wrap font-mono leading-relaxed">
                     {activePrompt.prompt}
                   </pre>
                 </div>
 
                 {/* Copy Button */}
-                <div className="px-5 py-4 border-t border-zinc-800">
-                  <p className="text-[10px] text-zinc-600 mb-3">
-                    Copy and paste this into ChatGPT, Claude, or any AI.
+                <div className="px-5 py-4 border-t border-slate-100">
+                  <p className="text-[10px] text-slate-400 mb-3">
+                    이 프롬프트를 복사해서 ChatGPT나 Claude에 붙여넣으세요.
                   </p>
                   <button
                     onClick={handleCopy}
-                    className="w-full py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-all"
-                    style={{
-                      background: copied
-                        ? "rgba(34,197,94,0.15)"
-                        : "rgba(59,130,246,0.12)",
-                      color: copied ? "rgb(134,239,172)" : "rgb(147,197,253)",
-                      border: copied
-                        ? "1px solid rgba(34,197,94,0.2)"
-                        : "1px solid rgba(59,130,246,0.2)",
-                    }}
+                    className={`w-full py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all ${
+                      copied
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        : "bg-slate-800 text-white hover:bg-slate-900"
+                    }`}
                   >
                     {copied ? (
                       <>
                         <Check className="w-4 h-4" />
-                        Copied!
+                        복사됨!
                       </>
                     ) : (
                       <>
