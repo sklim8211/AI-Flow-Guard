@@ -273,6 +273,11 @@ export function Sidecar() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
+  // Auto-open panel when entering side panel mode
+  useEffect(() => {
+    if (isSidePanel) setPanelOpen(true);
+  }, [isSidePanel]);
+
   const openAsSidePanel = () => {
     const w = 380;
     const h = window.screen.availHeight;
@@ -372,7 +377,7 @@ export function Sidecar() {
 
       {/* ── Expandable panel ────────────────────────────── */}
       <AnimatePresence>
-        {(panelOpen || isSidePanel) && (
+        {panelOpen && (
           <motion.div
             initial={isSidePanel ? false : { x: 260, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
