@@ -10,6 +10,8 @@ import {
   X,
   Copy,
   Check,
+  ChevronRight,
+  ChevronLeft,
 } from "lucide-react";
 
 const PROMPTS = [
@@ -18,7 +20,7 @@ const PROMPTS = [
     label: "Resume Work",
     description: "이어서 작업하기",
     icon: CheckCircle2,
-    color: "text-emerald-600",
+    color: "#10b981",
     prompt: `Please summarize our conversation so I can resume work. Use this structure:
 
 TITLE: [short file-friendly title]
@@ -35,7 +37,7 @@ Keep it short, structured, and easy to paste at the start of a new session.`,
     label: "Work Summary",
     description: "세션 결과 정리",
     icon: FileText,
-    color: "text-blue-600",
+    color: "#3b82f6",
     prompt: `Please create a compact work summary of what we accomplished. Use this structure:
 
 TITLE: [short descriptive title]
@@ -52,7 +54,7 @@ Keep it concise and saveable.`,
     label: "Extract Anchors",
     description: "핵심 전환점 추출",
     icon: Anchor,
-    color: "text-violet-600",
+    color: "#8b5cf6",
     prompt: `Please extract the key anchor points from our conversation — the moments, decisions, and breakthroughs that shaped the direction of this work. Use this structure:
 
 ANCHORS:
@@ -71,7 +73,7 @@ Keep it minimal and high-signal.`,
     label: "Compress Context",
     description: "맥락 압축 요약",
     icon: Minimize2,
-    color: "text-orange-600",
+    color: "#f97316",
     prompt: `Please compress everything we know so far into the smallest possible summary I can paste at the start of a new conversation. Include:
 
 CONTEXT: [project/task background in 2-3 sentences]
@@ -86,7 +88,7 @@ Make it dense and paste-ready.`,
     label: "Next Actions",
     description: "다음 할 일 목록",
     icon: ListTodo,
-    color: "text-rose-600",
+    color: "#ef4444",
     prompt: `Based on our conversation, please generate my next action list. Use this structure:
 
 IMMEDIATE: [the single next action to do right now]
@@ -100,6 +102,7 @@ Keep it action-oriented and specific.`,
 ];
 
 export function Sidecar() {
+  const [panelOpen, setPanelOpen] = useState(false);
   const [activePrompt, setActivePrompt] = useState<{
     label: string;
     prompt: string;
@@ -122,11 +125,14 @@ export function Sidecar() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setActivePrompt(null);
+      if (e.key === "Escape") {
+        if (activePrompt) setActivePrompt(null);
+        else setPanelOpen(false);
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [activePrompt]);
 
   const handleCopy = () => {
     if (!activePrompt) return;
@@ -150,79 +156,191 @@ export function Sidecar() {
 
   return (
     <>
-      {/* Always-visible side panel — light theme */}
-      <div className="fixed top-0 right-0 h-full w-[260px] bg-white border-l border-slate-200 flex flex-col z-[9999] shadow-sm">
-        {/* Header */}
-        <div className="flex items-center gap-2.5 px-4 py-4 border-b border-slate-100">
-          <div className="w-7 h-7 rounded-xl bg-slate-100 flex items-center justify-center">
-            <Sparkles className="w-3.5 h-3.5 text-slate-500" />
-          </div>
-          <div>
-            <p className="text-xs font-bold text-slate-700 tracking-wide">
-              QQ Sidecar
-            </p>
-            <p className="text-[10px] text-slate-400">AI Flow Companion</p>
-          </div>
-          <div className="ml-auto w-2 h-2 rounded-full bg-emerald-400" />
-        </div>
+      {/* Narrow icon-only sidebar — always visible */}
+      <div
+        className="fixed top-0 right-0 h-full flex flex-col items-center py-4 gap-1 z-[9999]"
+        style={{
+          width: 52,
+          background: "rgba(255,255,255,0.95)",
+          borderLeft: "1px solid #e2e8f0",
+          backdropFilter: "blur(8px)",
+          boxShadow: "-2px 0 12px rgba(0,0,0,0.05)",
+        }}
+      >
+        {/* Toggle button */}
+        <button
+          onClick={() => setPanelOpen((v) => !v)}
+          title={panelOpen ? "패널 닫기" : "패널 열기"}
+          className="relative group w-9 h-9 rounded-xl flex items-center justify-center mb-2 transition-all"
+          style={{
+            background: panelOpen ? "#0f172a" : "#f1f5f9",
+            color: panelOpen ? "#fff" : "#64748b",
+          }}
+        >
+          <Sparkles className="w-4 h-4" />
+          {/* Tooltip */}
+          <span
+            className="pointer-events-none absolute right-full mr-2 px-2 py-1 rounded-md text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity"
+            style={{
+              background: "#0f172a",
+              color: "#fff",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+            }}
+          >
+            {panelOpen ? "패널 닫기" : "QQ Sidecar 열기"}
+          </span>
+        </button>
 
-        {/* Prompt Buttons */}
-        <div className="flex-1 overflow-y-auto py-2">
-          <p className="px-4 pt-2 pb-2 text-[10px] font-bold text-slate-400 tracking-widest uppercase">
-            Prompts
-          </p>
-          {PROMPTS.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setActivePrompt({ label: item.label, prompt: item.prompt })}
-              className="w-full flex items-start gap-3 px-4 py-3 hover:bg-slate-50 active:bg-slate-100 transition-colors text-left group cursor-pointer"
+        <div
+          style={{
+            width: 20,
+            height: 1,
+            background: "#e2e8f0",
+            margin: "2px 0 6px",
+          }}
+        />
+
+        {/* Prompt icon buttons */}
+        {PROMPTS.map((item) => (
+          <button
+            key={item.id}
+            onClick={() =>
+              setActivePrompt({ label: item.label, prompt: item.prompt })
+            }
+            className="relative group w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+            style={{ color: item.color }}
+            title={item.label}
+          >
+            <div
+              className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"
+              style={{ background: item.color + "14" }}
+            />
+            <item.icon className="w-4.5 h-4.5 relative z-10" style={{ width: 18, height: 18 }} />
+            {/* Tooltip */}
+            <span
+              className="pointer-events-none absolute right-full mr-2 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity"
+              style={{
+                background: "#0f172a",
+                color: "#fff",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+              }}
             >
-              <item.icon className={`w-4 h-4 mt-0.5 ${item.color} shrink-0`} />
-              <div>
-                <p className="text-xs font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">
-                  {item.label}
-                </p>
-                <p className="text-[10px] text-slate-400 mt-0.5">
-                  {item.description}
-                </p>
-              </div>
-            </button>
-          ))}
-        </div>
-
-        {/* Session State */}
-        <div className="border-t border-slate-100 px-4 py-4 space-y-3 bg-slate-50/50">
-          <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">
-            Session State
-          </p>
-          <div>
-            <label className="text-[10px] font-semibold text-slate-500 block mb-1">
-              CURRENT
-            </label>
-            <input
-              type="text"
-              value={currentState}
-              onChange={(e) => setCurrentState(e.target.value)}
-              placeholder="지금 뭐 하고 있나요?"
-              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-slate-400 transition-colors"
-            />
-          </div>
-          <div>
-            <label className="text-[10px] font-semibold text-slate-500 block mb-1">
-              NEXT
-            </label>
-            <input
-              type="text"
-              value={nextState}
-              onChange={(e) => setNextState(e.target.value)}
-              placeholder="다음 단계는?"
-              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-slate-400 transition-colors"
-            />
-          </div>
-        </div>
+              <span className="block font-semibold">{item.label}</span>
+              <span className="block text-slate-400 text-[10px] mt-0.5">{item.description}</span>
+            </span>
+          </button>
+        ))}
       </div>
 
-      {/* Prompt Modal Overlay */}
+      {/* Expandable side panel */}
+      <AnimatePresence>
+        {panelOpen && (
+          <motion.div
+            initial={{ x: 260, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: 260, opacity: 0 }}
+            transition={{ type: "spring", bounce: 0.1, duration: 0.3 }}
+            className="fixed top-0 right-[52px] h-full flex flex-col z-[9998]"
+            style={{
+              width: 240,
+              background: "rgba(255,255,255,0.97)",
+              borderLeft: "1px solid #e2e8f0",
+              boxShadow: "-4px 0 24px rgba(0,0,0,0.07)",
+            }}
+          >
+            {/* Panel header */}
+            <div
+              className="flex items-center justify-between px-4 py-4"
+              style={{ borderBottom: "1px solid #f1f5f9" }}
+            >
+              <div>
+                <p className="text-xs font-bold text-slate-700">QQ Sidecar</p>
+                <p className="text-[10px] text-slate-400">AI Flow Companion</p>
+              </div>
+              <button
+                onClick={() => setPanelOpen(false)}
+                className="text-slate-400 hover:text-slate-700 transition-colors"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Prompt list in panel */}
+            <div className="flex-1 overflow-y-auto py-2">
+              <p
+                className="px-4 pt-2 pb-2 text-[10px] font-bold tracking-widest uppercase"
+                style={{ color: "#94a3b8" }}
+              >
+                Prompts
+              </p>
+              {PROMPTS.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() =>
+                    setActivePrompt({ label: item.label, prompt: item.prompt })
+                  }
+                  className="w-full flex items-start gap-3 px-4 py-3 hover:bg-slate-50 active:bg-slate-100 transition-colors text-left group cursor-pointer"
+                >
+                  <item.icon
+                    className="w-4 h-4 mt-0.5 shrink-0"
+                    style={{ color: item.color, width: 16, height: 16 }}
+                  />
+                  <div>
+                    <p className="text-xs font-semibold text-slate-700">
+                      {item.label}
+                    </p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">
+                      {item.description}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Session state */}
+            <div
+              className="px-4 py-4 space-y-3"
+              style={{
+                borderTop: "1px solid #f1f5f9",
+                background: "#f8fafc",
+              }}
+            >
+              <p
+                className="text-[10px] font-bold tracking-widest uppercase"
+                style={{ color: "#94a3b8" }}
+              >
+                Session State
+              </p>
+              <div>
+                <label className="text-[10px] font-semibold text-slate-500 block mb-1">
+                  CURRENT
+                </label>
+                <input
+                  type="text"
+                  value={currentState}
+                  onChange={(e) => setCurrentState(e.target.value)}
+                  placeholder="지금 뭐 하고 있나요?"
+                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-slate-400 transition-colors"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-semibold text-slate-500 block mb-1">
+                  NEXT
+                </label>
+                <input
+                  type="text"
+                  value={nextState}
+                  onChange={(e) => setNextState(e.target.value)}
+                  placeholder="다음 단계는?"
+                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-slate-400 transition-colors"
+                />
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Prompt Modal */}
       <AnimatePresence>
         {activePrompt && (
           <>
@@ -231,19 +349,32 @@ export function Sidecar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
-              className="fixed inset-0 bg-black/20 z-[99998] backdrop-blur-sm"
+              className="fixed inset-0 z-[99998]"
+              style={{ background: "rgba(15,23,42,0.2)", backdropFilter: "blur(4px)" }}
               onClick={() => setActivePrompt(null)}
             />
             <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: 8 }}
+              initial={{ opacity: 0, scale: 0.95, y: 6 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 8 }}
+              exit={{ opacity: 0, scale: 0.95, y: 6 }}
               transition={{ type: "spring", bounce: 0.15, duration: 0.25 }}
               className="fixed inset-0 flex items-center justify-center z-[99999] px-6"
+              style={{ paddingRight: 72 }}
             >
-              <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
-                {/* Modal Header */}
-                <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+              <div
+                className="w-full max-w-md overflow-hidden"
+                style={{
+                  background: "#fff",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: 20,
+                  boxShadow: "0 20px 60px rgba(0,0,0,0.12)",
+                }}
+              >
+                {/* Modal header */}
+                <div
+                  className="flex items-center justify-between px-5 py-4"
+                  style={{ borderBottom: "1px solid #f1f5f9" }}
+                >
                   <p className="text-sm font-bold text-slate-800">
                     {activePrompt.label}
                   </p>
@@ -255,25 +386,29 @@ export function Sidecar() {
                   </button>
                 </div>
 
-                {/* Prompt Text */}
-                <div className="px-5 py-4 bg-slate-50 max-h-64 overflow-y-auto">
+                {/* Prompt text */}
+                <div
+                  className="px-5 py-4 max-h-64 overflow-y-auto"
+                  style={{ background: "#f8fafc" }}
+                >
                   <pre className="text-xs text-slate-600 whitespace-pre-wrap font-mono leading-relaxed">
                     {activePrompt.prompt}
                   </pre>
                 </div>
 
-                {/* Copy Button */}
-                <div className="px-5 py-4 border-t border-slate-100">
+                {/* Copy button */}
+                <div className="px-5 py-4" style={{ borderTop: "1px solid #f1f5f9" }}>
                   <p className="text-[10px] text-slate-400 mb-3">
                     이 프롬프트를 복사해서 ChatGPT나 Claude에 붙여넣으세요.
                   </p>
                   <button
                     onClick={handleCopy}
-                    className={`w-full py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all ${
-                      copied
-                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                        : "bg-slate-800 text-white hover:bg-slate-900"
-                    }`}
+                    className="w-full py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all"
+                    style={{
+                      background: copied ? "#f0fdf4" : "#0f172a",
+                      color: copied ? "#16a34a" : "#fff",
+                      border: copied ? "1px solid #bbf7d0" : "none",
+                    }}
                   >
                     {copied ? (
                       <>
