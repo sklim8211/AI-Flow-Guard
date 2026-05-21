@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "AI Flow"
+version = "1.0.0"
+id = "artifacts/ai-flow"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23882
+
+[services.development]
+run = "pnpm --filter @workspace/ai-flow run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/ai-flow", "run", "build" ]
+publicDir = "artifacts/ai-flow/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23882"
+BASE_PATH = "/"
