@@ -19,13 +19,20 @@ if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
-const basePath = process.env.BASE_PATH;
+const rawBasePath = process.env.BASE_PATH;
 
-if (!basePath) {
+if (!rawBasePath) {
   throw new Error(
     "BASE_PATH environment variable is required but was not provided.",
   );
 }
+
+const basePath = (() => {
+  let p = rawBasePath;
+  if (!p.startsWith("/")) p = "/" + p;
+  if (!p.endsWith("/")) p = p + "/";
+  return p;
+})();
 
 export default defineConfig({
   base: basePath,
@@ -56,6 +63,10 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,png,ico,woff2}"],
+      },
+      devOptions: {
+        enabled: true,
+        type: "module",
       },
     }),
     ...(process.env.NODE_ENV !== "production" &&
