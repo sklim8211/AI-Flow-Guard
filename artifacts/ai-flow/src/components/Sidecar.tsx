@@ -278,8 +278,22 @@ export function Sidecar() {
     if (isSidePanel) setPanelOpen(true);
   }, [isSidePanel]);
 
+  // Resize popup window to match panel open/closed state
+  useEffect(() => {
+    if (!isSidePanel) return;
+    const ICON_W = 58;
+    const PANEL_W = 380;
+    const target = panelOpen ? PANEL_W : ICON_W;
+    try {
+      window.resizeTo(target, window.outerHeight);
+      window.moveTo(window.screen.availWidth - target, window.screenY);
+    } catch {
+      // resizeTo is blocked in non-popup windows — ignore silently
+    }
+  }, [panelOpen, isSidePanel]);
+
   const openAsSidePanel = () => {
-    const w = 380;
+    const w = 58;
     const h = window.screen.availHeight;
     const left = window.screen.availWidth - w;
     window.open(

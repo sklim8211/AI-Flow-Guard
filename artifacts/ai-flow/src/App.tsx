@@ -9,6 +9,10 @@ import { Sidecar } from "@/components/Sidecar";
 const queryClient = new QueryClient();
 
 function Home() {
+  const isSidePanel = window.innerWidth <= 440;
+  if (isSidePanel) {
+    return <div className="min-h-[100dvh] w-full bg-white" />;
+  }
   return (
     <div className="min-h-[100dvh] w-full flex items-center justify-center bg-slate-50 text-slate-400 selection:bg-slate-200">
       <div className="text-center opacity-60">
