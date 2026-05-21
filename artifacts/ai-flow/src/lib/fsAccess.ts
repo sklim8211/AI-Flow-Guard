@@ -66,7 +66,7 @@ export const fsAccess = {
     try {
       const handle = await dbGet<FileSystemDirectoryHandle>(ROOT_KEY);
       if (!handle) return null;
-      const permission = await handle.requestPermission({ mode: "readwrite" });
+      const permission = await (handle as unknown as { requestPermission: (opts: { mode: string }) => Promise<string> }).requestPermission({ mode: "readwrite" });
       if (permission === "granted") return handle;
       return null;
     } catch {
