@@ -24,7 +24,11 @@ AI(ChatGPT/Claude)로 작업하는 비전문가가 **컨텍스트를 잃지 않�
 
 ### 메타데이터 패턴 (앞으로 모든 새 표준 프롬프트의 필수 요구사항)
 
-각 표준 프롬프트는 AI에게 **결과물 첫머리에 메타데이터 헤더를 포함**하도록 요청해야 한다. 단, **현재 기존 5개 프롬프트(Resume/Summary/Anchors/Compress/Next)는 아직 이 패턴으로 업그레이드되지 않았다** — "다음 작업 후보" 2번 항목 참조. 예시:
+각 표준 프롬프트는 AI에게 **결과물 첫머리에 메타데이터 헤더를 포함**하도록 요청해야 한다. 현재 적용 상태:
+- ✅ `Backup Snapshot` (v1/created_at/summary/changes_from_previous/restoration_hint/risk_level)
+- ⏳ 기존 5개 프롬프트(Resume/Summary/Anchors/Compress/Next)는 아직 메타데이터 헤더 미적용 — "다음 작업 후보" 1번 항목 참조
+
+예시:
 
 ```
 ---
@@ -96,11 +100,13 @@ UI 어디서든 위와 같은 것을 암시해선 안 된다. "AI 응답은 자�
 
 | 아이콘 | 기능 | 표준 프롬프트 출력 | 저장 폴더 |
 |------|-----|-----------------|---------|
-| Resume | 작업 재개 프롬프트 | (현재는 메타데이터 헤더 없음 — 업그레이드 후보) | CURRENT |
+| Resume | 작업 재개 프롬프트 | (메타데이터 헤더 없음 — 업그레이드 후보) | CURRENT |
 | Summary | 작업 요약 | 동상 | SUMMARIES |
 | Anchors | 핵심 결정 추출 | 동상 | ANCHORS |
-| Compress | 컨텍스트 압축 | 동상 | (사용자 결정) |
+| Compress | 컨텍스트 압축 | 동상 | CURRENT |
 | Next | 다음 할 일 추출 | 동상 | NEXT |
+| Backup | 큰 수정 전 안전망 스냅샷 | ✅ 메타데이터 헤더 포함 | SAFE |
+| Restore | 백업으로 컨텍스트 복원 | (입력 프롬프트 — 메타 헤더 N/A) | CURRENT |
 | Workspace | 로컬 폴더 연결 / 파일 관리 | — | — |
 
 ### 해결하려는 사용자 문제 (10개)
@@ -109,8 +115,8 @@ UI 어디서든 위와 같은 것을 암시해선 안 된다. "AI 응답은 자�
 |---|------|---------|-----|
 | 1 | 어디까지 작업했는지 잊어버림 | 🟢 Resume + CURRENT | |
 | 2 | 다음 할 일 흐려짐 | 🟢 Next + NEXT | |
-| 3 | 수정하다 원본 망침 | 🟡 SAFE 폴더 있으나 수동 | **BACKUP 표준 프롬프트 필요** |
-| 4 | 백업 누락 | 🔴 없음 | **BACKUP 표준 프롬프트 필요** |
+| 3 | 수정하다 원본 망침 | 🟢 Backup Snapshot + SAFE | |
+| 4 | 백업 누락 | 🟢 Backup Snapshot + SAFE | risk_level/restoration_hint 메타로 강화 |
 | 5 | AI가 현재 상태 모름 | 🟢 Compress | |
 | 6 | 결정 이유 기억 흐려짐 | 🟢 Anchors | 메타데이터 헤더 추가 시 더 강해짐 |
 | 7 | 재진입 어려움 | 🟡 Resume | 앱 시작 시 최근 CURRENT 자동 표시하면 강해짐 |
@@ -120,14 +126,12 @@ UI 어디서든 위와 같은 것을 암시해선 안 된다. "AI 응답은 자�
 
 ## 다음 작업 후보 (우선순위순)
 
-1. **BACKUP / RESTORE 표준 프롬프트 추가** (문제 #3, #4) — 가장 위험 상황을 막는 기능
-   - BACKUP: `version / created_at / summary / changes_from_previous / restoration_hint / risk_level` 헤더 요구하는 표준 프롬프트 → SAFE 폴더에 저장
-   - RESTORE: 백업 파일 내용 붙여넣으면 AI에게 "이 상태로 컨텍스트 복원" 요청하는 프롬프트
-2. **기존 5개 프롬프트 메타데이터 헤더 업그레이드** — 결과물에 항상 `created_at`, `version`, `summary` 같은 ID 부착해서 나중에 검색·정렬 가능하게
-3. **앱 시작 시 최근 CURRENT 자동 표시** (문제 #7) — 작은 작업으로 재진입 마찰 크게 감소
-4. **타임라인 뷰** (문제 #10) — 시간순 ANCHOR/SUMMARY/NEXT를 한 화면에
-5. **온보딩 카드** — 첫 진입 사용자에게 30초 설명
-6. **"앱으로 설치하기" 사이드바 버튼** — 비기술 사용자는 주소창 PWA 아이콘을 못 본다
+1. **기존 5개 프롬프트 메타데이터 헤더 업그레이드** (Resume/Summary/Anchors/Compress/Next) — 결과물에 항상 `version`, `created_at`, `summary` 같은 헤더 부착해서 나중에 검색·정렬 가능하게. Backup Snapshot의 헤더 패턴을 그대로 차용.
+2. **앱 시작 시 최근 CURRENT 자동 표시** (문제 #7) — 작은 작업으로 재진입 마찰 크게 감소
+3. **타임라인 뷰** (문제 #10) — 시간순 ANCHOR/SUMMARY/NEXT를 한 화면에
+4. **온보딩 카드** — 첫 진입 사용자에게 30초 설명
+5. **"앱으로 설치하기" 사이드바 버튼** — 비기술 사용자는 주소창 PWA 아이콘을 못 본다
+6. **저장 모달에서 `filename:` 자동 파싱** — Backup 프롬프트가 결과물 끝에 `filename: backup_v[N]_...md` 한 줄을 남기므로, 사용자가 결과를 붙여넣으면 파일명 자동 추출하여 SAFE/ 폴더에 저장 제안
 
 ## User preferences
 

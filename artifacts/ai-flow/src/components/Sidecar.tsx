@@ -20,6 +20,8 @@ import {
   Unplug,
   Link,
   PanelRight,
+  LifeBuoy,
+  RotateCcw,
 } from "lucide-react";
 import { ws } from "../lib/workspace";
 import { fsAccess } from "../lib/fsAccess";
@@ -117,6 +119,73 @@ BLOCKERS: [anything that needs to be resolved first]
 NOTES: [any helpful context for these actions]
 
 Keep it action-oriented and specific.`,
+  },
+  {
+    id: "backup",
+    label: "Backup Snapshot",
+    description: "큰 수정 전 안전망",
+    icon: LifeBuoy,
+    color: "#06b6d4",
+    defaultFolder: "SAFE",
+    prompt: `Please create a complete BACKUP SNAPSHOT of our current work state. This will be saved as a safety net before making a large or risky change.
+
+Start the output with this YAML metadata header. Use the schema EXACTLY as shown — keep all field names and ordering, but replace every value inside square brackets with a real value. Do NOT keep the brackets or any inline comments in your output.
+
+Schema:
+
+---
+version: [vN — next number if previous backups exist in this conversation, otherwise v1]
+created_at: [YYYY-MM-DD HH:mm in local time]
+summary: [one short single-line summary of the current state]
+changes_from_previous: |-
+  - [bullet 1: what changed since previous backup]
+  - [bullet 2 (optional)]
+  - [bullet 3 (optional)]
+  (write a single line "first backup" instead of bullets if this is v1)
+restoration_hint: [single line — what someone needs to know to restore from this snapshot]
+risk_level: [exactly one of: low | medium | high]
+---
+
+Then write the body in this structure:
+
+1. CURRENT STATE — exactly where we are right now (2-3 sentences)
+2. IN PROGRESS — what's actively being worked on
+3. NEXT STEPS — the upcoming actions in order
+4. DECISIONS & REASONS — important decisions made so far and why
+5. CRITICAL INFO — anything that absolutely must not be lost (file paths, IDs, configs, exact values)
+6. KNOWN RISKS — what could go wrong next, and how to recover
+
+End the output with ONE line in this exact format (the [N] number MUST match the version number you used in the header):
+filename: backup_v[N]_[short-slug].md
+
+Wrap the entire output (header + body + filename line) inside a single fenced markdown code block so I can copy it as one piece.`,
+  },
+  {
+    id: "restore",
+    label: "Restore From Backup",
+    description: "백업으로 컨텍스트 복원",
+    icon: RotateCcw,
+    color: "#84cc16",
+    defaultFolder: "CURRENT",
+    prompt: `I need to restore my working context from a backup snapshot. Below this message I will paste the full backup file content (it has a metadata header with version, created_at, summary, changes_from_previous, restoration_hint, risk_level, followed by the body).
+
+Please:
+
+1. Read the metadata header and confirm out loud: which version, when it was created, the summary, and the risk_level.
+2. Reconstruct the full working context from the body: current state, in-progress work, next steps, key decisions, and critical info.
+3. Highlight anything in "restoration_hint" that I should be careful about.
+4. Tell me the SINGLE most important action to take right now to safely continue from this snapshot.
+5. List anything in the backup that looks stale or might no longer apply (best-effort guess, clearly marked as a guess).
+
+Rules:
+- Do NOT invent details that aren't in the backup.
+- If something critical is missing or ambiguous, ASK me a clarifying question instead of guessing.
+- If the section below is empty or does not contain a metadata header, STOP and ask me to paste the full backup file first.
+- Keep the response structured and scannable, not a wall of prose.
+
+--- BACKUP FILE CONTENT BELOW ---
+
+[paste backup file here]`,
   },
 ];
 
