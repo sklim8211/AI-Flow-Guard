@@ -143,14 +143,14 @@ export function Sidecar() {
 
   return (
     <>
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+      <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-3">
         {/* Status Hint */}
         <AnimatePresence>
           {!isOpen && (
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10, filter: "blur(4px)" }}
+              exit={{ opacity: 0, y: 6 }}
               transition={{ duration: 0.2 }}
               className="text-xs text-zinc-400 font-medium tracking-wide mr-2 flex items-center gap-1.5"
             >
@@ -166,11 +166,6 @@ export function Sidecar() {
           className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 shadow-2xl flex items-center justify-center text-zinc-300 hover:text-white hover:border-zinc-700 transition-colors focus:outline-none"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          animate={{
-            boxShadow: isOpen 
-              ? "0 20px 40px -10px rgba(0,0,0,0.5)" 
-              : "0 0 0 0 rgba(0,0,0,0)"
-          }}
         >
           <Sparkles className="w-5 h-5" />
         </motion.button>
@@ -180,11 +175,11 @@ export function Sidecar() {
       <AnimatePresence>
         {isOpen && !activePrompt && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20, filter: "blur(4px)" }}
-            animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
-            exit={{ opacity: 0, scale: 0.95, y: 20, filter: "blur(4px)" }}
-            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
-            className="fixed bottom-24 right-6 z-50 w-[280px] bg-zinc-900/90 backdrop-blur-xl border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+            initial={{ opacity: 0, scale: 0.96, y: 12 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 12 }}
+            transition={{ type: "spring", bounce: 0.15, duration: 0.3 }}
+            className="fixed bottom-24 right-6 z-[9999] w-[280px] bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
           >
             <div className="p-2 space-y-1">
               {PROMPTS.map((item) => (
@@ -232,11 +227,11 @@ export function Sidecar() {
       <AnimatePresence>
         {activePrompt && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            initial={{ opacity: 0, scale: 0.96, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
-            className="fixed bottom-24 right-6 z-50 w-[320px] bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+            exit={{ opacity: 0, scale: 0.96, y: 12 }}
+            transition={{ type: "spring", bounce: 0.15, duration: 0.3 }}
+            className="fixed bottom-24 right-6 z-[9999] w-[320px] bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
           >
             <div className="flex items-center justify-between p-4 border-b border-zinc-800">
               <span className="text-sm font-medium text-zinc-200">{activePrompt.label}</span>
