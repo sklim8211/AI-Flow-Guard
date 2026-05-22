@@ -637,13 +637,12 @@ export function Sidecar() {
             <button
               onClick={openAsSidePanel}
               className="relative group w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95"
-              style={{ color: "#94a3b8" }}
+              style={{ color: "#fff", background: "#6366f1", boxShadow: "0 2px 6px rgba(99,102,241,0.35)" }}
             >
-              <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: "#f1f5f9" }} />
               <PanelRight className="relative z-10" style={{ width: 15, height: 15 }} />
               <span className="tooltip-left">
-                <span className="block font-semibold">사이드 패널로 열기</span>
-                <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>화면 옆에 고정 창으로</span>
+                <span className="block font-semibold">화면 옆에 고정</span>
+                <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>ChatGPT 옆에 좁게 띄우기</span>
               </span>
             </button>
           </>
@@ -1136,8 +1135,9 @@ export function Sidecar() {
               <div className="px-7 py-4 space-y-3">
                 {[
                   { n: "1", title: "이건 AI 안전망이에요", desc: "ChatGPT나 Claude로 작업할 때 컨텍스트를 잃지 않도록 도와줍니다. AI에 직접 연결되지 않아요." },
-                  { n: "2", title: "오른쪽 사이드바의 아이콘을 누르세요", desc: "프롬프트가 카피됩니다. AI 대화창에 붙여넣고, 받은 답변을 우리 앱에 다시 저장하세요." },
-                  { n: "3", title: "위기 상황엔 빨간 🚨 SOS", desc: "AI가 이상해지거나 큰 수정 전, 사이드바의 빨간 아이콘을 누르면 상황별 가이드가 열려요." },
+                  { n: "2", title: "보라색 ▭ 아이콘으로 화면 옆에 고정", desc: "오른쪽 사이드바 아래쪽 보라색 아이콘을 누르면 ChatGPT 옆에 좁게 자동 배치돼요. 그게 가장 편한 사용법이에요." },
+                  { n: "3", title: "색깔 아이콘 → 프롬프트 카피 → AI에 붙여넣기", desc: "받은 답변을 다시 우리 앱 \"AI 응답 저장하기\"에 붙여넣으면 폴더·파일명이 자동으로 채워져요." },
+                  { n: "4", title: "위기 상황엔 빨간 🚨 SOS", desc: "AI가 이상해지거나 큰 수정 전, 사이드바의 빨간 사이렌을 누르면 상황별 가이드가 열려요." },
                 ].map((s) => (
                   <div key={s.n} className="flex items-start gap-3">
                     <span
