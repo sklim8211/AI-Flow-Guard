@@ -83,6 +83,9 @@ UI 어디서든 위와 같은 것을 암시해선 안 된다. "AI 응답은 자�
 ## Where things live
 
 - `artifacts/ai-flow/src/components/Sidecar.tsx` — 사이드바 + 패널 UI 본체. **현재 표준 프롬프트들도 이 파일 안의 상수로 존재**한다. 프롬프트가 많아지면 `src/lib/prompts.ts`로 분리 예정.
+- `artifacts/ai-flow/src/components/TodayDashboard.tsx` — "오늘" 탭. 시작/종료 모드 토글. 분 단위 tick으로 시간/날짜 경계 갱신.
+- `artifacts/ai-flow/src/components/SaveReminderToast.tsx` — 1시간 무저장 시 토스트. `markActivity()` 호출로 활동 시각 갱신 (copy/save/edit 시).
+- `artifacts/ai-flow/src/lib/workspace.ts` — `getFilesToday`, `getFilesInFolderByName`, `getMostRecentFile`, `parseFileMeta` 헬퍼.
 - `artifacts/ai-flow/src/lib/fsAccess.ts` — File System Access API 래퍼
 - `artifacts/ai-flow/public/icon*.png`, `icon.svg` — PWA 아이콘
 - `artifacts/ai-flow/vite.config.ts` — PWA 매니페스트 설정
@@ -95,6 +98,16 @@ UI 어디서든 위와 같은 것을 암시해선 안 된다. "AI 응답은 자�
 - **PWA 설치 가능**: 사용자가 OS 앱처럼 설치해 ChatGPT/Claude 옆에 항상 띄워둘 수 있게 함. dev/prod 모두 매니페스트 활성화.
 
 ## Product
+
+### 패널 탭 구조 (현재)
+
+- **오늘** (기본 탭) — 시작 화면: 이어가기(최근 파일) / 현재 / 다음 / 핵심 결정. 하단 "오늘 일 마치기" 버튼 → 종료 화면: 오늘 저장한 것 / 오늘의 핵심 결정 / 내일 이어갈 것.
+- **Prompts** — 7개 표준 프롬프트. (SESSION STATE 입력 칸은 제거됨 — 무의미한 sticky note였음)
+- **Workspace** — 파일/폴더 관리.
+
+### 저장 알림
+
+1시간 동안 copy/save/edit 활동이 없으면 화면 하단에 토스트로 "잠깐 정리하시겠어요?" 노출. [지금 저장]/[1시간 뒤]/X 액션. 모달·온보딩·활성 프롬프트가 열려 있을 땐 자동 억제. 간격은 `SaveReminderToast.tsx`에서 하드코딩(1시간) — 추후 실사용 후 설정화 결정.
 
 ### 사이드바 아이콘 (현재)
 

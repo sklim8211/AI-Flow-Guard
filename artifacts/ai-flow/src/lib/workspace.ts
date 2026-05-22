@@ -225,4 +225,55 @@ export const ws = {
   getProjectName(projectId: string): string {
     return this.getProjects().find((p) => p.id === projectId)?.name ?? projectId;
   },
+
+  /* ── Dashboard helpers ─────────────────────────── */
+  getFilesToday(projectId: string): WFile[] {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const startMs = start.getTime();
+    return this.getFiles(projectId)
+      .filter((f) => f.createdAt >= startMs)
+      .sort((a, b) => b.createdAt - a.createdAt);
+  },
+
+  getFilesInFolderByName(projectId: string, folderName: string, limit?: number): WFile[] {
+    const folder = this.getFolders(projectId).find(
+      (f) => f.name.toUpperCase() === folderName.toUpperCase() && f.parentId === null
+    );
+    if (!folder) return [];
+    const files = this.getFilesInFolder(folder.id).sort((a, b) => b.createdAt - a.createdAt);
+    return limit ? files.slice(0, limit) : files;
+  },
+
+  getMostRecentFile(projectId: string): WFile | null {
+    const all = this.getFiles(projectId).sort((a, b) => b.createdAt - a.createdAt);
+    return all[0] ?? null;
+  },
 };
+
+/* ── Metadata parsing (shared) ──────────────────────── */
+export interface FileMeta {
+  kind?: string;
+  summary?: string;
+}
+
+export function parseFileMeta(raw: string): FileMeta {
+  if (!raw) return {};
+  let body = raw.trim();
+  const fenceMatch = body.match(/^```[a-zA-Z]*\n([\s\S]*?)\n```\s*$/);
+  if (fenceMatch) body = fenceMatch[1];
+  const result: FileMeta = {};
+  const yamlMatch = body.match(/^---\s*\n([\s\S]*?)\n---/);
+  if (yamlMatch) {
+    const lines = yamlMatch[1].split("\n");
+    for (const line of lines) {
+      const m = line.match(/^([a-zA-Z_]+):\s*(.+)$/);
+      if (!m) continue;
+      const key = m[1];
+      const value = m[2].trim();
+      if (key === "kind") result.kind = value.toLowerCase();
+      else if (key === "summary") result.summary = value;
+    }
+  }
+  return result;
+}

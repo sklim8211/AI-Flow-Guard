@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Edit3, Save, Copy, Check, Trash2 } from "lucide-react";
 import { ws, type WFile } from "../lib/workspace";
+import { markActivity } from "./SaveReminderToast";
 
 interface Props {
   file: WFile | null;
@@ -27,6 +28,7 @@ export function FileViewModal({ file, onClose, onRefresh }: Props) {
   const saveEdit = () => {
     if (!file) return;
     ws.updateFile(file.id, { name: editName.trim() || file.name, content: editContent });
+    markActivity();
     setEditing(false);
     onRefresh();
   };

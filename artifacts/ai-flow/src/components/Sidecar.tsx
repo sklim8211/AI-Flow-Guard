@@ -31,6 +31,8 @@ import { fsAccess } from "../lib/fsAccess";
 import { WorkspaceView } from "./WorkspaceView";
 import { SaveResultModal } from "./SaveResultModal";
 import { FileViewModal } from "./FileViewModal";
+import { TodayDashboard } from "./TodayDashboard";
+import { SaveReminderToast, markActivity } from "./SaveReminderToast";
 import type { WFile } from "../lib/workspace";
 
 const PROMPTS = [
@@ -283,11 +285,11 @@ Rules:
   },
 ];
 
-type PanelTab = "prompts" | "workspace";
+type PanelTab = "today" | "prompts" | "workspace";
 
 export function Sidecar() {
   const [panelOpen, setPanelOpen] = useState(false);
-  const [tab, setTab] = useState<PanelTab>("prompts");
+  const [tab, setTab] = useState<PanelTab>("today");
 
   const [activePrompt, setActivePrompt] = useState<{
     label: string;
@@ -298,13 +300,6 @@ export function Sidecar() {
   const [saveModalOpen, setSaveModalOpen] = useState(false);
 
   const [viewFile, setViewFile] = useState<WFile | null>(null);
-
-  const [currentState, setCurrentState] = useState(
-    () => localStorage.getItem("sidecar_current") || ""
-  );
-  const [nextState, setNextState] = useState(
-    () => localStorage.getItem("sidecar_next") || ""
-  );
 
   // Workspace state
   const [projects, setProjects] = useState(() => ws.getProjects());
@@ -377,14 +372,6 @@ export function Sidecar() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("sidecar_current", currentState);
-  }, [currentState]);
-
-  useEffect(() => {
-    localStorage.setItem("sidecar_next", nextState);
-  }, [nextState]);
-
-  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         if (viewFile) { setViewFile(null); return; }
@@ -452,8 +439,13 @@ export function Sidecar() {
 
   const handleCopy = () => {
     if (!activePrompt) return;
+    const onSuccess = () => {
+      markActivity();
+      setCopied(true);
+      setTimeout(() => { setCopied(false); setShowSave(true); }, 800);
+    };
     navigator.clipboard.writeText(activePrompt.prompt)
-      .then(() => { setCopied(true); setTimeout(() => { setCopied(false); setShowSave(true); }, 800); })
+      .then(onSuccess)
       .catch(() => {
         const el = document.createElement("textarea");
         el.value = activePrompt.prompt;
@@ -461,8 +453,7 @@ export function Sidecar() {
         el.select();
         document.execCommand("copy");
         document.body.removeChild(el);
-        setCopied(true);
-        setTimeout(() => { setCopied(false); setShowSave(true); }, 800);
+        onSuccess();
       });
   };
 
@@ -686,7 +677,7 @@ export function Sidecar() {
 
             {/* Tabs */}
             <div className="flex px-3 pt-2 pb-0 gap-1">
-              {(["prompts", "workspace"] as PanelTab[]).map((t) => (
+              {(["today", "prompts", "workspace"] as PanelTab[]).map((t) => (
                 <button
                   key={t}
                   onClick={() => setTab(t)}
@@ -696,10 +687,20 @@ export function Sidecar() {
                     color: tab === t ? "#fff" : "#94a3b8",
                   }}
                 >
-                  {t === "prompts" ? "Prompts" : "Workspace"}
+                  {t === "today" ? "오늘" : t === "prompts" ? "Prompts" : "Workspace"}
                 </button>
               ))}
             </div>
+
+            {/* ── Today tab ── */}
+            {tab === "today" && (
+              <TodayDashboard
+                projectId={activeProjectId}
+                refreshKey={wsRefresh}
+                onOpenFile={(f) => setViewFile(f)}
+                onGoToPrompts={() => setTab("prompts")}
+              />
+            )}
 
             {/* ── Prompts tab ── */}
             {tab === "prompts" && (
@@ -720,30 +721,6 @@ export function Sidecar() {
                   ))}
                 </div>
 
-                {/* Session state */}
-                <div className="px-4 py-4 space-y-3" style={{ borderTop: "1px solid #f1f5f9", background: "#f8fafc" }}>
-                  <p className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "#94a3b8" }}>Session State</p>
-                  <div>
-                    <label className="text-[10px] font-semibold text-slate-500 block mb-1">CURRENT</label>
-                    <input
-                      type="text"
-                      value={currentState}
-                      onChange={(e) => setCurrentState(e.target.value)}
-                      placeholder="지금 뭐 하고 있나요?"
-                      className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-slate-400 transition-colors"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-semibold text-slate-500 block mb-1">NEXT</label>
-                    <input
-                      type="text"
-                      value={nextState}
-                      onChange={(e) => setNextState(e.target.value)}
-                      placeholder="다음 단계는?"
-                      className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-slate-400 transition-colors"
-                    />
-                  </div>
-                </div>
               </div>
             )}
 
@@ -1030,7 +1007,13 @@ export function Sidecar() {
         defaultTitle={activePrompt ? `${activePrompt.label} — ${new Date().toLocaleDateString("ko-KR")}` : ""}
         defaultType="summary"
         onClose={() => setSaveModalOpen(false)}
-        onSaved={() => { refreshWorkspace(); setTab("workspace"); setPanelOpen(true); }}
+        onSaved={() => { markActivity(); refreshWorkspace(); setTab("today"); setPanelOpen(true); }}
+      />
+
+      {/* ── Save reminder toast ─────────────────────────── */}
+      <SaveReminderToast
+        suppressed={!!viewFile || saveModalOpen || showSOS || showOnboarding || !!activePrompt}
+        onSaveClick={() => { setSaveModalOpen(true); setPanelOpen(true); }}
       />
 
       {/* ── File View Modal ─────────────────────────────── */}
