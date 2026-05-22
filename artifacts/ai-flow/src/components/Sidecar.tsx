@@ -392,6 +392,7 @@ export function Sidecar() {
         if (showSOS) { setShowSOS(false); return; }
         if (showOnboarding) { return; } // onboarding must be dismissed via button
         if (activePrompt) { setActivePrompt(null); return; }
+        if (isSidePanel) return; // side panel mode: panel always open
         setPanelOpen(false);
       }
     };
@@ -500,10 +501,10 @@ export function Sidecar() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  // Auto-open panel when entering side panel mode
+  // Auto-open panel when entering side panel mode — invariant: side panel mode = always open
   useEffect(() => {
-    if (isSidePanel) setPanelOpen(true);
-  }, [isSidePanel]);
+    if (isSidePanel && !panelOpen) setPanelOpen(true);
+  }, [isSidePanel, panelOpen]);
 
   // Resize popup window to match panel open/closed state
   useEffect(() => {
@@ -543,22 +544,26 @@ export function Sidecar() {
           boxShadow: "-2px 0 12px rgba(0,0,0,0.05)",
         }}
       >
-        {/* Toggle button */}
-        <button
-          onClick={() => setPanelOpen((v) => !v)}
-          className="relative group w-9 h-9 rounded-xl flex items-center justify-center mb-2 transition-all"
-          style={{
-            background: panelOpen ? "#0f172a" : "#f1f5f9",
-            color: panelOpen ? "#fff" : "#64748b",
-          }}
-        >
-          <Sparkles style={{ width: 16, height: 16 }} />
-          <span className="tooltip-left">
-            {panelOpen ? "패널 닫기" : "QQ Sidecar"}
-          </span>
-        </button>
+        {/* Toggle button — hidden in side panel mode (panel always open there) */}
+        {!isSidePanel && (
+          <>
+            <button
+              onClick={() => setPanelOpen((v) => !v)}
+              className="relative group w-9 h-9 rounded-xl flex items-center justify-center mb-2 transition-all"
+              style={{
+                background: panelOpen ? "#0f172a" : "#f1f5f9",
+                color: panelOpen ? "#fff" : "#64748b",
+              }}
+            >
+              <Sparkles style={{ width: 16, height: 16 }} />
+              <span className="tooltip-left">
+                {panelOpen ? "패널 닫기" : "QQ Sidecar"}
+              </span>
+            </button>
 
-        <div style={{ width: 20, height: 1, background: "#e2e8f0", margin: "2px 0 6px" }} />
+            <div style={{ width: 20, height: 1, background: "#e2e8f0", margin: "2px 0 6px" }} />
+          </>
+        )}
 
         {/* Prompt icons */}
         {PROMPTS.map((item) => (
