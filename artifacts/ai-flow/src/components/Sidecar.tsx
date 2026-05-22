@@ -534,9 +534,9 @@ export function Sidecar() {
     <>
       {/* ── Narrow icon sidebar ─────────────────────────── */}
       <div
-        className={`fixed top-0 h-full flex flex-col items-center py-4 gap-1 z-[9999] ${isSidePanel ? "right-0" : "right-0"}`}
+        className={`fixed top-0 h-full flex flex-col items-center py-4 gap-1 z-[9999] right-0`}
         style={{
-          width: 52,
+          width: isSidePanel && !panelOpen ? "100%" : 52,
           background: "rgba(255,255,255,0.96)",
           borderLeft: "1px solid #e2e8f0",
           backdropFilter: "blur(8px)",
