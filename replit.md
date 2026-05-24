@@ -150,6 +150,8 @@ UI 어디서든 위와 같은 것을 암시해선 안 된다. "AI 응답은 자�
 ### 완료된 항목 (참고)
 - ✅ 7개 프롬프트 모두 메타데이터 헤더 (version/created_at/kind/summary + filename 줄)
 - ✅ 저장 모달 자동 파싱: 붙여넣기만 하면 폴더·종류·파일명 자동 인식, "✨ 자동 인식됨" 배지로 사용자에게 알림. 사용자가 수동 편집한 필드는 덮어쓰지 않음 (`touched` 플래그)
+- ✅ 워크플로별 Today 라벨 (`TODAY_LABELS` 5개 × 12 키, `getTodayLabels()`)
+- ✅ Today 탭 워크플로 필터: 파일 헤더 `workflow:` 가 활성 모드와 불일치하면 숨김. `workflow: common` 과 legacy(필드 없음) 는 항상 표시. 숨김 개수 배너 + Workspace 탭으로 이동 버튼. common 파일엔 🛟 배지. `parseFileMeta` 캐시로 리렌더 비용 절감.
 
 ## User preferences
 
