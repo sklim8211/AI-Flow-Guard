@@ -25,8 +25,6 @@ import {
   Siren,
   Download,
   ArrowRight,
-  BookOpen,
-  BookMarked,
 } from "lucide-react";
 import { ws } from "../lib/workspace";
 import { fsAccess } from "../lib/fsAccess";
@@ -285,64 +283,6 @@ Rules:
 
 [paste backup file here]`,
   },
-  {
-    id: "source",
-    label: "Source Snapshot",
-    description: "원본 자료 메타로 감싸기",
-    icon: BookOpen,
-    color: "#0ea5e9",
-    defaultFolder: "DRAFTS",
-    prompt: `Please re-emit the source material you just produced (e.g. a draft landing page, a long reference document, a code spec, a research result) WITHOUT changing its content, so I can save it as a reference.
-
-Start the output with this YAML metadata header. Use the schema EXACTLY as shown — keep all field names and ordering, but replace every value inside square brackets with a real value. Do NOT keep the brackets or any inline comments in your output.
-
-Schema:
-
----
-version: v1
-created_at: [YYYY-MM-DD HH:mm in local time]
-kind: source
-summary: [one short single-line description of what this source material is]
-keywords: [3-5 comma-separated searchable keywords]
-source_type: [one of: draft | reference | spec | research | other]
----
-
-Then write the body:
-
-- Paste the FULL original content you produced, verbatim. Do not summarize, shorten, or rewrite it. Preserve formatting, code fences, lists, headings.
-- If the original was very long, include ALL of it. Do not truncate.
-- If the original contained code, keep the code blocks intact.
-
-End the output with ONE line in this exact format:
-filename: source_[short-slug].md
-
-Wrap the entire output (header + body + filename line) inside a single fenced markdown code block so I can copy it as one piece.`,
-  },
-  {
-    id: "load-source",
-    label: "Load Source",
-    description: "저장한 원본 자료 불러오기",
-    icon: BookMarked,
-    color: "#0284c7",
-    defaultFolder: "CURRENT",
-    prompt: `I'm going to paste a previously saved source/reference document below this message. It has a YAML metadata header (with fields like version, created_at, kind: source, summary, keywords, source_type) followed by the verbatim original content.
-
-Please:
-
-1. Read the metadata header and confirm out loud: what kind of source this is (source_type), when it was created, and a one-line summary.
-2. Load the body content into your working context as reference material. Do NOT rewrite, summarize, or modify it — just treat it as ground truth I want you to keep in mind for the rest of this conversation.
-3. Confirm in 1-2 sentences what the source contains (e.g. "This is a landing page draft with hero + 3 feature sections + pricing table").
-4. Ask me what I want to do next with this source (e.g. revise it, extract parts, compare against something, continue from where it left off).
-
-Rules:
-- Do NOT invent or add details that aren't in the source.
-- If the section below is empty or doesn't contain a metadata header with "kind: source", STOP and ask me to paste the full source file first.
-- Keep your confirmation short — I just need to know you've loaded it.
-
---- SOURCE FILE CONTENT BELOW ---
-
-[paste source file here]`,
-  },
 ];
 
 type PanelTab = "today" | "prompts" | "workspace";
@@ -356,7 +296,6 @@ export function Sidecar() {
     prompt: string;
   } | null>(null);
   const [copied, setCopied] = useState(false);
-  const [pasteContent, setPasteContent] = useState("");
   const [showSave, setShowSave] = useState(false);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
 
@@ -389,12 +328,8 @@ export function Sidecar() {
     () => !localStorage.getItem("qq_onboarded")
   );
 
-  // Restore FS handle on mount + migrate default folders for existing projects
+  // Restore FS handle on mount
   useEffect(() => {
-    const added = ws.ensureDefaultFoldersForAllProjects();
-    if (added > 0) {
-      setWsRefresh((n) => n + 1);
-    }
     fsAccess.hasRoot().then(async (has) => {
       if (has) {
         const name = await fsAccess.getRootName();
@@ -498,36 +433,22 @@ export function Sidecar() {
     if (!p) return;
     setActivePrompt({ label: p.label, prompt: p.prompt });
     setShowSave(false);
-    setPasteContent("");
     setShowSOS(false);
     setPanelOpen(true);
   };
 
-  // Prompts ending with a "[paste ... here]" placeholder need a two-step
-  // copy flow: user pastes content into a textarea, we substitute it in
-  // before copying so the AI sees one ready-to-send prompt.
-  const PLACEHOLDER_RE = /\[paste [^\]]+ here\]/;
-  const hasPastePlaceholder = !!activePrompt && PLACEHOLDER_RE.test(activePrompt.prompt);
-  const finalPromptText = activePrompt
-    ? hasPastePlaceholder && pasteContent.trim()
-      ? activePrompt.prompt.replace(PLACEHOLDER_RE, pasteContent.trim())
-      : activePrompt.prompt
-    : "";
-  const copyDisabled = hasPastePlaceholder && !pasteContent.trim();
-
   const handleCopy = () => {
     if (!activePrompt) return;
-    if (copyDisabled) return;
     const onSuccess = () => {
       markActivity();
       setCopied(true);
       setTimeout(() => { setCopied(false); setShowSave(true); }, 800);
     };
-    navigator.clipboard.writeText(finalPromptText)
+    navigator.clipboard.writeText(activePrompt.prompt)
       .then(onSuccess)
       .catch(() => {
         const el = document.createElement("textarea");
-        el.value = finalPromptText;
+        el.value = activePrompt.prompt;
         document.body.appendChild(el);
         el.select();
         document.execCommand("copy");
@@ -639,7 +560,7 @@ export function Sidecar() {
         {PROMPTS.map((item) => (
           <button
             key={item.id}
-            onClick={() => { setActivePrompt({ label: item.label, prompt: item.prompt }); setShowSave(false); setPasteContent(""); }}
+            onClick={() => { setActivePrompt({ label: item.label, prompt: item.prompt }); setShowSave(false); }}
             className="relative group w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95"
             style={{ color: item.color }}
           >
@@ -788,7 +709,7 @@ export function Sidecar() {
                   {PROMPTS.map((item) => (
                     <button
                       key={item.id}
-                      onClick={() => { setActivePrompt({ label: item.label, prompt: item.prompt }); setShowSave(false); setPasteContent(""); }}
+                      onClick={() => { setActivePrompt({ label: item.label, prompt: item.prompt }); setShowSave(false); }}
                       className="w-full flex items-start gap-3 px-4 py-3 hover:bg-slate-50 active:bg-slate-100 transition-colors text-left group cursor-pointer"
                     >
                       <item.icon className="mt-0.5 shrink-0" style={{ width: 15, height: 15, color: item.color }} />
@@ -1008,7 +929,7 @@ export function Sidecar() {
               transition={{ duration: 0.15 }}
               className="fixed inset-0 z-[99998]"
               style={{ background: "rgba(15,23,42,0.2)", backdropFilter: "blur(4px)" }}
-              onClick={() => { setActivePrompt(null); setShowSave(false); setPasteContent(""); }}
+              onClick={() => { setActivePrompt(null); setShowSave(false); }}
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 6 }}
@@ -1025,7 +946,7 @@ export function Sidecar() {
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid #f1f5f9" }}>
                   <p className="text-sm font-bold text-slate-800">{activePrompt.label}</p>
-                  <button onClick={() => { setActivePrompt(null); setShowSave(false); setPasteContent(""); }} className="text-slate-400 hover:text-slate-700 transition-colors">
+                  <button onClick={() => { setActivePrompt(null); setShowSave(false); }} className="text-slate-400 hover:text-slate-700 transition-colors">
                     <X style={{ width: 16, height: 16 }} />
                   </button>
                 </div>
@@ -1037,49 +958,21 @@ export function Sidecar() {
                   </pre>
                 </div>
 
-                {/* Paste area — shown only for prompts with [paste ... here] placeholder */}
-                {hasPastePlaceholder && (
-                  <div className="px-5 pt-4" style={{ borderTop: "1px solid #f1f5f9" }}>
-                    <p className="text-[11px] font-semibold text-slate-700 mb-1.5">
-                      ① 여기에 불러올 파일 내용을 붙여넣으세요
-                    </p>
-                    <p className="text-[10px] text-slate-400 mb-2">
-                      DRAFTS / SAFE 폴더의 파일을 열어 전체 복사 후 아래에 붙여넣기. 우리 앱이 자동으로 프롬프트에 끼워 넣어줍니다.
-                    </p>
-                    <textarea
-                      value={pasteContent}
-                      onChange={(e) => setPasteContent(e.target.value)}
-                      placeholder="--- 여기에 파일 전체 내용 붙여넣기 ---"
-                      className="w-full text-xs font-mono p-2.5 rounded-lg resize-y"
-                      style={{ background: "#f8fafc", border: "1px solid #e2e8f0", minHeight: 80, maxHeight: 200, color: "#334155" }}
-                    />
-                    {pasteContent.trim() && (
-                      <p className="text-[10px] text-emerald-600 mt-1.5">
-                        ✓ {pasteContent.trim().length.toLocaleString()}자 준비됨 — 카피하면 프롬프트에 자동 삽입됩니다
-                      </p>
-                    )}
-                  </div>
-                )}
-
                 {/* Actions */}
                 <div className="px-5 py-4" style={{ borderTop: "1px solid #f1f5f9" }}>
                   <p className="text-[10px] text-slate-400 mb-3">
-                    {hasPastePlaceholder
-                      ? "② 카피 후 ChatGPT나 Claude에 한 번에 붙여넣으세요."
-                      : "이 프롬프트를 복사해서 ChatGPT나 Claude에 붙여넣으세요."}
+                    이 프롬프트를 복사해서 ChatGPT나 Claude에 붙여넣으세요.
                   </p>
                   <button
                     onClick={handleCopy}
-                    disabled={copyDisabled}
                     className="w-full py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all"
                     style={{
-                      background: copyDisabled ? "#e2e8f0" : copied ? "#f0fdf4" : "#0f172a",
-                      color: copyDisabled ? "#94a3b8" : copied ? "#16a34a" : "#fff",
+                      background: copied ? "#f0fdf4" : "#0f172a",
+                      color: copied ? "#16a34a" : "#fff",
                       border: copied ? "1px solid #bbf7d0" : "none",
-                      cursor: copyDisabled ? "not-allowed" : "pointer",
                     }}
                   >
-                    {copied ? <><Check style={{ width: 15, height: 15 }} /> 복사됨!</> : <><Copy style={{ width: 15, height: 15 }} /> {hasPastePlaceholder ? "프롬프트 + 내용 카피" : "Copy Prompt"}</>}
+                    {copied ? <><Check style={{ width: 15, height: 15 }} /> 복사됨!</> : <><Copy style={{ width: 15, height: 15 }} /> Copy Prompt</>}
                   </button>
 
                   {/* Save result button — appears after copy */}

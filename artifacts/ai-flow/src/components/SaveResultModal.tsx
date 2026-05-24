@@ -30,7 +30,6 @@ const FOLDER_BY_KIND: Record<string, string> = {
   compress: "CURRENT",
   next: "NEXT",
   backup: "SAFE",
-  source: "DRAFTS",
 };
 
 const TYPE_BY_KIND: Record<string, FileType> = {
@@ -40,7 +39,6 @@ const TYPE_BY_KIND: Record<string, FileType> = {
   compress: "note",
   next: "note",
   backup: "note",
-  source: "note",
 };
 
 interface ParsedMetadata {
@@ -169,11 +167,7 @@ export function SaveResultModal({
     }, 800);
   };
 
-  // Initialize all fields when the modal opens (not on close).
-  // Previously this ran on onExitComplete which meant first-open had
-  // folderId="" and the Save button was disabled with no explanation.
-  useEffect(() => {
-    if (!open) return;
+  const handleOpen = () => {
     setTitle(defaultTitle);
     setContent(defaultContent);
     setType(defaultType);
@@ -181,22 +175,10 @@ export function SaveResultModal({
     setSaved(false);
     setAutoDetected(null);
     setTouched({ title: false, folder: false, type: false });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-
-  // Reason the Save button is disabled, surfaced to the user.
-  const disabledReason = !projectId
-    ? "프로젝트를 먼저 만들어주세요"
-    : !folderId
-    ? "저장할 폴더를 선택해주세요"
-    : !title.trim()
-    ? "제목을 입력해주세요"
-    : !content.trim()
-    ? "내용을 붙여넣어주세요"
-    : null;
+  };
 
   return (
-    <AnimatePresence>
+    <AnimatePresence onExitComplete={handleOpen}>
       {open && (
         <>
           <motion.div
@@ -340,14 +322,9 @@ export function SaveResultModal({
 
               {/* Save button */}
               <div className="px-5 pb-5">
-                {disabledReason && !saved && (
-                  <p className="text-[11px] text-amber-700 mb-2 px-2 py-1.5 rounded-md" style={{ background: "#fffbeb", border: "1px solid #fde68a" }}>
-                    ⚠ {disabledReason}
-                  </p>
-                )}
                 <button
                   onClick={handleSave}
-                  disabled={!!disabledReason || saved}
+                  disabled={!projectId || !folderId || !title.trim() || saved}
                   className="w-full py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                   style={{
                     background: saved ? "#f0fdf4" : "#0f172a",

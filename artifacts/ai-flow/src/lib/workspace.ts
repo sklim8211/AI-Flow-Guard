@@ -54,7 +54,6 @@ const DEFAULT_FOLDERS = [
   "NEXT",
   "ANCHORS",
   "SUMMARIES",
-  "DRAFTS",
   "PROMPTS",
   "CODE",
   "SAFE",
@@ -249,43 +248,6 @@ export const ws = {
   getMostRecentFile(projectId: string): WFile | null {
     const all = this.getFiles(projectId).sort((a, b) => b.createdAt - a.createdAt);
     return all[0] ?? null;
-  },
-
-  /**
-   * Ensure all DEFAULT_FOLDERS exist for every project.
-   * Used to migrate existing projects when we add a new default folder.
-   * Safe to call repeatedly — only adds missing folders.
-   */
-  ensureDefaultFoldersForAllProjects() {
-    const allFolders = this.getFolders();
-    const allProjects = this.getProjects();
-    const toAdd: WFolder[] = [];
-    for (const project of allProjects) {
-      const existing = new Set(
-        allFolders
-          .filter((f) => f.projectId === project.id && f.parentId === null)
-          .map((f) => f.name.toUpperCase())
-      );
-      const maxOrder = allFolders
-        .filter((f) => f.projectId === project.id && f.parentId === null)
-        .reduce((m, f) => Math.max(m, f.order), -1);
-      let nextOrder = maxOrder + 1;
-      for (const name of DEFAULT_FOLDERS) {
-        if (!existing.has(name.toUpperCase())) {
-          toAdd.push({
-            id: uid(),
-            projectId: project.id,
-            name,
-            parentId: null,
-            order: nextOrder++,
-          });
-        }
-      }
-    }
-    if (toAdd.length > 0) {
-      save(KEYS.folders, [...allFolders, ...toAdd]);
-    }
-    return toAdd.length;
   },
 };
 
