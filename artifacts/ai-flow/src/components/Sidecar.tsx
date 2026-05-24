@@ -599,6 +599,7 @@ export function Sidecar() {
                 refreshKey={wsRefresh}
                 onOpenFile={(f) => setViewFile(f)}
                 onGoToPrompts={() => setTab("prompts")}
+                onGoToWorkspace={() => setTab("workspace")}
               />
             )}
 

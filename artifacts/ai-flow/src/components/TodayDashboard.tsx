@@ -9,6 +9,7 @@ interface Props {
   refreshKey: number;
   onOpenFile: (file: WFile) => void;
   onGoToPrompts: () => void;
+  onGoToWorkspace?: () => void;
 }
 
 function fmtTime(ts: number) {
@@ -30,7 +31,7 @@ function fmtRelative(ts: number) {
   return new Date(ts).toLocaleDateString();
 }
 
-export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, onGoToPrompts }: Props) {
+export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, onGoToPrompts, onGoToWorkspace }: Props) {
   const [mode, setMode] = useState<"start" | "end">("start");
   const labels = getTodayLabels(workflow);
 
@@ -43,19 +44,66 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
 
   const data = useMemo(() => {
     if (!projectId) return null;
-    const mostRecent = ws.getMostRecentFile(projectId);
-    const current = ws.getFilesInFolderByName(projectId, "CURRENT", 3);
-    const next = ws.getFilesInFolderByName(projectId, "NEXT", 3);
-    const anchors = ws.getFilesInFolderByName(projectId, "ANCHORS", 5);
-    const today = ws.getFilesToday(projectId);
+    const activeWf: WorkflowType = workflow ?? "development";
+
+    /**
+     * Parse each file's metadata at most once per render, keyed by file id +
+     * updatedAt. parseFileMeta scans the file body, so re-parsing the same
+     * file across every list (today / current / next / anchors / mostRecent)
+     * gets expensive once a project accumulates a lot of files.
+     */
+    const metaCache = new Map<string, ReturnType<typeof parseFileMeta>>();
+    const getMeta = (file: WFile) => {
+      const key = `${file.id}:${file.updatedAt}`;
+      let m = metaCache.get(key);
+      if (!m) {
+        m = parseFileMeta(file.content);
+        metaCache.set(key, m);
+      }
+      return m;
+    };
+
+    /**
+     * A file belongs in "오늘" only if its workflow stamp matches the active
+     * workflow, or if it's a common safety doc (compress/backup/restore), or
+     * if it has no workflow field at all (legacy files from before the
+     * workflow concept existed). This keeps the dashboard honest about what
+     * mode a file was actually created under.
+     */
+    const matchesWorkflow = (file: WFile): boolean => {
+      const meta = getMeta(file);
+      if (!meta.workflow) return true;
+      if (meta.workflow === "common") return true;
+      return meta.workflow === activeWf;
+    };
+
+    // mostRecent: search the full project (already sorted desc by getFiles)
+    // for the most recent file that matches. No artificial limit — without
+    // this, a busy project could push the matching file out of view.
+    const allFilesDesc = ws.getFiles(projectId).sort((a, b) => b.createdAt - a.createdAt);
+    const mostRecent = allFilesDesc.find(matchesWorkflow) ?? null;
+
+    const current = ws.getFilesInFolderByName(projectId, "CURRENT").filter(matchesWorkflow).slice(0, 3);
+    const next = ws.getFilesInFolderByName(projectId, "NEXT").filter(matchesWorkflow).slice(0, 3);
+    const anchors = ws.getFilesInFolderByName(projectId, "ANCHORS").filter(matchesWorkflow).slice(0, 5);
+    const todayAll = ws.getFilesToday(projectId);
+    const today = todayAll.filter(matchesWorkflow);
+    const hiddenTodayCount = todayAll.length - today.length;
     const todayAnchors = today.filter((f) => f.type === "anchor");
-    const todayNext = today.filter((f) => {
-      const meta = parseFileMeta(f.content);
-      return meta.kind === "next";
-    });
-    return { mostRecent, current, next, anchors, today, todayAnchors, todayNext };
+    const todayNext = today.filter((f) => getMeta(f).kind === "next");
+    return {
+      mostRecent,
+      current,
+      next,
+      anchors,
+      today,
+      todayAnchors,
+      todayNext,
+      hiddenTodayCount,
+      getMeta,
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectId, refreshKey, tick]);
+  }, [projectId, workflow, refreshKey, tick]);
 
   if (!projectId) {
     return (
@@ -72,7 +120,8 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
   /* ── Start mode ──────────────────────────────────── */
   if (mode === "start") {
     const fileRow = (file: WFile) => {
-      const meta = parseFileMeta(file.content);
+      const meta = data.getMeta(file);
+      const isCommon = meta.workflow === "common";
       return (
         <button
           key={file.id}
@@ -80,7 +129,12 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
           className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-50 active:bg-slate-100 transition-colors group"
         >
           <div className="flex items-center justify-between gap-2 mb-0.5">
-            <span className="text-xs font-semibold text-slate-700 truncate">{file.name.replace(/\.md$/, "")}</span>
+            <span className="text-xs font-semibold text-slate-700 truncate flex items-center gap-1.5">
+              {isCommon && (
+                <span title="공통 안전 도구로 만든 파일" style={{ fontSize: 10 }}>🛟</span>
+              )}
+              {file.name.replace(/\.md$/, "")}
+            </span>
             <span className="text-[10px] text-slate-400 shrink-0">{fmtRelative(file.createdAt)}</span>
           </div>
           {meta.summary && (
@@ -93,6 +147,25 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
     return (
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-5">
+          {data.hiddenTodayCount > 0 && (
+            <div
+              className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 flex items-center justify-between gap-2"
+              title="다른 모드에서 만든 파일은 그 모드로 전환해야 보입니다."
+            >
+              <span className="text-[11px] text-slate-600">
+                다른 모드 파일 <b>{data.hiddenTodayCount}개</b> 숨김
+              </span>
+              {onGoToWorkspace && (
+                <button
+                  onClick={onGoToWorkspace}
+                  className="text-[11px] font-semibold text-slate-700 hover:text-slate-900 inline-flex items-center gap-1"
+                >
+                  Workspace에서 보기 <ArrowRight style={{ width: 11, height: 11 }} />
+                </button>
+              )}
+            </div>
+          )}
+
           {/* 이어가기 — most recent */}
           {data.mostRecent ? (
             <section>
@@ -102,13 +175,16 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
               </div>
               <div className="rounded-xl border border-amber-100 bg-amber-50/40 p-3">
                 <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="text-xs font-bold text-slate-800 truncate">
+                  <span className="text-xs font-bold text-slate-800 truncate flex items-center gap-1.5">
+                    {data.getMeta(data.mostRecent).workflow === "common" && (
+                      <span title="공통 안전 도구로 만든 파일" style={{ fontSize: 10 }}>🛟</span>
+                    )}
                     {data.mostRecent.name.replace(/\.md$/, "")}
                   </span>
                   <span className="text-[10px] text-amber-700 shrink-0">{fmtRelative(data.mostRecent.createdAt)}</span>
                 </div>
                 {(() => {
-                  const meta = parseFileMeta(data.mostRecent.content);
+                  const meta = data.getMeta(data.mostRecent);
                   return meta.summary ? (
                     <p className="text-[11px] text-slate-600 mb-2">{meta.summary}</p>
                   ) : null;
@@ -198,6 +274,25 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-5">
+        {data.hiddenTodayCount > 0 && (
+          <div
+            className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 flex items-center justify-between gap-2"
+            title="다른 모드에서 만든 파일은 그 모드로 전환해야 보입니다."
+          >
+            <span className="text-[11px] text-slate-600">
+              다른 모드 파일 <b>{data.hiddenTodayCount}개</b> 숨김
+            </span>
+            {onGoToWorkspace && (
+              <button
+                onClick={onGoToWorkspace}
+                className="text-[11px] font-semibold text-slate-700 hover:text-slate-900 inline-flex items-center gap-1"
+              >
+                Workspace에서 보기 <ArrowRight style={{ width: 11, height: 11 }} />
+              </button>
+            )}
+          </div>
+        )}
+
         <div className="text-center py-2">
           <Moon style={{ width: 28, height: 28, color: "#6366f1" }} className="mx-auto mb-2" />
           <h2 className="text-sm font-bold text-slate-800">{labels.endTitle}</h2>
@@ -215,7 +310,7 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
           {data.today.length > 0 ? (
             <div className="space-y-1">
               {data.today.map((file) => {
-                const meta = parseFileMeta(file.content);
+                const meta = data.getMeta(file);
                 return (
                   <button
                     key={file.id}
@@ -223,7 +318,10 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
                     className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-semibold text-slate-700 truncate">
+                      <span className="text-xs font-semibold text-slate-700 truncate flex items-center gap-1.5">
+                        {meta.workflow === "common" && (
+                          <span title="공통 안전 도구로 만든 파일" style={{ fontSize: 10 }}>🛟</span>
+                        )}
                         {file.name.replace(/\.md$/, "")}
                       </span>
                       <span className="text-[10px] text-slate-400 shrink-0">{fmtTime(file.createdAt)}</span>
@@ -251,14 +349,17 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
             </div>
             <div className="space-y-1">
               {data.todayAnchors.map((file) => {
-                const meta = parseFileMeta(file.content);
+                const meta = data.getMeta(file);
                 return (
                   <button
                     key={file.id}
                     onClick={() => onOpenFile(file)}
                     className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
                   >
-                    <span className="text-xs font-semibold text-slate-700 truncate block">
+                    <span className="text-xs font-semibold text-slate-700 truncate flex items-center gap-1.5">
+                      {meta.workflow === "common" && (
+                        <span title="공통 안전 도구로 만든 파일" style={{ fontSize: 10 }}>🛟</span>
+                      )}
                       {file.name.replace(/\.md$/, "")}
                     </span>
                     {meta.summary && (
@@ -282,14 +383,17 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
             </div>
             <div className="space-y-1">
               {data.todayNext.map((file) => {
-                const meta = parseFileMeta(file.content);
+                const meta = data.getMeta(file);
                 return (
                   <button
                     key={file.id}
                     onClick={() => onOpenFile(file)}
                     className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
                   >
-                    <span className="text-xs font-semibold text-slate-700 truncate block">
+                    <span className="text-xs font-semibold text-slate-700 truncate flex items-center gap-1.5">
+                      {meta.workflow === "common" && (
+                        <span title="공통 안전 도구로 만든 파일" style={{ fontSize: 10 }}>🛟</span>
+                      )}
                       {file.name.replace(/\.md$/, "")}
                     </span>
                     {meta.summary && (
