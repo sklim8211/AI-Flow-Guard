@@ -328,8 +328,12 @@ export function Sidecar() {
     () => !localStorage.getItem("qq_onboarded")
   );
 
-  // Restore FS handle on mount
+  // Restore FS handle on mount + migrate default folders for existing projects
   useEffect(() => {
+    const added = ws.ensureDefaultFoldersForAllProjects();
+    if (added > 0) {
+      setWsRefresh((n) => n + 1);
+    }
     fsAccess.hasRoot().then(async (has) => {
       if (has) {
         const name = await fsAccess.getRootName();
