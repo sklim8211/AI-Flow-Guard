@@ -15,6 +15,7 @@ export function FileViewModal({ file, onClose, onRefresh }: Props) {
   const [editName, setEditName] = useState("");
   const [editContent, setEditContent] = useState("");
   const [copied, setCopied] = useState(false);
+  const [wrappedCopy, setWrappedCopy] = useState(false);
 
   const open = !!file;
 
@@ -42,18 +43,34 @@ export function FileViewModal({ file, onClose, onRefresh }: Props) {
     }
   };
 
+  // Wrap DRAFTS originals so the AI treats them as silent reference material,
+  // not as something to summarize/critique. The user drives the next message.
+  const REFERENCE_WRAPPER_PREFIX =
+    "[참고 자료 — 읽기만 해주세요]\n" +
+    "아래는 제가 나중에 다시 보려고 저장해둔 이전 AI 응답입니다.\n" +
+    "지금은 요약·해석·평가·이어쓰기를 하지 마시고, 조용히 읽고 대기만 해주세요.\n" +
+    "다음 메시지에서 제가 무엇을 할지 알려드릴게요.\n\n" +
+    "---\n";
+  const REFERENCE_WRAPPER_SUFFIX = "\n---\n(여기까지 참고 자료입니다. 다음 지시를 기다려주세요.)";
+
+  const isDraft = !!file && ws.getFolderPath(file.folderId)[0]?.toUpperCase() === "DRAFTS";
+
   const handleCopy = () => {
     if (!file) return;
-    navigator.clipboard.writeText(file.content).catch(() => {
+    const text = isDraft
+      ? REFERENCE_WRAPPER_PREFIX + file.content + REFERENCE_WRAPPER_SUFFIX
+      : file.content;
+    navigator.clipboard.writeText(text).catch(() => {
       const el = document.createElement("textarea");
-      el.value = file.content;
+      el.value = text;
       document.body.appendChild(el);
       el.select();
       document.execCommand("copy");
       document.body.removeChild(el);
     });
     setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+    setWrappedCopy(isDraft);
+    setTimeout(() => { setCopied(false); setWrappedCopy(false); }, 2200);
   };
 
   const typeColor: Record<string, string> = {
@@ -129,7 +146,7 @@ export function FileViewModal({ file, onClose, onRefresh }: Props) {
                   <button
                     onClick={handleCopy}
                     className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
-                    title="복사"
+                    title={isDraft ? "복사 (AI에 '참고용'으로 안내 문구가 자동 추가됩니다)" : "복사"}
                   >
                     {copied ? (
                       <Check style={{ width: 14, height: 14, color: "#16a34a" }} />
@@ -187,6 +204,23 @@ export function FileViewModal({ file, onClose, onRefresh }: Props) {
                   </pre>
                 )}
               </div>
+
+              {/* DRAFTS hint or copy confirmation */}
+              {(isDraft || wrappedCopy) && (
+                <div
+                  className="px-5 py-2 flex items-center gap-2 flex-shrink-0"
+                  style={{
+                    background: wrappedCopy ? "#ecfdf5" : "#fef3c7",
+                    borderTop: "1px solid #f1f5f9",
+                  }}
+                >
+                  <span className="text-[10px] font-semibold" style={{ color: wrappedCopy ? "#047857" : "#92400e" }}>
+                    {wrappedCopy
+                      ? "✓ '참고용으로 읽기만 해줘' 안내와 함께 복사됨. AI에 붙여넣고 다음 지시를 보내세요."
+                      : "📎 복사 시 AI가 장황하게 해석하지 않도록 '참고 자료' 안내 문구가 앞뒤에 자동으로 붙습니다."}
+                  </span>
+                </div>
+              )}
 
               {/* Footer */}
               <div
