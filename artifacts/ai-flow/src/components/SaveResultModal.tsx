@@ -30,6 +30,7 @@ const FOLDER_BY_KIND: Record<string, string> = {
   compress: "CURRENT",
   next: "NEXT",
   backup: "SAFE",
+  source: "DRAFTS",
 };
 
 const TYPE_BY_KIND: Record<string, FileType> = {
@@ -39,6 +40,7 @@ const TYPE_BY_KIND: Record<string, FileType> = {
   compress: "note",
   next: "note",
   backup: "note",
+  source: "note",
 };
 
 interface ParsedMetadata {

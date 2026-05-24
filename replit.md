@@ -120,6 +120,7 @@ UI 어디서든 위와 같은 것을 암시해선 안 된다. "AI 응답은 자�
 | Next | 다음 할 일 추출 | ✅ 공통 메타 헤더 + filename | NEXT |
 | Backup | 큰 수정 전 안전망 스냅샷 | ✅ 메타데이터 헤더 포함 | SAFE |
 | Restore | 백업으로 컨텍스트 복원 | (입력 프롬프트 — 메타 헤더 N/A) | CURRENT |
+| Source Snapshot | 원본 자료를 verbatim + 메타로 감싸기 | ✅ 공통 메타 헤더 + source_type + filename | DRAFTS |
 | 🚨 SOS | 위기 상황 가이드 모달 (Compress/Backup/Restore로 라우팅) | — | — |
 | Workspace | 로컬 폴더 연결 / 파일 관리 | — | — |
 | Install (조건부) | PWA 설치 — `beforeinstallprompt` 받았고 미설치일 때만 노출 | — | — |

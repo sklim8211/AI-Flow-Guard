@@ -25,6 +25,7 @@ import {
   Siren,
   Download,
   ArrowRight,
+  BookOpen,
 } from "lucide-react";
 import { ws } from "../lib/workspace";
 import { fsAccess } from "../lib/fsAccess";
@@ -282,6 +283,39 @@ Rules:
 --- BACKUP FILE CONTENT BELOW ---
 
 [paste backup file here]`,
+  },
+  {
+    id: "source",
+    label: "Source Snapshot",
+    description: "원본 자료 메타로 감싸기",
+    icon: BookOpen,
+    color: "#0ea5e9",
+    defaultFolder: "DRAFTS",
+    prompt: `Please re-emit the source material you just produced (e.g. a draft landing page, a long reference document, a code spec, a research result) WITHOUT changing its content, so I can save it as a reference.
+
+Start the output with this YAML metadata header. Use the schema EXACTLY as shown — keep all field names and ordering, but replace every value inside square brackets with a real value. Do NOT keep the brackets or any inline comments in your output.
+
+Schema:
+
+---
+version: v1
+created_at: [YYYY-MM-DD HH:mm in local time]
+kind: source
+summary: [one short single-line description of what this source material is]
+keywords: [3-5 comma-separated searchable keywords]
+source_type: [one of: draft | reference | spec | research | other]
+---
+
+Then write the body:
+
+- Paste the FULL original content you produced, verbatim. Do not summarize, shorten, or rewrite it. Preserve formatting, code fences, lists, headings.
+- If the original was very long, include ALL of it. Do not truncate.
+- If the original contained code, keep the code blocks intact.
+
+End the output with ONE line in this exact format:
+filename: source_[short-slug].md
+
+Wrap the entire output (header + body + filename line) inside a single fenced markdown code block so I can copy it as one piece.`,
   },
 ];
 
