@@ -9,6 +9,8 @@ interface Props {
   defaultTitle?: string;
   defaultContent?: string;
   defaultType?: FileType;
+  /** Folder name (case-insensitive) used when no metadata kind is detected. */
+  defaultFolderName?: string;
   projectId: string | null;
   rootHandle: FileSystemDirectoryHandle | null;
   onClose: () => void;
@@ -84,6 +86,7 @@ export function SaveResultModal({
   defaultTitle = "",
   defaultContent = "",
   defaultType = "summary",
+  defaultFolderName,
   projectId,
   rootHandle,
   onClose,
@@ -167,18 +170,26 @@ export function SaveResultModal({
     }, 800);
   };
 
-  const handleOpen = () => {
+  // Deterministically sync defaults whenever the modal transitions to open.
+  // Using `open` (not exit-complete) guarantees first-time and rapid reopen flows
+  // both pick up the latest defaultContent / defaultFolderName.
+  useEffect(() => {
+    if (!open) return;
     setTitle(defaultTitle);
     setContent(defaultContent);
     setType(defaultType);
-    setFolderId(folders[0]?.id ?? "");
+    const fallback = defaultFolderName
+      ? folders.find((f) => f.name.toUpperCase() === defaultFolderName.toUpperCase())
+      : undefined;
+    setFolderId(fallback?.id ?? folders[0]?.id ?? "");
     setSaved(false);
     setAutoDetected(null);
     setTouched({ title: false, folder: false, type: false });
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   return (
-    <AnimatePresence onExitComplete={handleOpen}>
+    <AnimatePresence>
       {open && (
         <>
           <motion.div

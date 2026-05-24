@@ -25,6 +25,7 @@ import {
   Siren,
   Download,
   ArrowRight,
+  ClipboardPaste,
 } from "lucide-react";
 import { ws } from "../lib/workspace";
 import { fsAccess } from "../lib/fsAccess";
@@ -298,6 +299,8 @@ export function Sidecar() {
   const [copied, setCopied] = useState(false);
   const [showSave, setShowSave] = useState(false);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
+  const [clipboardContent, setClipboardContent] = useState<string>("");
+  const [clipboardError, setClipboardError] = useState<string | null>(null);
 
   const [viewFile, setViewFile] = useState<WFile | null>(null);
 
@@ -379,7 +382,7 @@ export function Sidecar() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         if (viewFile) { setViewFile(null); return; }
-        if (saveModalOpen) { setSaveModalOpen(false); return; }
+        if (saveModalOpen) { setSaveModalOpen(false); setClipboardContent(""); return; }
         if (showSOS) { setShowSOS(false); return; }
         if (showOnboarding) { return; } // onboarding must be dismissed via button
         if (activePrompt) { setActivePrompt(null); return; }
@@ -439,6 +442,24 @@ export function Sidecar() {
     setShowSave(false);
     setShowSOS(false);
     setPanelOpen(true);
+  };
+
+  const handleClipboardCapture = async () => {
+    setClipboardError(null);
+    try {
+      const text = await navigator.clipboard.readText();
+      if (!text || !text.trim()) {
+        setClipboardError("클립보드가 비어 있어요. AI 응답을 먼저 카피해주세요.");
+        setTimeout(() => setClipboardError(null), 3500);
+        return;
+      }
+      setClipboardContent(text);
+      setSaveModalOpen(true);
+      setPanelOpen(true);
+    } catch {
+      setClipboardError("클립보드 읽기 권한이 필요해요. 브라우저 허용 후 다시 시도해주세요.");
+      setTimeout(() => setClipboardError(null), 4000);
+    }
   };
 
   const handleCopy = () => {
@@ -559,6 +580,21 @@ export function Sidecar() {
             <div style={{ width: 20, height: 1, background: "#e2e8f0", margin: "2px 0 6px" }} />
           </>
         )}
+
+        {/* Clipboard capture — one-click save of any AI response */}
+        <button
+          onClick={handleClipboardCapture}
+          className="relative group w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+          style={{ color: "#fff", background: "#0f172a" }}
+        >
+          <ClipboardPaste className="relative z-10" style={{ width: 16, height: 16 }} />
+          <span className="tooltip-left">
+            <span className="block font-semibold">클립보드에서 저장</span>
+            <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>카피한 AI 응답을 바로 저장</span>
+          </span>
+        </button>
+
+        <div style={{ width: 20, height: 1, background: "#e2e8f0", margin: "6px 0 2px" }} />
 
         {/* Prompt icons */}
         {PROMPTS.map((item) => (
@@ -1008,11 +1044,34 @@ export function Sidecar() {
         open={saveModalOpen}
         projectId={activeProjectId}
         rootHandle={rootHandle}
-        defaultTitle={activePrompt ? `${activePrompt.label} — ${new Date().toLocaleDateString("ko-KR")}` : ""}
-        defaultType="summary"
-        onClose={() => setSaveModalOpen(false)}
-        onSaved={() => { markActivity(); refreshWorkspace(); setTab("today"); setPanelOpen(true); }}
+        defaultTitle={
+          clipboardContent
+            ? `원본 — ${new Date().toLocaleDateString("ko-KR")}`
+            : activePrompt
+              ? `${activePrompt.label} — ${new Date().toLocaleDateString("ko-KR")}`
+              : ""
+        }
+        defaultContent={clipboardContent}
+        defaultType={clipboardContent ? "note" : "summary"}
+        defaultFolderName={clipboardContent ? "DRAFTS" : undefined}
+        onClose={() => { setSaveModalOpen(false); setClipboardContent(""); }}
+        onSaved={() => { markActivity(); refreshWorkspace(); setTab("today"); setPanelOpen(true); setClipboardContent(""); }}
       />
+
+      {/* ── Clipboard error toast ───────────────────────── */}
+      <AnimatePresence>
+        {clipboardError && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 12 }}
+            className="fixed bottom-4 left-4 right-4 z-[10001] max-w-sm mx-auto px-4 py-3 rounded-xl text-xs font-semibold text-center"
+            style={{ background: "#fef2f2", border: "1px solid #fecaca", color: "#b91c1c", boxShadow: "0 10px 30px rgba(0,0,0,0.12)" }}
+          >
+            {clipboardError}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Save reminder toast ─────────────────────────── */}
       <SaveReminderToast
