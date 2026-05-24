@@ -26,6 +26,7 @@ import {
   Download,
   ArrowRight,
   BookOpen,
+  BookMarked,
 } from "lucide-react";
 import { ws } from "../lib/workspace";
 import { fsAccess } from "../lib/fsAccess";
@@ -316,6 +317,31 @@ End the output with ONE line in this exact format:
 filename: source_[short-slug].md
 
 Wrap the entire output (header + body + filename line) inside a single fenced markdown code block so I can copy it as one piece.`,
+  },
+  {
+    id: "load-source",
+    label: "Load Source",
+    description: "저장한 원본 자료 불러오기",
+    icon: BookMarked,
+    color: "#0284c7",
+    defaultFolder: "CURRENT",
+    prompt: `I'm going to paste a previously saved source/reference document below this message. It has a YAML metadata header (with fields like version, created_at, kind: source, summary, keywords, source_type) followed by the verbatim original content.
+
+Please:
+
+1. Read the metadata header and confirm out loud: what kind of source this is (source_type), when it was created, and a one-line summary.
+2. Load the body content into your working context as reference material. Do NOT rewrite, summarize, or modify it — just treat it as ground truth I want you to keep in mind for the rest of this conversation.
+3. Confirm in 1-2 sentences what the source contains (e.g. "This is a landing page draft with hero + 3 feature sections + pricing table").
+4. Ask me what I want to do next with this source (e.g. revise it, extract parts, compare against something, continue from where it left off).
+
+Rules:
+- Do NOT invent or add details that aren't in the source.
+- If the section below is empty or doesn't contain a metadata header with "kind: source", STOP and ask me to paste the full source file first.
+- Keep your confirmation short — I just need to know you've loaded it.
+
+--- SOURCE FILE CONTENT BELOW ---
+
+[paste source file here]`,
   },
 ];
 
