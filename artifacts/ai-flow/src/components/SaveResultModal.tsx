@@ -47,6 +47,7 @@ interface ParsedMetadata {
   kind?: string;
   summary?: string;
   filename?: string;
+  workflow?: string;
 }
 
 function parseMetadata(raw: string): ParsedMetadata {
@@ -69,6 +70,7 @@ function parseMetadata(raw: string): ParsedMetadata {
       const value = m[2].trim();
       if (key === "kind") result.kind = value.toLowerCase();
       else if (key === "summary") result.summary = value;
+      else if (key === "workflow") result.workflow = value.toLowerCase();
     }
   }
 
@@ -253,6 +255,7 @@ export function SaveResultModal({
                       <p className="font-semibold">자동 인식됨</p>
                       <p className="mt-0.5 text-[10px] leading-snug" style={{ color: "#15803d" }}>
                         {autoDetected.kind && <>종류: <b>{autoDetected.kind}</b> · </>}
+                        {autoDetected.workflow && autoDetected.workflow !== "common" && <>직군: <b>{autoDetected.workflow}</b> · </>}
                         {autoDetected.filename && <>파일명: <b>{autoDetected.filename}</b></>}
                       </p>
                       <p className="mt-0.5 text-[10px] text-slate-500">아래 값을 직접 바꿔도 됩니다.</p>

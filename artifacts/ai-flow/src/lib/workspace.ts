@@ -1,9 +1,13 @@
+import type { WorkflowType } from "./prompts";
+
 export type FileType = "summary" | "code" | "anchor" | "note" | "prompt";
 
 export interface Project {
   id: string;
   name: string;
   createdAt: number;
+  /** Optional workflow type — null/undefined means "not yet chosen" (uses common defaults). */
+  workflow?: WorkflowType | null;
 }
 
 export interface WFolder {
@@ -75,8 +79,8 @@ export const ws = {
     localStorage.setItem(KEYS.activeProject, id);
   },
 
-  createProject(name: string): Project {
-    const project: Project = { id: uid(), name, createdAt: Date.now() };
+  createProject(name: string, workflow: WorkflowType | null = null): Project {
+    const project: Project = { id: uid(), name, createdAt: Date.now(), workflow };
     const projects = this.getProjects();
     save(KEYS.projects, [...projects, project]);
 
@@ -117,6 +121,13 @@ export const ws = {
     save(
       KEYS.projects,
       this.getProjects().map((p) => (p.id === id ? { ...p, name } : p))
+    );
+  },
+
+  setProjectWorkflow(id: string, workflow: WorkflowType | null) {
+    save(
+      KEYS.projects,
+      this.getProjects().map((p) => (p.id === id ? { ...p, workflow } : p))
     );
   },
 
@@ -293,6 +304,7 @@ export const ws = {
 export interface FileMeta {
   kind?: string;
   summary?: string;
+  workflow?: string;
 }
 
 export function parseFileMeta(raw: string): FileMeta {
@@ -311,6 +323,7 @@ export function parseFileMeta(raw: string): FileMeta {
       const value = m[2].trim();
       if (key === "kind") result.kind = value.toLowerCase();
       else if (key === "summary") result.summary = value;
+      else if (key === "workflow") result.workflow = value.toLowerCase();
     }
   }
   return result;

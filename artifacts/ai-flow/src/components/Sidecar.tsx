@@ -35,256 +35,50 @@ import { FileViewModal } from "./FileViewModal";
 import { TodayDashboard } from "./TodayDashboard";
 import { SaveReminderToast, markActivity } from "./SaveReminderToast";
 import type { WFile } from "../lib/workspace";
+import {
+  PROMPT_DEFS,
+  WORKFLOWS,
+  getPromptText,
+  getWorkflowDef,
+  type PromptId,
+  type WorkflowType,
+} from "../lib/prompts";
 
-const PROMPTS = [
-  {
-    id: "resume",
-    label: "Resume Work",
-    description: "이어서 작업하기",
-    icon: CheckCircle2,
-    color: "#10b981",
-    defaultFolder: "CURRENT",
-    prompt: `Please summarize our conversation so I can resume work later.
+/** Visual metadata per prompt — icon & color stay constant across workflows. */
+const PROMPT_VISUALS: Record<PromptId, { icon: typeof CheckCircle2; color: string }> = {
+  resume: { icon: CheckCircle2, color: "#10b981" },
+  summary: { icon: FileText, color: "#3b82f6" },
+  anchors: { icon: Anchor, color: "#8b5cf6" },
+  compress: { icon: Minimize2, color: "#f97316" },
+  next: { icon: ListTodo, color: "#ef4444" },
+  backup: { icon: LifeBuoy, color: "#06b6d4" },
+  restore: { icon: RotateCcw, color: "#84cc16" },
+};
 
-Start the output with this YAML metadata header. Use the schema EXACTLY as shown — keep all field names and ordering, but replace every value inside square brackets with a real value. Do NOT keep the brackets or any inline comments in your output.
+interface DisplayPrompt {
+  id: PromptId;
+  label: string;
+  description: string;
+  icon: typeof CheckCircle2;
+  color: string;
+  prompt: string;
+}
 
-Schema:
+/** Build the list of prompts to display for the currently active project's workflow. */
+function buildPrompts(workflow: WorkflowType | null): DisplayPrompt[] {
+  return PROMPT_DEFS.map((def) => {
+    const visual = PROMPT_VISUALS[def.id];
+    return {
+      id: def.id,
+      label: def.label,
+      description: def.description,
+      icon: visual.icon,
+      color: visual.color,
+      prompt: getPromptText(def.id, workflow),
+    };
+  });
+}
 
----
-version: v1
-created_at: [YYYY-MM-DD HH:mm in local time]
-kind: resume
-summary: [one short single-line description of where we are]
-keywords: [3-5 comma-separated searchable keywords]
----
-
-Then write the body in this structure:
-
-CURRENT: [what we were working on in 1-2 sentences]
-NEXT: [the most important next step]
-ISSUE: [any blockers or open questions]
-
-Keep it short, structured, and easy to paste at the start of a new session.
-
-End the output with ONE line in this exact format:
-filename: resume_[short-slug].md
-
-Wrap the entire output (header + body + filename line) inside a single fenced markdown code block so I can copy it as one piece.`,
-  },
-  {
-    id: "summary",
-    label: "Work Summary",
-    description: "세션 결과 정리",
-    icon: FileText,
-    color: "#3b82f6",
-    defaultFolder: "SUMMARIES",
-    prompt: `Please create a compact work summary of what we accomplished.
-
-Start the output with this YAML metadata header. Use the schema EXACTLY as shown — keep all field names and ordering, but replace every value inside square brackets with a real value. Do NOT keep the brackets or any inline comments in your output.
-
-Schema:
-
----
-version: v1
-created_at: [YYYY-MM-DD HH:mm in local time]
-kind: summary
-summary: [one short single-line description of this session]
-keywords: [3-5 comma-separated searchable keywords]
----
-
-Then write the body in this structure:
-
-COMPLETED: [list of things we finished]
-DECISIONS: [important decisions we made]
-ARTIFACTS: [files, links, or outputs created]
-NOTES: [anything worth remembering]
-
-Keep it concise and saveable.
-
-End the output with ONE line in this exact format:
-filename: summary_[short-slug].md
-
-Wrap the entire output (header + body + filename line) inside a single fenced markdown code block so I can copy it as one piece.`,
-  },
-  {
-    id: "anchors",
-    label: "Extract Anchors",
-    description: "핵심 전환점 추출",
-    icon: Anchor,
-    color: "#8b5cf6",
-    defaultFolder: "ANCHORS",
-    prompt: `Please extract the key anchor points from our conversation — the moments, decisions, and breakthroughs that shaped the direction of this work.
-
-Start the output with this YAML metadata header. Use the schema EXACTLY as shown — keep all field names and ordering, but replace every value inside square brackets with a real value. Do NOT keep the brackets or any inline comments in your output.
-
-Schema:
-
----
-version: v1
-created_at: [YYYY-MM-DD HH:mm in local time]
-kind: anchors
-summary: [one short single-line description of the key shift this session]
-keywords: [3-5 comma-separated searchable keywords]
----
-
-Then write the body in this structure:
-
-ANCHORS:
-- [moment or decision 1]
-- [moment or decision 2]
-- [moment or decision 3]
-...
-
-TURNING POINT: [the single most important shift in this session]
-CORE INSIGHT: [the key idea we landed on]
-
-Keep it minimal and high-signal.
-
-End the output with ONE line in this exact format:
-filename: anchors_[short-slug].md
-
-Wrap the entire output (header + body + filename line) inside a single fenced markdown code block so I can copy it as one piece.`,
-  },
-  {
-    id: "compress",
-    label: "Compress Context",
-    description: "맥락 압축 요약",
-    icon: Minimize2,
-    color: "#f97316",
-    defaultFolder: "CURRENT",
-    prompt: `Please compress everything we know so far into the smallest possible summary I can paste at the start of a new conversation.
-
-Start the output with this YAML metadata header. Use the schema EXACTLY as shown — keep all field names and ordering, but replace every value inside square brackets with a real value. Do NOT keep the brackets or any inline comments in your output.
-
-Schema:
-
----
-version: v1
-created_at: [YYYY-MM-DD HH:mm in local time]
-kind: compress
-summary: [one short single-line description of the compressed context]
-keywords: [3-5 comma-separated searchable keywords]
----
-
-Then write the body in this structure:
-
-CONTEXT: [project/task background in 2-3 sentences]
-STATE: [exactly where we are right now]
-CONSTRAINTS: [any important limits or requirements]
-NEXT: [first action to take]
-
-Make it dense and paste-ready.
-
-End the output with ONE line in this exact format:
-filename: compress_[short-slug].md
-
-Wrap the entire output (header + body + filename line) inside a single fenced markdown code block so I can copy it as one piece.`,
-  },
-  {
-    id: "next",
-    label: "Next Actions",
-    description: "다음 할 일 목록",
-    icon: ListTodo,
-    color: "#ef4444",
-    defaultFolder: "NEXT",
-    prompt: `Based on our conversation, please generate my next action list.
-
-Start the output with this YAML metadata header. Use the schema EXACTLY as shown — keep all field names and ordering, but replace every value inside square brackets with a real value. Do NOT keep the brackets or any inline comments in your output.
-
-Schema:
-
----
-version: v1
-created_at: [YYYY-MM-DD HH:mm in local time]
-kind: next
-summary: [one short single-line description of the most urgent action]
-keywords: [3-5 comma-separated searchable keywords]
----
-
-Then write the body in this structure:
-
-IMMEDIATE: [the single next action to do right now]
-TODAY: [2-3 things to complete today]
-THIS WEEK: [1-2 bigger goals for this week]
-BLOCKERS: [anything that needs to be resolved first]
-NOTES: [any helpful context for these actions]
-
-Keep it action-oriented and specific.
-
-End the output with ONE line in this exact format:
-filename: next_[short-slug].md
-
-Wrap the entire output (header + body + filename line) inside a single fenced markdown code block so I can copy it as one piece.`,
-  },
-  {
-    id: "backup",
-    label: "Backup Snapshot",
-    description: "큰 수정 전 안전망",
-    icon: LifeBuoy,
-    color: "#06b6d4",
-    defaultFolder: "SAFE",
-    prompt: `Please create a complete BACKUP SNAPSHOT of our current work state. This will be saved as a safety net before making a large or risky change.
-
-Start the output with this YAML metadata header. Use the schema EXACTLY as shown — keep all field names and ordering, but replace every value inside square brackets with a real value. Do NOT keep the brackets or any inline comments in your output.
-
-Schema:
-
----
-version: [vN — next number if previous backups exist in this conversation, otherwise v1]
-created_at: [YYYY-MM-DD HH:mm in local time]
-kind: backup
-summary: [one short single-line summary of the current state]
-changes_from_previous: |-
-  - [bullet 1: what changed since previous backup]
-  - [bullet 2 (optional)]
-  - [bullet 3 (optional)]
-  (write a single line "first backup" instead of bullets if this is v1)
-restoration_hint: [single line — what someone needs to know to restore from this snapshot]
-risk_level: [exactly one of: low | medium | high]
----
-
-Then write the body in this structure:
-
-1. CURRENT STATE — exactly where we are right now (2-3 sentences)
-2. IN PROGRESS — what's actively being worked on
-3. NEXT STEPS — the upcoming actions in order
-4. DECISIONS & REASONS — important decisions made so far and why
-5. CRITICAL INFO — anything that absolutely must not be lost (file paths, IDs, configs, exact values)
-6. KNOWN RISKS — what could go wrong next, and how to recover
-
-End the output with ONE line in this exact format (the [N] number MUST match the version number you used in the header):
-filename: backup_v[N]_[short-slug].md
-
-Wrap the entire output (header + body + filename line) inside a single fenced markdown code block so I can copy it as one piece.`,
-  },
-  {
-    id: "restore",
-    label: "Restore From Backup",
-    description: "백업으로 컨텍스트 복원",
-    icon: RotateCcw,
-    color: "#84cc16",
-    defaultFolder: "CURRENT",
-    prompt: `I need to restore my working context from a backup snapshot. Below this message I will paste the full backup file content (it has a metadata header with version, created_at, summary, changes_from_previous, restoration_hint, risk_level, followed by the body).
-
-Please:
-
-1. Read the metadata header and confirm out loud: which version, when it was created, the summary, and the risk_level.
-2. Reconstruct the full working context from the body: current state, in-progress work, next steps, key decisions, and critical info.
-3. Highlight anything in "restoration_hint" that I should be careful about.
-4. Tell me the SINGLE most important action to take right now to safely continue from this snapshot.
-5. List anything in the backup that looks stale or might no longer apply (best-effort guess, clearly marked as a guess).
-
-Rules:
-- Do NOT invent details that aren't in the backup.
-- If something critical is missing or ambiguous, ASK me a clarifying question instead of guessing.
-- If the section below is empty or does not contain a metadata header, STOP and ask me to paste the full backup file first.
-- Keep the response structured and scannable, not a wall of prose.
-
---- BACKUP FILE CONTENT BELOW ---
-
-[paste backup file here]`,
-  },
-];
 
 type PanelTab = "today" | "prompts" | "workspace";
 
@@ -311,8 +105,10 @@ export function Sidecar() {
   );
   const [projectMenuOpen, setProjectMenuOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
+  const [newProjectWorkflow, setNewProjectWorkflow] = useState<WorkflowType | null>(null);
   const [creatingProject, setCreatingProject] = useState(false);
   const [wsRefresh, setWsRefresh] = useState(0);
+  const [workflowMenuOpen, setWorkflowMenuOpen] = useState(false);
 
   // Local filesystem
   const [rootHandle, setRootHandle] = useState<FileSystemDirectoryHandle | null>(null);
@@ -436,9 +232,11 @@ export function Sidecar() {
   };
 
   const openPromptFromSOS = (promptId: string) => {
-    const p = PROMPTS.find((x) => x.id === promptId);
-    if (!p) return;
-    setActivePrompt({ label: p.label, prompt: p.prompt });
+    const def = PROMPT_DEFS.find((x) => x.id === promptId);
+    if (!def) return;
+    const project = ws.getProjects().find((p) => p.id === ws.getActiveProjectId());
+    const wf = project?.workflow ?? null;
+    setActivePrompt({ label: def.label, prompt: getPromptText(def.id, wf) });
     setShowSave(false);
     setShowSOS(false);
     setPanelOpen(true);
@@ -484,8 +282,9 @@ export function Sidecar() {
 
   const handleCreateProject = async () => {
     if (!newProjectName.trim()) return;
-    const project = ws.createProject(newProjectName.trim());
+    const project = ws.createProject(newProjectName.trim(), newProjectWorkflow);
     setNewProjectName("");
+    setNewProjectWorkflow(null);
     setCreatingProject(false);
     refreshWorkspace();
     // Also create actual folders on disk if connected
@@ -506,7 +305,17 @@ export function Sidecar() {
     setWsRefresh((n) => n + 1);
   };
 
+  const handleChangeWorkflow = (workflow: WorkflowType | null) => {
+    if (!activeProjectId) return;
+    ws.setProjectWorkflow(activeProjectId, workflow);
+    setWorkflowMenuOpen(false);
+    refreshWorkspace();
+  };
+
   const activeProject = projects.find((p) => p.id === activeProjectId) ?? null;
+  const activeWorkflow: WorkflowType | null = activeProject?.workflow ?? null;
+  const activeWorkflowDef = getWorkflowDef(activeWorkflow);
+  const displayPrompts = buildPrompts(activeWorkflow);
 
   // ── Side panel mode (narrow window / popup) ─────────────
   const [isSidePanel, setIsSidePanel] = useState(() => window.innerWidth <= 440);
@@ -597,7 +406,7 @@ export function Sidecar() {
         <div style={{ width: 20, height: 1, background: "#e2e8f0", margin: "6px 0 2px" }} />
 
         {/* Prompt icons */}
-        {PROMPTS.map((item) => (
+        {displayPrompts.map((item) => (
           <button
             key={item.id}
             onClick={() => { setActivePrompt({ label: item.label, prompt: item.prompt }); setShowSave(false); }}
@@ -706,10 +515,60 @@ export function Sidecar() {
             }}
           >
             {/* Panel header */}
-            <div className="flex items-center justify-between px-4 py-3.5" style={{ borderBottom: "1px solid #f1f5f9" }}>
-              <p className="text-xs font-bold text-slate-700">QQ Sidecar</p>
+            <div className="flex items-center justify-between px-4 py-3.5 gap-2" style={{ borderBottom: "1px solid #f1f5f9" }}>
+              <div className="flex items-center gap-2 min-w-0">
+                <p className="text-xs font-bold text-slate-700 shrink-0">QQ Sidecar</p>
+                {activeProject && (
+                  <div className="relative">
+                    <button
+                      onClick={() => setWorkflowMenuOpen((v) => !v)}
+                      className="flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold transition-all hover:opacity-80"
+                      style={{
+                        background: activeWorkflowDef ? "#eef2ff" : "#f1f5f9",
+                        color: activeWorkflowDef ? "#4338ca" : "#64748b",
+                      }}
+                      title="직군 변경"
+                    >
+                      <span>{activeWorkflowDef ? `${activeWorkflowDef.emoji} ${activeWorkflowDef.label} 모드` : "💻 개발 모드 (기본)"}</span>
+                      <ChevronDown style={{ width: 9, height: 9 }} />
+                    </button>
+                    {workflowMenuOpen && (
+                      <div
+                        className="absolute left-0 top-full mt-1 rounded-xl overflow-hidden z-20"
+                        style={{ background: "#fff", border: "1px solid #e2e8f0", boxShadow: "0 8px 24px rgba(0,0,0,0.1)", minWidth: 160 }}
+                      >
+                        {WORKFLOWS.map((wf) => (
+                          <button
+                            key={wf.id}
+                            onClick={() => handleChangeWorkflow(wf.id)}
+                            className="w-full flex items-start gap-2 px-3 py-2 hover:bg-slate-50 text-left transition-colors"
+                            style={{
+                              background: activeWorkflow === wf.id ? "#f8fafc" : "transparent",
+                            }}
+                          >
+                            <span className="text-sm">{wf.emoji}</span>
+                            <div className="min-w-0">
+                              <p className="text-[11px] font-semibold text-slate-700">{wf.label}</p>
+                              <p className="text-[9px] text-slate-400 leading-tight">{wf.description}</p>
+                            </div>
+                          </button>
+                        ))}
+                        {activeWorkflow && (
+                          <button
+                            onClick={() => handleChangeWorkflow(null)}
+                            className="w-full px-3 py-2 hover:bg-slate-50 text-left text-[10px] font-semibold text-slate-500 transition-colors"
+                            style={{ borderTop: "1px solid #f1f5f9" }}
+                          >
+                            직군 미지정으로 되돌리기
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
               {!isSidePanel && (
-                <button onClick={() => setPanelOpen(false)} className="text-slate-400 hover:text-slate-700 transition-colors">
+                <button onClick={() => setPanelOpen(false)} className="text-slate-400 hover:text-slate-700 transition-colors shrink-0">
                   <ChevronRight style={{ width: 15, height: 15 }} />
                 </button>
               )}
@@ -746,7 +605,7 @@ export function Sidecar() {
             {tab === "prompts" && (
               <div className="flex-1 flex flex-col overflow-hidden">
                 <div className="flex-1 overflow-y-auto py-2">
-                  {PROMPTS.map((item) => (
+                  {displayPrompts.map((item) => (
                     <button
                       key={item.id}
                       onClick={() => { setActivePrompt({ label: item.label, prompt: item.prompt }); setShowSave(false); }}
@@ -890,23 +749,49 @@ export function Sidecar() {
 
                   {/* New project */}
                   {creatingProject ? (
-                    <div className="flex gap-1.5 mt-2">
-                      <input
-                        autoFocus
-                        type="text"
-                        value={newProjectName}
-                        onChange={(e) => setNewProjectName(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === "Enter") handleCreateProject(); if (e.key === "Escape") setCreatingProject(false); }}
-                        placeholder="프로젝트 이름..."
-                        className="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-slate-400"
-                      />
-                      <button
-                        onClick={handleCreateProject}
-                        className="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                        style={{ background: "#0f172a", color: "#fff" }}
-                      >
-                        생성
-                      </button>
+                    <div className="mt-2 space-y-2">
+                      <div className="flex gap-1.5">
+                        <input
+                          autoFocus
+                          type="text"
+                          value={newProjectName}
+                          onChange={(e) => setNewProjectName(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === "Enter") handleCreateProject(); if (e.key === "Escape") { setCreatingProject(false); setNewProjectWorkflow(null); } }}
+                          placeholder="프로젝트 이름..."
+                          className="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-slate-400"
+                        />
+                        <button
+                          onClick={handleCreateProject}
+                          className="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                          style={{ background: "#0f172a", color: "#fff" }}
+                        >
+                          생성
+                        </button>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-slate-500 tracking-wider mb-1">직군 (선택)</p>
+                        <div className="flex flex-wrap gap-1">
+                          {WORKFLOWS.map((wf) => (
+                            <button
+                              key={wf.id}
+                              onClick={() => setNewProjectWorkflow((cur) => (cur === wf.id ? null : wf.id))}
+                              className="px-2 py-1 rounded-lg text-[10px] font-semibold transition-all"
+                              style={{
+                                background: newProjectWorkflow === wf.id ? "#0f172a" : "#f1f5f9",
+                                color: newProjectWorkflow === wf.id ? "#fff" : "#64748b",
+                              }}
+                              title={wf.description}
+                            >
+                              {wf.emoji} {wf.label}
+                            </button>
+                          ))}
+                        </div>
+                        <p className="text-[10px] text-slate-400 mt-1 leading-snug">
+                          {newProjectWorkflow
+                            ? `프롬프트가 ${getWorkflowDef(newProjectWorkflow)?.label}용으로 맞춰집니다.`
+                            : "고르지 않으면 공통(개발 기본)으로 시작합니다. 나중에 변경 가능."}
+                        </p>
+                      </div>
                     </div>
                   ) : (
                     <button
