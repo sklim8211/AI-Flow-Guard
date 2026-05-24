@@ -10,6 +10,8 @@ import {
   Edit3,
   FilePlus,
   FolderPlus,
+  Layers,
+  X,
 } from "lucide-react";
 import { ws, type WFolder, type WFile, type Project } from "../lib/workspace";
 
@@ -30,6 +32,8 @@ interface Props {
   onNewFile: (folderId: string, folderName: string) => void;
   refresh: number;
   onRefresh: () => void;
+  /** Called with selected files when user clicks "Consolidate". */
+  onConsolidate?: (files: WFile[]) => void;
 }
 
 function FolderRow({
@@ -40,6 +44,9 @@ function FolderRow({
   onOpenFile,
   onNewFile,
   onRefresh,
+  selectMode,
+  isSelected,
+  toggleSelect,
 }: {
   folder: WFolder;
   files: WFile[];
@@ -50,6 +57,9 @@ function FolderRow({
   onOpenFile: (f: WFile) => void;
   onNewFile: (folderId: string, folderName: string) => void;
   onRefresh: () => void;
+  selectMode: boolean;
+  isSelected: (id: string) => boolean;
+  toggleSelect: (id: string) => void;
 }) {
   const [open, setOpen] = useState(depth === 0 && files.length > 0);
   const [renaming, setRenaming] = useState(false);
@@ -184,6 +194,9 @@ function FolderRow({
               depth={depth + 1}
               onOpen={onOpenFile}
               onRefresh={onRefresh}
+              selectMode={selectMode}
+              selected={isSelected(file.id)}
+              onToggleSelect={() => toggleSelect(file.id)}
             />
           ))}
           {subfolders.map((sub) => (
@@ -200,6 +213,9 @@ function FolderRow({
               onOpenFile={onOpenFile}
               onNewFile={onNewFile}
               onRefresh={onRefresh}
+              selectMode={selectMode}
+              isSelected={isSelected}
+              toggleSelect={toggleSelect}
             />
           ))}
         </div>
@@ -213,11 +229,17 @@ function FileRow({
   depth,
   onOpen,
   onRefresh,
+  selectMode,
+  selected,
+  onToggleSelect,
 }: {
   file: WFile;
   depth: number;
   onOpen: (f: WFile) => void;
   onRefresh: () => void;
+  selectMode: boolean;
+  selected: boolean;
+  onToggleSelect: () => void;
 }) {
   const indent = depth * 12;
   const typeColor: Record<string, string> = {
@@ -229,40 +251,89 @@ function FileRow({
   };
   const color = typeColor[file.type] ?? "#64748b";
 
+  const handleClick = () => {
+    if (selectMode) onToggleSelect();
+    else onOpen(file);
+  };
+
   return (
     <div
       className="group flex items-center gap-1.5 py-1 pr-2 cursor-pointer hover:bg-slate-50 rounded-lg transition-colors"
-      style={{ paddingLeft: 8 + indent }}
-      onClick={() => onOpen(file)}
+      style={{
+        paddingLeft: 8 + indent,
+        background: selectMode && selected ? "#eff6ff" : undefined,
+      }}
+      onClick={handleClick}
     >
-      <File style={{ width: 11, height: 11, color, flexShrink: 0 }} />
+      {selectMode ? (
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={onToggleSelect}
+          onClick={(e) => e.stopPropagation()}
+          className="cursor-pointer flex-shrink-0"
+          style={{ width: 11, height: 11 }}
+        />
+      ) : (
+        <File style={{ width: 11, height: 11, color, flexShrink: 0 }} />
+      )}
       <span className="flex-1 text-[11px] text-slate-600 truncate">
         {file.name}
       </span>
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          if (confirm(`"${file.name}" 파일을 삭제할까요?`)) {
-            ws.deleteFile(file.id);
-            onRefresh();
-          }
-        }}
-        className="p-0.5 rounded hover:bg-red-100 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
-        title="삭제"
-      >
-        <Trash2 style={{ width: 10, height: 10 }} />
-      </button>
+      {!selectMode && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            if (confirm(`"${file.name}" 파일을 삭제할까요?`)) {
+              ws.deleteFile(file.id);
+              onRefresh();
+            }
+          }}
+          className="p-0.5 rounded hover:bg-red-100 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+          title="삭제"
+        >
+          <Trash2 style={{ width: 10, height: 10 }} />
+        </button>
+      )}
     </div>
   );
 }
 
-export function WorkspaceView({ projectId, onOpenFile, onNewFile, refresh, onRefresh }: Props) {
+export function WorkspaceView({ projectId, onOpenFile, onNewFile, refresh, onRefresh, onConsolidate }: Props) {
   const folders = ws
     .getFolders(projectId)
     .filter((f) => f.parentId === null)
     .sort((a, b) => a.order - b.order);
 
   const allFolders = ws.getFolders(projectId);
+  const allFiles = ws.getFiles(projectId);
+
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  const isSelected = useCallback((id: string) => selectedIds.has(id), [selectedIds]);
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const exitSelectMode = () => {
+    setSelectMode(false);
+    setSelectedIds(new Set());
+  };
+
+  const handleConsolidate = () => {
+    const picked = allFiles.filter((f) => selectedIds.has(f.id));
+    if (picked.length < 2 || !onConsolidate) return;
+    // Pass in chronological order (oldest first) so the AI treats later ones as authoritative.
+    picked.sort((a, b) => a.createdAt - b.createdAt);
+    onConsolidate(picked);
+    exitSelectMode();
+  };
 
   const handleAddTopFolder = () => {
     const name = prompt("새 폴더 이름:");
@@ -287,33 +358,94 @@ export function WorkspaceView({ projectId, onOpenFile, onNewFile, refresh, onRef
     );
   }
 
+  const selectedCount = selectedIds.size;
+
   return (
-    <div key={refresh} className="px-2 py-1 space-y-0.5">
-      {folders.map((folder) => {
-        const files = ws.getFilesInFolder(folder.id);
-        const subs = allFolders.filter((f) => f.parentId === folder.id);
-        return (
-          <FolderRow
-            key={folder.id}
-            folder={folder}
-            files={files}
-            subfolders={subs}
-            allFolders={allFolders}
-            allFiles={ws.getFiles(projectId)}
-            depth={0}
-            onOpenFile={onOpenFile}
-            onNewFile={onNewFile}
-            onRefresh={onRefresh}
-          />
-        );
-      })}
-      <button
-        onClick={handleAddTopFolder}
-        className="flex items-center gap-1 px-2 py-1.5 text-[11px] text-slate-400 hover:text-slate-600 transition-colors w-full"
-      >
-        <FolderPlus style={{ width: 12, height: 12 }} />
-        폴더 추가
-      </button>
+    <div key={refresh} className="space-y-0.5">
+      {/* Select-mode toolbar */}
+      <div className="px-2 pb-1 flex items-center justify-between">
+        {!selectMode ? (
+          onConsolidate && allFiles.length >= 2 && (
+            <button
+              onClick={() => setSelectMode(true)}
+              className="flex items-center gap-1 text-[10px] text-slate-400 hover:text-slate-700 px-1.5 py-0.5 rounded transition-colors"
+              title="여러 파일을 묶어서 AI에게 합치도록 요청"
+            >
+              <Layers style={{ width: 11, height: 11 }} />
+              선택
+            </button>
+          )
+        ) : (
+          <>
+            <span className="text-[10px] font-semibold text-slate-500">
+              {selectedCount}개 선택됨
+            </span>
+            <button
+              onClick={exitSelectMode}
+              className="flex items-center gap-1 text-[10px] text-slate-400 hover:text-slate-700 px-1.5 py-0.5 rounded transition-colors"
+            >
+              <X style={{ width: 11, height: 11 }} />
+              취소
+            </button>
+          </>
+        )}
+      </div>
+
+      <div className="px-2 space-y-0.5">
+        {folders.map((folder) => {
+          const files = ws.getFilesInFolder(folder.id);
+          const subs = allFolders.filter((f) => f.parentId === folder.id);
+          return (
+            <FolderRow
+              key={folder.id}
+              folder={folder}
+              files={files}
+              subfolders={subs}
+              allFolders={allFolders}
+              allFiles={allFiles}
+              depth={0}
+              onOpenFile={onOpenFile}
+              onNewFile={onNewFile}
+              onRefresh={onRefresh}
+              selectMode={selectMode}
+              isSelected={isSelected}
+              toggleSelect={toggleSelect}
+            />
+          );
+        })}
+        <button
+          onClick={handleAddTopFolder}
+          className="flex items-center gap-1 px-2 py-1.5 text-[11px] text-slate-400 hover:text-slate-600 transition-colors w-full"
+        >
+          <FolderPlus style={{ width: 12, height: 12 }} />
+          폴더 추가
+        </button>
+      </div>
+
+      {/* Consolidate action bar */}
+      {selectMode && (
+        <div
+          className="sticky bottom-0 px-2 py-2"
+          style={{
+            background: "linear-gradient(to top, #ffffff 70%, rgba(255,255,255,0))",
+          }}
+        >
+          <button
+            onClick={handleConsolidate}
+            disabled={selectedCount < 2}
+            className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{
+              background: selectedCount >= 2 ? "#0f172a" : "#f1f5f9",
+              color: selectedCount >= 2 ? "#fff" : "#94a3b8",
+            }}
+          >
+            <Layers style={{ width: 12, height: 12 }} />
+            {selectedCount < 2
+              ? "2개 이상 선택하세요"
+              : `${selectedCount}개 합치기 → AI 프롬프트 만들기`}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

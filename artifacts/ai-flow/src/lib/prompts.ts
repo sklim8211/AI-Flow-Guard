@@ -600,3 +600,62 @@ export function getTodayLabels(workflow: WorkflowType | null): TodayLabels {
   const wf: WorkflowType = workflow ?? "development";
   return TODAY_LABELS[wf];
 }
+
+/* ── Consolidate (multi-file merge) ─────────────────────────── */
+
+export interface ConsolidateSource {
+  name: string;
+  content: string;
+}
+
+/**
+ * Build a prompt that asks the AI to merge N previously-saved files into ONE
+ * consolidated output. Reuses the same metadata-header + filename pattern as
+ * the other standard prompts so the existing clipboard-save flow handles the
+ * result with no extra logic.
+ */
+export function getConsolidatePrompt(sources: ConsolidateSource[]): string {
+  const n = sources.length;
+  const filesBlock = sources
+    .map(
+      (s, i) =>
+        `===== FILE ${i + 1}: ${s.name} =====\n${s.content.trim()}`
+    )
+    .join("\n\n");
+
+  return `I have ${n} previously-saved files about the same project. Please MERGE them into ONE consolidated file that preserves the important content from all of them while removing redundancy.
+
+Source files are listed below, separated by \`===== FILE X: <name> =====\` markers. They are in chronological order (oldest first). Treat later files as more recent / authoritative when information conflicts.
+
+Please:
+
+1. Read every source file.
+2. Produce a single consolidated output that keeps every unique fact, decision, and detail. Only drop redundancy and information that newer files have clearly superseded.
+3. If sources disagree, prefer the newest one and add a brief note like "(updated from earlier version)".
+4. Do NOT invent new content. Only merge what exists in the sources.
+
+Start the output with this YAML metadata header (replace bracketed values, do not keep brackets):
+
+---
+version: v1
+created_at: [YYYY-MM-DD HH:mm in local time]
+workflow: [copy the workflow value from the sources — if they differ, use "common"]
+kind: [copy the kind from the sources — if they differ, use the most common one]
+summary: [one short single-line description that says this is a consolidation of N files]
+keywords: [3-5 comma-separated searchable keywords drawn from the merged content]
+consolidated_from: [comma-separated list of the source filenames]
+---
+
+Then write the merged body. Keep section headings if the sources used them. Organize content so a future reader can pick this single file up and have the full picture without needing the originals.
+
+End the output with ONE line in this exact format:
+filename: [kind]_consolidated-[3-5 hyphenated words describing the merged topic].md
+
+Where [kind] matches the kind field in the header, and the slug describes what was merged (e.g. "consolidated-auth-decisions", "consolidated-week3-progress"). Do NOT use generic words like "files", "merge", "combined", or the current date.
+
+Wrap the entire output (header + body + filename line) inside a single fenced markdown code block so I can copy it as one piece.
+
+===== SOURCE FILES =====
+
+${filesBlock}`;
+}

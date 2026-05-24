@@ -34,15 +34,16 @@ import { SaveResultModal } from "./SaveResultModal";
 import { FileViewModal } from "./FileViewModal";
 import { TodayDashboard } from "./TodayDashboard";
 import { SaveReminderToast, markActivity } from "./SaveReminderToast";
-import type { WFile } from "../lib/workspace";
 import {
   PROMPT_DEFS,
   WORKFLOWS,
   getPromptText,
   getWorkflowDef,
+  getConsolidatePrompt,
   type PromptId,
   type WorkflowType,
 } from "../lib/prompts";
+import type { WFile } from "../lib/workspace";
 
 /** Visual metadata per prompt — icon & color stay constant across workflows. */
 const PROMPT_VISUALS: Record<PromptId, { icon: typeof CheckCircle2; color: string }> = {
@@ -239,6 +240,18 @@ export function Sidecar() {
     setActivePrompt({ label: def.label, prompt: getPromptText(def.id, wf) });
     setShowSave(false);
     setShowSOS(false);
+    setPanelOpen(true);
+  };
+
+  const handleConsolidate = (files: WFile[]) => {
+    if (files.length < 2) return;
+    const sources = files.map((f) => ({ name: f.name, content: f.content }));
+    const promptText = getConsolidatePrompt(sources);
+    setActivePrompt({
+      label: `Consolidate (${files.length}개 합치기)`,
+      prompt: promptText,
+    });
+    setShowSave(false);
     setPanelOpen(true);
   };
 
@@ -817,6 +830,7 @@ export function Sidecar() {
                       }}
                       refresh={wsRefresh}
                       onRefresh={refreshWorkspace}
+                      onConsolidate={handleConsolidate}
                     />
                   ) : (
                     <div className="flex flex-col items-center justify-center py-12 px-4 gap-2 text-center">

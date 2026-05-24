@@ -122,7 +122,8 @@ UI 어디서든 위와 같은 것을 암시해선 안 된다. "AI 응답은 자�
 | Backup | 큰 수정 전 안전망 스냅샷 | ✅ 메타데이터 헤더 포함 | SAFE |
 | Restore | 백업으로 컨텍스트 복원 | (입력 프롬프트 — 메타 헤더 N/A) | CURRENT |
 | 🚨 SOS | 위기 상황 가이드 모달 (Compress/Backup/Restore로 라우팅) | — | — |
-| Workspace | 로컬 폴더 연결 / 파일 관리 | — | — |
+| Workspace | 로컬 폴더 연결 / 파일 관리 / 다중 선택 → 🗂 Consolidate | — | — |
+| 🗂 Consolidate | (Workspace 내) 옛 파일 N개 선택 → AI에게 합치기 프롬프트 자동 생성 | ✅ 메타 헤더 + `consolidated_from` + filename | 결과 저장 시 자동 라우팅 (kind 따라) |
 | Install (조건부) | PWA 설치 — `beforeinstallprompt` 받았고 미설치일 때만 노출 | — | — |
 
 ### 해결하려는 사용자 문제 (10개)
@@ -142,14 +143,15 @@ UI 어디서든 위와 같은 것을 암시해선 안 된다. "AI 응답은 자�
 
 ## 다음 작업 후보 (우선순위순)
 
-1. **메타 기반 검색·필터** (Workspace 탭) — 파일 늘어나면 "찾기" 가 정리 압박을 대체. 현 우선순위 1번 후보.
-2. **🗂 Consolidate 표준 프롬프트** — 옛 파일 N개 다중 선택 → 클립보드 + 표준 프롬프트 → AI 합치기 → 통합본 저장. 우리 시그니처 패턴의 확장.
-3. **앱 시작 시 최근 CURRENT 자동 표시** (문제 #7) — 작은 작업으로 재진입 마찰 크게 감소
-4. **타임라인 뷰** (문제 #10) — 메타 헤더의 `created_at`/`kind`/`summary`를 시간순으로 한 화면에. 산발적 사용자에게 특히 가치.
-5. **ARCHIVE 폴더 + 수동 이관** — Consolidate(2) 도입 시 자연스럽게 따라옴
-6. **SOS 모달 시나리오 확장** — 지금은 3가지. "AI가 너무 길게 답함", "방향이 헷갈림" 추가 후보
-7. **자동 파싱 UX 보강** — kind→폴더 매칭 실패 시 "기본 폴더를 찾지 못함" 안내 토스트, CRLF 입력 호환 테스트
-8. **파일명 시각 자동 접미사** (`_YYYYMMDD_HHmm`) — 충돌 모달로 일단 해결됨. 충돌이 자주 발생하면 그때
+> **⛔ 신규 기능 추가 동결.** 사용자 결정: Consolidate 이후로 새 기능은 자제. 아래 항목은 실제 사용 압박이 명확히 관찰될 때만 검토.
+
+1. **메타 기반 검색·필터** (Workspace 탭) — 파일 늘어나면 "찾기" 가 정리 압박을 대체. 동결 해제 시 1번 후보.
+2. **앱 시작 시 최근 CURRENT 자동 표시** (문제 #7) — 작은 작업으로 재진입 마찰 크게 감소
+3. **타임라인 뷰** (문제 #10) — 메타 헤더의 `created_at`/`kind`/`summary`를 시간순으로 한 화면에. 산발적 사용자에게 특히 가치.
+4. **ARCHIVE 폴더 + 수동 이관** — Consolidate 후 원본 처리 흐름이 정착되면 자연스럽게 따라옴
+5. **SOS 모달 시나리오 확장** — 지금은 3가지. "AI가 너무 길게 답함", "방향이 헷갈림" 추가 후보
+6. **자동 파싱 UX 보강** — kind→폴더 매칭 실패 시 "기본 폴더를 찾지 못함" 안내 토스트, CRLF 입력 호환 테스트
+7. **파일명 시각 자동 접미사** (`_YYYYMMDD_HHmm`) — 충돌 모달로 일단 해결됨. 충돌이 자주 발생하면 그때
 
 ### 완료된 항목 (참고)
 - ✅ 7개 프롬프트 모두 메타데이터 헤더 (version/created_at/kind/summary + filename 줄)
@@ -158,6 +160,7 @@ UI 어디서든 위와 같은 것을 암시해선 안 된다. "AI 응답은 자�
 - ✅ Today 탭 워크플로 필터: 파일 헤더 `workflow:` 가 활성 모드와 불일치하면 숨김. `workflow: common` 과 legacy(필드 없음) 는 항상 표시. 숨김 개수 배너 + Workspace 탭으로 이동 버튼. common 파일엔 🛟 배지. `parseFileMeta` 캐시로 리렌더 비용 절감.
 - ✅ **파일명 슬러그 가이드 강화** (`prompts.ts`): `[short-slug]` → `[3-5 lowercase hyphenated words describing the SPECIFIC topic]` + 금지어 리스트(notes/update/summary/session/work/today) + 한국어 슬러그 옵션. Backup은 별도 가이드("before-router-refactor" 류).
 - ✅ **같은 이름 저장 충돌 감지** (`SaveResultModal.tsx`): 폴더 내 동일 이름(대소문자 무시) 감지 시 노란 경고 박스 + 라디오(새로 만들기 `_N` 자동 / 덮어쓰기). 기본 "새로 만들기" — 데이터 안전 우선. 덮어쓰기 선택 시 `ws.updateFile` 로 동일 id 갱신 → localStorage·디스크 두 저장소 어긋남 자동 해결. 디스크 폴더 연결된 경우 경고 문구에 "옛 파일이 사라집니다" 명시.
+- ✅ **🗂 Consolidate — 옛 파일 합치기** (`prompts.ts:getConsolidatePrompt`, `WorkspaceView.tsx`, `Sidecar.tsx:handleConsolidate`): Workspace 탭에 "선택" 모드 토글 → 체크박스로 N개 선택 → 하단 "합치기" 액션바 클릭 → 우리가 표준 프롬프트 + 모든 파일 내용을 합쳐 활성 프롬프트 패널로 전달 → 사용자가 카피 → AI 응답 받아 📋 클립보드 저장. 원본은 **자동 삭제 X** (사용자가 결과 확인 후 직접 결정). 메타 헤더에 `consolidated_from` 필드 추가로 합쳐진 원본 추적 가능. 우리 시그니처 패턴(표준 프롬프트 → AI → 결과 저장) 의 확장이라 신규 모달/저장 흐름 없음.
 
 ## User preferences
 
