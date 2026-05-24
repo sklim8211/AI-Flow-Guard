@@ -95,7 +95,9 @@ Then write the body in this structure:
 ${parts.body}${closingBlock}
 
 End the output with ONE line in this exact format:
-filename: ${kind}_[short-slug].md
+filename: ${kind}_[slug].md
+
+Where [slug] is 3-5 lowercase English words joined by hyphens that describe the SPECIFIC topic, decision, or task this file is about (e.g. "auth-refactor-plan", "db-migration-rollback", "onboarding-copy-v2"). Do NOT use generic words like "notes", "update", "summary", "session", "work", "today", or the current date — the filename must convey what is unique about THIS file so it can be told apart from other ${kind} files later. If the user pasted Korean content, you may use 2-4 Korean words joined by hyphens instead (e.g. "라우터-리팩터링", "결제-흐름-결정").
 
 Wrap the entire output (header + body + filename line) inside a single fenced markdown code block so I can copy it as one piece.`;
 }
@@ -444,7 +446,9 @@ Then write the body in this structure:
 6. KNOWN RISKS — what could go wrong next, and how to recover
 
 End the output with ONE line in this exact format (the [N] number MUST match the version number you used in the header):
-filename: backup_v[N]_[short-slug].md
+filename: backup_v[N]_[slug].md
+
+Where [slug] is 3-5 lowercase English words joined by hyphens describing what THIS backup is specifically protecting (e.g. "before-router-refactor", "pre-payment-migration"). Do NOT use generic words like "backup", "snapshot", "before-changes", or the current date — the slug must tell future-you exactly what state this snapshot captures. Korean is allowed if the working content is in Korean (e.g. "라우터-리팩터-직전").
 
 Wrap the entire output (header + body + filename line) inside a single fenced markdown code block so I can copy it as one piece.`,
 

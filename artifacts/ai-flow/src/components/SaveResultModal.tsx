@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Save, FolderOpen, Sparkles } from "lucide-react";
-import { ws, type FileType } from "../lib/workspace";
+import { X, Save, FolderOpen, Sparkles, AlertTriangle } from "lucide-react";
+import { ws, type FileType, type WFile } from "../lib/workspace";
 import { fsAccess } from "../lib/fsAccess";
 
 interface Props {
@@ -101,6 +101,7 @@ export function SaveResultModal({
   const [saved, setSaved] = useState(false);
   const [fsSaving, setFsSaving] = useState(false);
   const [autoDetected, setAutoDetected] = useState<ParsedMetadata | null>(null);
+  const [collisionAction, setCollisionAction] = useState<"new" | "overwrite">("new");
   // Tracks fields the user manually edited — we won't overwrite those.
   const [touched, setTouched] = useState<{ title: boolean; folder: boolean; type: boolean }>({
     title: false,
@@ -111,6 +112,34 @@ export function SaveResultModal({
   const folders = projectId
     ? ws.getFolders(projectId).filter((f) => f.parentId === null)
     : [];
+
+  // Detect a same-name file in the chosen folder (case-insensitive).
+  const existingFile: WFile | null = useMemo(() => {
+    if (!projectId || !folderId || !title.trim()) return null;
+    const trimmed = title.trim().toLowerCase();
+    return (
+      ws.getFilesInFolder(folderId).find((f) => f.name.toLowerCase() === trimmed) ?? null
+    );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, folderId, title, saved]);
+
+  // Compute the next available "name_N" if user picks "new".
+  const suggestedNewName = useMemo(() => {
+    if (!folderId || !existingFile) return title.trim();
+    const base = title.trim().replace(/_(\d+)$/i, "");
+    const taken = new Set(
+      ws.getFilesInFolder(folderId).map((f) => f.name.toLowerCase())
+    );
+    let n = 2;
+    while (taken.has(`${base}_${n}`.toLowerCase())) n++;
+    return `${base}_${n}`;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [folderId, existingFile, title]);
+
+  // Reset action default to "new" whenever a new collision appears.
+  useEffect(() => {
+    if (existingFile) setCollisionAction("new");
+  }, [existingFile?.id]);
 
   // Memoize parse result so we don't reparse on every render
   const parsed = useMemo(() => parseMetadata(content), [content]);
@@ -147,7 +176,15 @@ export function SaveResultModal({
 
   const handleSave = async () => {
     if (!projectId || !folderId || !title.trim()) return;
-    const file = ws.createFile(projectId, folderId, title.trim(), content, type);
+    // Decide final name based on collision action
+    const finalName =
+      existingFile && collisionAction === "new" ? suggestedNewName : title.trim();
+
+    if (existingFile && collisionAction === "overwrite") {
+      ws.updateFile(existingFile.id, { name: finalName, content });
+    } else {
+      ws.createFile(projectId, folderId, finalName, content, type);
+    }
     setSaved(true);
 
     // Write to real filesystem if connected
@@ -158,7 +195,7 @@ export function SaveResultModal({
         const folderPath = ws.getFolderPath(folderId);
         const rootFolder = folderPath[0] ?? "MISC";
         const subPath = folderPath.slice(1);
-        await fsAccess.writeFile(rootHandle, projectName, subPath.length > 0 ? [rootFolder, ...subPath] : [rootFolder], title.trim(), content);
+        await fsAccess.writeFile(rootHandle, projectName, subPath.length > 0 ? [rootFolder, ...subPath] : [rootFolder], finalName, content);
       } catch (e) {
         console.warn("FS write failed", e);
       }
@@ -334,6 +371,56 @@ export function SaveResultModal({
                 </div>
               </div>
 
+              {/* Collision warning */}
+              {existingFile && !saved && (
+                <div className="px-5 pb-2">
+                  <div
+                    className="text-[11px] px-3 py-2.5 rounded-lg"
+                    style={{ background: "#fffbeb", border: "1px solid #fde68a", color: "#92400e" }}
+                  >
+                    <div className="flex items-start gap-2 mb-2">
+                      <AlertTriangle style={{ width: 13, height: 13, marginTop: 1, flexShrink: 0 }} />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold">같은 이름 파일이 이미 있어요</p>
+                        <p className="mt-0.5 text-[10px] leading-snug" style={{ color: "#a16207" }}>
+                          폴더에 <b>{existingFile.name}</b> 이(가) 있습니다.
+                          {" "}덮어쓰면 옛 내용은 사라집니다{rootHandle ? " (앱 + 연결한 폴더 모두)" : ""}.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5 pl-[19px]">
+                      <label className="flex items-start gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="collision"
+                          checked={collisionAction === "new"}
+                          onChange={() => setCollisionAction("new")}
+                          className="mt-0.5 cursor-pointer"
+                        />
+                        <span className="text-[11px] leading-snug" style={{ color: "#92400e" }}>
+                          새로 만들기 → <b>{suggestedNewName}</b>
+                        </span>
+                      </label>
+                      <label className="flex items-start gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="collision"
+                          checked={collisionAction === "overwrite"}
+                          onChange={() => setCollisionAction("overwrite")}
+                          className="mt-0.5 cursor-pointer"
+                        />
+                        <span className="text-[11px] leading-snug" style={{ color: "#92400e" }}>
+                          덮어쓰기 (옛 내용 사라짐)
+                        </span>
+                      </label>
+                      <p className="text-[10px]" style={{ color: "#a16207" }}>
+                        또는 위 <b>제목</b> 을 다르게 수정하세요.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Save button */}
               <div className="px-5 pb-5">
                 <button
@@ -347,7 +434,17 @@ export function SaveResultModal({
                   }}
                 >
                   <Save style={{ width: 14, height: 14 }} />
-                  {fsSaving ? "디스크에 쓰는 중..." : saved ? "저장됨!" : rootHandle ? "저장 + 파일 생성" : "저장하기"}
+                  {fsSaving
+                    ? "디스크에 쓰는 중..."
+                    : saved
+                    ? "저장됨!"
+                    : existingFile && collisionAction === "overwrite"
+                    ? "덮어쓰기"
+                    : existingFile && collisionAction === "new"
+                    ? `새로 만들기 (${suggestedNewName})`
+                    : rootHandle
+                    ? "저장 + 파일 생성"
+                    : "저장하기"}
                 </button>
               </div>
             </div>

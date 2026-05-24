@@ -142,16 +142,22 @@ UI 어디서든 위와 같은 것을 암시해선 안 된다. "AI 응답은 자�
 
 ## 다음 작업 후보 (우선순위순)
 
-1. **앱 시작 시 최근 CURRENT 자동 표시** (문제 #7) — 작은 작업으로 재진입 마찰 크게 감소
-2. **타임라인 뷰** (문제 #10) — 메타 헤더의 `created_at`/`kind`/`summary`를 시간순으로 한 화면에
-3. **SOS 모달 시나리오 확장** — 지금은 3가지. "AI가 너무 길게 답함", "방향이 헷갈림" 추가 후보
-4. **자동 파싱 UX 보강** — kind→폴더 매칭 실패 시 "기본 폴더를 찾지 못함" 안내 토스트, CRLF 입력 호환 테스트
+1. **메타 기반 검색·필터** (Workspace 탭) — 파일 늘어나면 "찾기" 가 정리 압박을 대체. 현 우선순위 1번 후보.
+2. **🗂 Consolidate 표준 프롬프트** — 옛 파일 N개 다중 선택 → 클립보드 + 표준 프롬프트 → AI 합치기 → 통합본 저장. 우리 시그니처 패턴의 확장.
+3. **앱 시작 시 최근 CURRENT 자동 표시** (문제 #7) — 작은 작업으로 재진입 마찰 크게 감소
+4. **타임라인 뷰** (문제 #10) — 메타 헤더의 `created_at`/`kind`/`summary`를 시간순으로 한 화면에. 산발적 사용자에게 특히 가치.
+5. **ARCHIVE 폴더 + 수동 이관** — Consolidate(2) 도입 시 자연스럽게 따라옴
+6. **SOS 모달 시나리오 확장** — 지금은 3가지. "AI가 너무 길게 답함", "방향이 헷갈림" 추가 후보
+7. **자동 파싱 UX 보강** — kind→폴더 매칭 실패 시 "기본 폴더를 찾지 못함" 안내 토스트, CRLF 입력 호환 테스트
+8. **파일명 시각 자동 접미사** (`_YYYYMMDD_HHmm`) — 충돌 모달로 일단 해결됨. 충돌이 자주 발생하면 그때
 
 ### 완료된 항목 (참고)
 - ✅ 7개 프롬프트 모두 메타데이터 헤더 (version/created_at/kind/summary + filename 줄)
 - ✅ 저장 모달 자동 파싱: 붙여넣기만 하면 폴더·종류·파일명 자동 인식, "✨ 자동 인식됨" 배지로 사용자에게 알림. 사용자가 수동 편집한 필드는 덮어쓰지 않음 (`touched` 플래그)
 - ✅ 워크플로별 Today 라벨 (`TODAY_LABELS` 5개 × 12 키, `getTodayLabels()`)
 - ✅ Today 탭 워크플로 필터: 파일 헤더 `workflow:` 가 활성 모드와 불일치하면 숨김. `workflow: common` 과 legacy(필드 없음) 는 항상 표시. 숨김 개수 배너 + Workspace 탭으로 이동 버튼. common 파일엔 🛟 배지. `parseFileMeta` 캐시로 리렌더 비용 절감.
+- ✅ **파일명 슬러그 가이드 강화** (`prompts.ts`): `[short-slug]` → `[3-5 lowercase hyphenated words describing the SPECIFIC topic]` + 금지어 리스트(notes/update/summary/session/work/today) + 한국어 슬러그 옵션. Backup은 별도 가이드("before-router-refactor" 류).
+- ✅ **같은 이름 저장 충돌 감지** (`SaveResultModal.tsx`): 폴더 내 동일 이름(대소문자 무시) 감지 시 노란 경고 박스 + 라디오(새로 만들기 `_N` 자동 / 덮어쓰기). 기본 "새로 만들기" — 데이터 안전 우선. 덮어쓰기 선택 시 `ws.updateFile` 로 동일 id 갱신 → localStorage·디스크 두 저장소 어긋남 자동 해결. 디스크 폴더 연결된 경우 경고 문구에 "옛 파일이 사라집니다" 명시.
 
 ## User preferences
 
