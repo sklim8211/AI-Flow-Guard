@@ -595,6 +595,7 @@ export function Sidecar() {
             {tab === "today" && (
               <TodayDashboard
                 projectId={activeProjectId}
+                workflow={activeWorkflow}
                 refreshKey={wsRefresh}
                 onOpenFile={(f) => setViewFile(f)}
                 onGoToPrompts={() => setTab("prompts")}

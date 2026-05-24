@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { Sunrise, Moon, ArrowRight, FileText, Anchor as AnchorIcon, ListChecks, Sparkles } from "lucide-react";
 import { ws, parseFileMeta, type WFile } from "../lib/workspace";
+import { getTodayLabels, type WorkflowType } from "../lib/prompts";
 
 interface Props {
   projectId: string | null;
+  workflow: WorkflowType | null;
   refreshKey: number;
   onOpenFile: (file: WFile) => void;
   onGoToPrompts: () => void;
@@ -28,8 +30,9 @@ function fmtRelative(ts: number) {
   return new Date(ts).toLocaleDateString();
 }
 
-export function TodayDashboard({ projectId, refreshKey, onOpenFile, onGoToPrompts }: Props) {
+export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, onGoToPrompts }: Props) {
   const [mode, setMode] = useState<"start" | "end">("start");
+  const labels = getTodayLabels(workflow);
 
   // Tick every minute so relative timestamps and "today" boundary refresh.
   const [tick, setTick] = useState(0);
@@ -95,7 +98,7 @@ export function TodayDashboard({ projectId, refreshKey, onOpenFile, onGoToPrompt
             <section>
               <div className="flex items-center gap-2 mb-2">
                 <Sunrise style={{ width: 14, height: 14, color: "#f59e0b" }} />
-                <h3 className="text-[11px] font-bold tracking-wider uppercase text-slate-600">이어가기</h3>
+                <h3 className="text-[11px] font-bold tracking-wider uppercase text-slate-600">{labels.resume}</h3>
               </div>
               <div className="rounded-xl border border-amber-100 bg-amber-50/40 p-3">
                 <div className="flex items-center justify-between gap-2 mb-1">
@@ -114,7 +117,7 @@ export function TodayDashboard({ projectId, refreshKey, onOpenFile, onGoToPrompt
                   onClick={() => onOpenFile(data.mostRecent!)}
                   className="text-[11px] font-semibold text-amber-700 hover:text-amber-900 inline-flex items-center gap-1"
                 >
-                  열어보기 <ArrowRight style={{ width: 11, height: 11 }} />
+                  {labels.resumeOpen} <ArrowRight style={{ width: 11, height: 11 }} />
                 </button>
               </div>
             </section>
@@ -122,7 +125,7 @@ export function TodayDashboard({ projectId, refreshKey, onOpenFile, onGoToPrompt
             <section>
               <div className="flex items-center gap-2 mb-2">
                 <Sunrise style={{ width: 14, height: 14, color: "#f59e0b" }} />
-                <h3 className="text-[11px] font-bold tracking-wider uppercase text-slate-600">이어가기</h3>
+                <h3 className="text-[11px] font-bold tracking-wider uppercase text-slate-600">{labels.resume}</h3>
               </div>
               <div className="rounded-xl border border-dashed border-slate-200 p-3 text-center">
                 <p className="text-[11px] text-slate-400 mb-2">아직 저장한 작업이 없어요.</p>
@@ -142,7 +145,7 @@ export function TodayDashboard({ projectId, refreshKey, onOpenFile, onGoToPrompt
               <div className="flex items-center gap-2 mb-2">
                 <FileText style={{ width: 14, height: 14, color: "#3b82f6" }} />
                 <h3 className="text-[11px] font-bold tracking-wider uppercase text-slate-600">
-                  현재 ({data.current.length})
+                  {labels.current} ({data.current.length})
                 </h3>
               </div>
               <div className="space-y-1">{data.current.map(fileRow)}</div>
@@ -155,7 +158,7 @@ export function TodayDashboard({ projectId, refreshKey, onOpenFile, onGoToPrompt
               <div className="flex items-center gap-2 mb-2">
                 <ListChecks style={{ width: 14, height: 14, color: "#ef4444" }} />
                 <h3 className="text-[11px] font-bold tracking-wider uppercase text-slate-600">
-                  다음 할 일 ({data.next.length})
+                  {labels.next} ({data.next.length})
                 </h3>
               </div>
               <div className="space-y-1">{data.next.map(fileRow)}</div>
@@ -168,7 +171,7 @@ export function TodayDashboard({ projectId, refreshKey, onOpenFile, onGoToPrompt
               <div className="flex items-center gap-2 mb-2">
                 <AnchorIcon style={{ width: 14, height: 14, color: "#8b5cf6" }} />
                 <h3 className="text-[11px] font-bold tracking-wider uppercase text-slate-600">
-                  핵심 결정 ({data.anchors.length})
+                  {labels.anchors} ({data.anchors.length})
                 </h3>
               </div>
               <div className="space-y-1">{data.anchors.map(fileRow)}</div>
@@ -184,7 +187,7 @@ export function TodayDashboard({ projectId, refreshKey, onOpenFile, onGoToPrompt
             style={{ background: "#0f172a", color: "#fff" }}
           >
             <Moon style={{ width: 14, height: 14 }} />
-            오늘 일 마치기
+            {labels.endDay}
           </button>
         </div>
       </div>
@@ -197,7 +200,7 @@ export function TodayDashboard({ projectId, refreshKey, onOpenFile, onGoToPrompt
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-5">
         <div className="text-center py-2">
           <Moon style={{ width: 28, height: 28, color: "#6366f1" }} className="mx-auto mb-2" />
-          <h2 className="text-sm font-bold text-slate-800">오늘의 정리</h2>
+          <h2 className="text-sm font-bold text-slate-800">{labels.endTitle}</h2>
           <p className="text-[11px] text-slate-500 mt-1">수고하셨어요.</p>
         </div>
 
@@ -206,7 +209,7 @@ export function TodayDashboard({ projectId, refreshKey, onOpenFile, onGoToPrompt
           <div className="flex items-center gap-2 mb-2">
             <FileText style={{ width: 14, height: 14, color: "#3b82f6" }} />
             <h3 className="text-[11px] font-bold tracking-wider uppercase text-slate-600">
-              오늘 저장한 것 ({data.today.length})
+              {labels.todaySaved} ({data.today.length})
             </h3>
           </div>
           {data.today.length > 0 ? (
@@ -233,7 +236,7 @@ export function TodayDashboard({ projectId, refreshKey, onOpenFile, onGoToPrompt
               })}
             </div>
           ) : (
-            <p className="text-[11px] text-slate-400 px-3 py-2">오늘 저장한 게 없어요.</p>
+            <p className="text-[11px] text-slate-400 px-3 py-2">{labels.todaySavedEmpty}</p>
           )}
         </section>
 
@@ -243,7 +246,7 @@ export function TodayDashboard({ projectId, refreshKey, onOpenFile, onGoToPrompt
             <div className="flex items-center gap-2 mb-2">
               <AnchorIcon style={{ width: 14, height: 14, color: "#8b5cf6" }} />
               <h3 className="text-[11px] font-bold tracking-wider uppercase text-slate-600">
-                오늘의 핵심 결정 ({data.todayAnchors.length})
+                {labels.todayAnchors} ({data.todayAnchors.length})
               </h3>
             </div>
             <div className="space-y-1">
@@ -274,7 +277,7 @@ export function TodayDashboard({ projectId, refreshKey, onOpenFile, onGoToPrompt
             <div className="flex items-center gap-2 mb-2">
               <ArrowRight style={{ width: 14, height: 14, color: "#ef4444" }} />
               <h3 className="text-[11px] font-bold tracking-wider uppercase text-slate-600">
-                내일 이어갈 것 ({data.todayNext.length})
+                {labels.tomorrow} ({data.todayNext.length})
               </h3>
             </div>
             <div className="space-y-1">
@@ -308,7 +311,7 @@ export function TodayDashboard({ projectId, refreshKey, onOpenFile, onGoToPrompt
           style={{ background: "#fff", color: "#475569", border: "1px solid #e2e8f0" }}
         >
           <Sunrise style={{ width: 14, height: 14 }} />
-          시작 화면으로
+          {labels.backToStart}
         </button>
       </div>
     </div>

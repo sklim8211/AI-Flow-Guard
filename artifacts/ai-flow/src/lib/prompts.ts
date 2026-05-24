@@ -489,3 +489,110 @@ export function getWorkflowDef(id: WorkflowType | null): WorkflowDef | null {
   if (!id) return null;
   return WORKFLOWS.find((w) => w.id === id) ?? null;
 }
+
+/* ── Today tab labels (per workflow) ───────────────────────── */
+
+/**
+ * The "오늘" dashboard shows the same underlying folders for every project,
+ * but the section labels are translated into each role's natural vocabulary.
+ * Folder structure on disk stays identical — only what the user reads changes.
+ */
+export interface TodayLabels {
+  resume: string;        // "이어가기" section (most recent file)
+  resumeOpen: string;    // CTA on resume card ("열어보기")
+  current: string;       // CURRENT folder section
+  next: string;          // NEXT folder section
+  anchors: string;       // ANCHORS folder section
+  endDay: string;        // "오늘 일 마치기" button
+  endTitle: string;      // End mode hero title ("오늘의 정리")
+  todaySaved: string;    // "오늘 저장한 것" section
+  todaySavedEmpty: string;
+  todayAnchors: string;  // "오늘의 핵심 결정" section
+  tomorrow: string;      // "내일 이어갈 것" section
+  backToStart: string;   // "시작 화면으로" button
+}
+
+const DEFAULT_LABELS: TodayLabels = {
+  resume: "이어가기",
+  resumeOpen: "열어보기",
+  current: "현재",
+  next: "다음 할 일",
+  anchors: "핵심 결정",
+  endDay: "오늘 일 마치기",
+  endTitle: "오늘의 정리",
+  todaySaved: "오늘 저장한 것",
+  todaySavedEmpty: "오늘 저장한 게 없어요.",
+  todayAnchors: "오늘의 핵심 결정",
+  tomorrow: "내일 이어갈 것",
+  backToStart: "시작 화면으로",
+};
+
+const TODAY_LABELS: Record<WorkflowType, TodayLabels> = {
+  development: DEFAULT_LABELS,
+  writing: {
+    resume: "이어쓰기",
+    resumeOpen: "이어서 쓰기",
+    current: "쓰던 글",
+    next: "다음 신",
+    anchors: "감정 닻",
+    endDay: "오늘 쓰기 마치기",
+    endTitle: "오늘 쓴 글 정리",
+    todaySaved: "오늘 쓴 것",
+    todaySavedEmpty: "오늘 쓴 게 없어요.",
+    todayAnchors: "오늘 새긴 감정 닻",
+    tomorrow: "내일 이어 쓸 것",
+    backToStart: "쓰기 화면으로",
+  },
+  research: {
+    resume: "이어 조사",
+    resumeOpen: "이어서 보기",
+    current: "현재 가설",
+    next: "다음 검증",
+    anchors: "핵심 발견",
+    endDay: "오늘 조사 마치기",
+    endTitle: "오늘의 조사 정리",
+    todaySaved: "오늘 조사한 것",
+    todaySavedEmpty: "오늘 기록한 게 없어요.",
+    todayAnchors: "오늘 발견",
+    tomorrow: "내일 파볼 것",
+    backToStart: "조사 화면으로",
+  },
+  design: {
+    resume: "이어 작업",
+    resumeOpen: "시안 열기",
+    current: "현재 시안",
+    next: "다음 시안",
+    anchors: "UX 원칙",
+    endDay: "오늘 작업 마치기",
+    endTitle: "오늘의 디자인 정리",
+    todaySaved: "오늘 만든 것",
+    todaySavedEmpty: "오늘 저장한 시안이 없어요.",
+    todayAnchors: "오늘 정한 원칙",
+    tomorrow: "내일 이어갈 시안",
+    backToStart: "작업 화면으로",
+  },
+  strategy: {
+    resume: "이어가기",
+    resumeOpen: "열어보기",
+    current: "현재 방향",
+    next: "다음 액션",
+    anchors: "전략 닻",
+    endDay: "오늘 정리 마치기",
+    endTitle: "오늘의 전략 정리",
+    todaySaved: "오늘 정리한 것",
+    todaySavedEmpty: "오늘 정리한 게 없어요.",
+    todayAnchors: "오늘 굳힌 전략",
+    tomorrow: "내일 이어갈 것",
+    backToStart: "시작 화면으로",
+  },
+};
+
+/**
+ * Returns Today-tab labels for the given workflow.
+ * When workflow is null (project hasn't picked one), we fall back to
+ * development labels so the prompt fallback and the UI stay consistent.
+ */
+export function getTodayLabels(workflow: WorkflowType | null): TodayLabels {
+  const wf: WorkflowType = workflow ?? "development";
+  return TODAY_LABELS[wf];
+}
