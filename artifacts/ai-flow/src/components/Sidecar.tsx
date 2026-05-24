@@ -356,6 +356,7 @@ export function Sidecar() {
     prompt: string;
   } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [pasteContent, setPasteContent] = useState("");
   const [showSave, setShowSave] = useState(false);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
 
@@ -497,22 +498,36 @@ export function Sidecar() {
     if (!p) return;
     setActivePrompt({ label: p.label, prompt: p.prompt });
     setShowSave(false);
+    setPasteContent("");
     setShowSOS(false);
     setPanelOpen(true);
   };
 
+  // Prompts ending with a "[paste ... here]" placeholder need a two-step
+  // copy flow: user pastes content into a textarea, we substitute it in
+  // before copying so the AI sees one ready-to-send prompt.
+  const PLACEHOLDER_RE = /\[paste [^\]]+ here\]/;
+  const hasPastePlaceholder = !!activePrompt && PLACEHOLDER_RE.test(activePrompt.prompt);
+  const finalPromptText = activePrompt
+    ? hasPastePlaceholder && pasteContent.trim()
+      ? activePrompt.prompt.replace(PLACEHOLDER_RE, pasteContent.trim())
+      : activePrompt.prompt
+    : "";
+  const copyDisabled = hasPastePlaceholder && !pasteContent.trim();
+
   const handleCopy = () => {
     if (!activePrompt) return;
+    if (copyDisabled) return;
     const onSuccess = () => {
       markActivity();
       setCopied(true);
       setTimeout(() => { setCopied(false); setShowSave(true); }, 800);
     };
-    navigator.clipboard.writeText(activePrompt.prompt)
+    navigator.clipboard.writeText(finalPromptText)
       .then(onSuccess)
       .catch(() => {
         const el = document.createElement("textarea");
-        el.value = activePrompt.prompt;
+        el.value = finalPromptText;
         document.body.appendChild(el);
         el.select();
         document.execCommand("copy");
@@ -624,7 +639,7 @@ export function Sidecar() {
         {PROMPTS.map((item) => (
           <button
             key={item.id}
-            onClick={() => { setActivePrompt({ label: item.label, prompt: item.prompt }); setShowSave(false); }}
+            onClick={() => { setActivePrompt({ label: item.label, prompt: item.prompt }); setShowSave(false); setPasteContent(""); }}
             className="relative group w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95"
             style={{ color: item.color }}
           >
@@ -773,7 +788,7 @@ export function Sidecar() {
                   {PROMPTS.map((item) => (
                     <button
                       key={item.id}
-                      onClick={() => { setActivePrompt({ label: item.label, prompt: item.prompt }); setShowSave(false); }}
+                      onClick={() => { setActivePrompt({ label: item.label, prompt: item.prompt }); setShowSave(false); setPasteContent(""); }}
                       className="w-full flex items-start gap-3 px-4 py-3 hover:bg-slate-50 active:bg-slate-100 transition-colors text-left group cursor-pointer"
                     >
                       <item.icon className="mt-0.5 shrink-0" style={{ width: 15, height: 15, color: item.color }} />
@@ -993,7 +1008,7 @@ export function Sidecar() {
               transition={{ duration: 0.15 }}
               className="fixed inset-0 z-[99998]"
               style={{ background: "rgba(15,23,42,0.2)", backdropFilter: "blur(4px)" }}
-              onClick={() => { setActivePrompt(null); setShowSave(false); }}
+              onClick={() => { setActivePrompt(null); setShowSave(false); setPasteContent(""); }}
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 6 }}
@@ -1010,7 +1025,7 @@ export function Sidecar() {
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid #f1f5f9" }}>
                   <p className="text-sm font-bold text-slate-800">{activePrompt.label}</p>
-                  <button onClick={() => { setActivePrompt(null); setShowSave(false); }} className="text-slate-400 hover:text-slate-700 transition-colors">
+                  <button onClick={() => { setActivePrompt(null); setShowSave(false); setPasteContent(""); }} className="text-slate-400 hover:text-slate-700 transition-colors">
                     <X style={{ width: 16, height: 16 }} />
                   </button>
                 </div>
@@ -1022,21 +1037,49 @@ export function Sidecar() {
                   </pre>
                 </div>
 
+                {/* Paste area — shown only for prompts with [paste ... here] placeholder */}
+                {hasPastePlaceholder && (
+                  <div className="px-5 pt-4" style={{ borderTop: "1px solid #f1f5f9" }}>
+                    <p className="text-[11px] font-semibold text-slate-700 mb-1.5">
+                      ① 여기에 불러올 파일 내용을 붙여넣으세요
+                    </p>
+                    <p className="text-[10px] text-slate-400 mb-2">
+                      DRAFTS / SAFE 폴더의 파일을 열어 전체 복사 후 아래에 붙여넣기. 우리 앱이 자동으로 프롬프트에 끼워 넣어줍니다.
+                    </p>
+                    <textarea
+                      value={pasteContent}
+                      onChange={(e) => setPasteContent(e.target.value)}
+                      placeholder="--- 여기에 파일 전체 내용 붙여넣기 ---"
+                      className="w-full text-xs font-mono p-2.5 rounded-lg resize-y"
+                      style={{ background: "#f8fafc", border: "1px solid #e2e8f0", minHeight: 80, maxHeight: 200, color: "#334155" }}
+                    />
+                    {pasteContent.trim() && (
+                      <p className="text-[10px] text-emerald-600 mt-1.5">
+                        ✓ {pasteContent.trim().length.toLocaleString()}자 준비됨 — 카피하면 프롬프트에 자동 삽입됩니다
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 {/* Actions */}
                 <div className="px-5 py-4" style={{ borderTop: "1px solid #f1f5f9" }}>
                   <p className="text-[10px] text-slate-400 mb-3">
-                    이 프롬프트를 복사해서 ChatGPT나 Claude에 붙여넣으세요.
+                    {hasPastePlaceholder
+                      ? "② 카피 후 ChatGPT나 Claude에 한 번에 붙여넣으세요."
+                      : "이 프롬프트를 복사해서 ChatGPT나 Claude에 붙여넣으세요."}
                   </p>
                   <button
                     onClick={handleCopy}
+                    disabled={copyDisabled}
                     className="w-full py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all"
                     style={{
-                      background: copied ? "#f0fdf4" : "#0f172a",
-                      color: copied ? "#16a34a" : "#fff",
+                      background: copyDisabled ? "#e2e8f0" : copied ? "#f0fdf4" : "#0f172a",
+                      color: copyDisabled ? "#94a3b8" : copied ? "#16a34a" : "#fff",
                       border: copied ? "1px solid #bbf7d0" : "none",
+                      cursor: copyDisabled ? "not-allowed" : "pointer",
                     }}
                   >
-                    {copied ? <><Check style={{ width: 15, height: 15 }} /> 복사됨!</> : <><Copy style={{ width: 15, height: 15 }} /> Copy Prompt</>}
+                    {copied ? <><Check style={{ width: 15, height: 15 }} /> 복사됨!</> : <><Copy style={{ width: 15, height: 15 }} /> {hasPastePlaceholder ? "프롬프트 + 내용 카피" : "Copy Prompt"}</>}
                   </button>
 
                   {/* Save result button — appears after copy */}
