@@ -25,6 +25,7 @@ import {
   Siren,
   Download,
   ArrowRight,
+  ArrowLeftRight,
   ClipboardPaste,
 } from "lucide-react";
 import { ws } from "../lib/workspace";
@@ -333,6 +334,24 @@ export function Sidecar() {
   // ── Side panel mode (narrow window / popup) ─────────────
   const [isSidePanel, setIsSidePanel] = useState(() => window.innerWidth <= 440);
 
+  // Panel side preference (left or right). Persisted in localStorage.
+  const [panelSide, setPanelSide] = useState<"left" | "right">(() => {
+    try {
+      const v = localStorage.getItem("qq.panelSide");
+      return v === "left" ? "left" : "right";
+    } catch {
+      return "right";
+    }
+  });
+  useEffect(() => {
+    try { localStorage.setItem("qq.panelSide", panelSide); } catch {}
+  }, [panelSide]);
+  const isRight = panelSide === "right";
+  const tipClass = isRight ? "tooltip-left" : "tooltip-right";
+
+  // After spawning popup, mark this window as "spawner" and offer auto-close.
+  const [spawnedPopup, setSpawnedPopup] = useState(false);
+
   useEffect(() => {
     const check = () => setIsSidePanel(window.innerWidth <= 440);
     window.addEventListener("resize", check);
@@ -352,34 +371,45 @@ export function Sidecar() {
     const target = panelOpen ? PANEL_W : ICON_W;
     try {
       window.resizeTo(target, window.outerHeight);
-      window.moveTo(window.screen.availWidth - target, window.screenY);
+      const x = isRight ? window.screen.availWidth - target : 0;
+      window.moveTo(x, window.screenY);
     } catch {
       // resizeTo is blocked in non-popup windows — ignore silently
     }
-  }, [panelOpen, isSidePanel]);
+  }, [panelOpen, isSidePanel, isRight]);
 
   const openAsSidePanel = () => {
     const w = 58;
     const h = window.screen.availHeight;
-    const left = window.screen.availWidth - w;
-    window.open(
+    const left = isRight ? window.screen.availWidth - w : 0;
+    const popup = window.open(
       window.location.href,
       "qq_sidecar",
       `width=${w},height=${h},left=${left},top=0,resizable=yes`
     );
+    if (popup) {
+      // Try to auto-close this window. If browser blocks (common for non-script-opened
+      // tabs), fall back to a full-screen "you can close this tab" overlay.
+      setTimeout(() => {
+        try { window.close(); } catch {}
+        // If still alive after close attempt, show overlay
+        setSpawnedPopup(true);
+      }, 250);
+    }
   };
 
   return (
     <>
       {/* ── Narrow icon sidebar ─────────────────────────── */}
       <div
-        className={`fixed top-0 h-full flex flex-col items-center py-4 gap-1 z-[9999] right-0`}
+        className={`fixed top-0 h-full flex flex-col items-center py-4 gap-1 z-[9999] ${isRight ? "right-0" : "left-0"}`}
         style={{
           width: isSidePanel && !panelOpen ? "100%" : 52,
           background: "rgba(255,255,255,0.96)",
-          borderLeft: "1px solid #e2e8f0",
+          borderLeft: isRight ? "1px solid #e2e8f0" : "none",
+          borderRight: isRight ? "none" : "1px solid #e2e8f0",
           backdropFilter: "blur(8px)",
-          boxShadow: "-2px 0 12px rgba(0,0,0,0.05)",
+          boxShadow: isRight ? "-2px 0 12px rgba(0,0,0,0.05)" : "2px 0 12px rgba(0,0,0,0.05)",
         }}
       >
         {/* Toggle button — hidden in side panel mode (panel always open there) */}
@@ -394,7 +424,7 @@ export function Sidecar() {
               }}
             >
               <Sparkles style={{ width: 16, height: 16 }} />
-              <span className="tooltip-left">
+              <span className={tipClass}>
                 {panelOpen ? "패널 닫기" : "QQ Sidecar"}
               </span>
             </button>
@@ -410,7 +440,7 @@ export function Sidecar() {
           style={{ color: "#fff", background: "#0f172a" }}
         >
           <ClipboardPaste className="relative z-10" style={{ width: 16, height: 16 }} />
-          <span className="tooltip-left">
+          <span className={tipClass}>
             <span className="block font-semibold">클립보드에서 저장</span>
             <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>카피한 AI 응답을 바로 저장</span>
           </span>
@@ -431,7 +461,7 @@ export function Sidecar() {
               style={{ background: item.color + "14" }}
             />
             <item.icon className="relative z-10" style={{ width: 18, height: 18 }} />
-            <span className="tooltip-left">
+            <span className={tipClass}>
               <span className="block font-semibold">{item.label}</span>
               <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>{item.description}</span>
             </span>
@@ -448,7 +478,7 @@ export function Sidecar() {
         >
           <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: "#fee2e2" }} />
           <Siren className="relative z-10" style={{ width: 18, height: 18 }} />
-          <span className="tooltip-left">
+          <span className={tipClass}>
             <span className="block font-semibold">SOS 복구 모드</span>
             <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>AI가 이상해졌을 때</span>
           </span>
@@ -464,7 +494,7 @@ export function Sidecar() {
         >
           <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: "#f1f5f9" }} />
           <FolderOpen className="relative z-10" style={{ width: 17, height: 17 }} />
-          <span className="tooltip-left">
+          <span className={tipClass}>
             <span className="block font-semibold">Workspace</span>
             <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>프로젝트 & 파일</span>
           </span>
@@ -480,7 +510,7 @@ export function Sidecar() {
               style={{ color: "#0f172a", background: "#fef3c7" }}
             >
               <Download className="relative z-10" style={{ width: 15, height: 15 }} />
-              <span className="tooltip-left">
+              <span className={tipClass}>
                 <span className="block font-semibold">앱으로 설치</span>
                 <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>바탕화면에서 바로 실행</span>
               </span>
@@ -498,13 +528,28 @@ export function Sidecar() {
               style={{ color: "#fff", background: "#6366f1", boxShadow: "0 2px 6px rgba(99,102,241,0.35)" }}
             >
               <PanelRight className="relative z-10" style={{ width: 15, height: 15 }} />
-              <span className="tooltip-left">
+              <span className={tipClass}>
                 <span className="block font-semibold">화면 옆에 고정</span>
                 <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>ChatGPT 옆에 좁게 띄우기</span>
               </span>
             </button>
           </>
         )}
+
+        {/* Side toggle — flip panel left/right (visible in all modes) */}
+        <div style={{ flex: 1 }} />
+        <button
+          onClick={() => setPanelSide((s) => (s === "right" ? "left" : "right"))}
+          className="relative group w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+          style={{ color: "#64748b", background: "#f1f5f9" }}
+          title={isRight ? "왼쪽으로 옮기기" : "오른쪽으로 옮기기"}
+        >
+          <ArrowLeftRight style={{ width: 14, height: 14 }} />
+          <span className={tipClass}>
+            <span className="block font-semibold">{isRight ? "왼쪽으로 옮기기" : "오른쪽으로 옮기기"}</span>
+            <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>패널 위치 바꾸기</span>
+          </span>
+        </button>
       </div>
 
       {/* ── Expandable panel ────────────────────────────── */}
@@ -516,8 +561,12 @@ export function Sidecar() {
             exit={isSidePanel ? {} : { x: 260, opacity: 0 }}
             transition={{ type: "spring", bounce: 0.08, duration: 0.28 }}
             className={isSidePanel
-              ? "fixed top-0 left-0 right-[52px] h-full flex flex-col z-[9998]"
-              : "fixed top-0 right-[52px] h-full flex flex-col z-[9998]"
+              ? (isRight
+                  ? "fixed top-0 left-0 right-[52px] h-full flex flex-col z-[9998]"
+                  : "fixed top-0 right-0 left-[52px] h-full flex flex-col z-[9998]")
+              : (isRight
+                  ? "fixed top-0 right-[52px] h-full flex flex-col z-[9998]"
+                  : "fixed top-0 left-[52px] h-full flex flex-col z-[9998]")
             }
             style={{
               width: isSidePanel ? undefined : 248,
@@ -1119,6 +1168,44 @@ export function Sidecar() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Spawned popup overlay — shown if window.close() was blocked */}
+      {spawnedPopup && (
+        <div
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-6"
+          style={{ background: "rgba(15,23,42,0.85)", backdropFilter: "blur(6px)" }}
+        >
+          <div
+            className="bg-white rounded-2xl p-6 max-w-sm w-full text-center"
+            style={{ boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }}
+          >
+            <div className="text-3xl mb-2">✅</div>
+            <div className="text-base font-bold text-slate-900 mb-1">
+              사이드 패널이 새 창으로 열렸어요
+            </div>
+            <p className="text-sm text-slate-500 mb-5 leading-relaxed">
+              이 탭은 더 이상 필요하지 않아요.<br/>
+              직접 닫으셔도 되고, 아래 버튼으로 닫으실 수도 있어요.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => { try { window.close(); } catch {} setSpawnedPopup(false); }}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all hover:opacity-90"
+                style={{ background: "#0f172a", color: "#fff" }}
+              >
+                이 탭 닫기
+              </button>
+              <button
+                onClick={() => setSpawnedPopup(false)}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all hover:bg-slate-50"
+                style={{ background: "#fff", color: "#475569", border: "1px solid #e2e8f0" }}
+              >
+                계속 사용
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
