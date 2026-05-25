@@ -799,10 +799,11 @@ export function Sidecar() {
                                 {p.name}
                               </button>
                               <button
-                                onClick={() => { if (confirm(`"${p.name}" 프로젝트를 삭제할까요?`)) { ws.deleteProject(p.id); refreshWorkspace(); setProjectMenuOpen(false); } }}
-                                className="p-2 opacity-0 group-hover:opacity-100 hover:text-red-500 text-slate-300 transition-all"
+                                onClick={() => { if (confirm(`"${p.name}" 프로젝트를 삭제할까요?\n\n프로젝트 안의 모든 파일과 폴더가 함께 사라집니다. (로컬 디스크 폴더가 연결된 경우, 디스크 파일은 남습니다.)`)) { ws.deleteProject(p.id); refreshWorkspace(); setProjectMenuOpen(false); } }}
+                                className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-all"
+                                title="이 프로젝트 삭제"
                               >
-                                <Trash2 style={{ width: 11, height: 11 }} />
+                                <Trash2 style={{ width: 12, height: 12 }} />
                               </button>
                             </div>
                           ))}
@@ -830,6 +831,13 @@ export function Sidecar() {
                           style={{ background: "#0f172a", color: "#fff" }}
                         >
                           생성
+                        </button>
+                        <button
+                          onClick={() => { setCreatingProject(false); setNewProjectName(""); setNewProjectWorkflow(null); }}
+                          className="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all hover:bg-slate-100"
+                          style={{ background: "#f8fafc", color: "#64748b", border: "1px solid #e2e8f0" }}
+                        >
+                          취소
                         </button>
                       </div>
                       <div>
