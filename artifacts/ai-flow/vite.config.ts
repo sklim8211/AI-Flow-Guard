@@ -52,6 +52,7 @@ export default defineConfig({
         background_color: "#ffffff",
         display: "standalone",
         orientation: "portrait",
+        id: basePath,
         scope: basePath,
         start_url: basePath,
         lang: "ko",
