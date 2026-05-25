@@ -6,3 +6,9 @@ id = "q0kmXhMzJl6GuGbnzT4CI"
 uri = "file://exports/QQ-Sidecar-표준-프롬프트-카탈로그.md"
 type = "text"
 title = "QQ Sidecar 표준 프롬프트 카탈로그"
+
+[[outputs]]
+id = "TNDKfPgsloY38h8oDb701"
+uri = "file://exports/QQ-Sidecar-사용-가이드.md"
+type = "text"
+title = "QQ Sidecar 사용 가이드 (친절한 설명)"
