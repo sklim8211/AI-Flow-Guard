@@ -362,34 +362,47 @@ export function WorkspaceView({ projectId, onOpenFile, onNewFile, refresh, onRef
 
   return (
     <div key={refresh} className="space-y-0.5">
-      {/* Select-mode toolbar */}
-      <div className="px-2 pb-1 flex items-center justify-between">
-        {!selectMode ? (
-          onConsolidate && allFiles.length >= 2 && (
+      {/* Select-mode toolbar — Consolidate entry point */}
+      {onConsolidate && (
+        <div className="px-2 pb-1.5">
+          {!selectMode ? (
             <button
               onClick={() => setSelectMode(true)}
-              className="flex items-center gap-1 text-[10px] text-slate-400 hover:text-slate-700 px-1.5 py-0.5 rounded transition-colors"
-              title="여러 파일을 묶어서 AI에게 합치도록 요청"
+              disabled={allFiles.length < 2}
+              className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all"
+              style={{
+                background: allFiles.length >= 2 ? "#eff6ff" : "#f8fafc",
+                color: allFiles.length >= 2 ? "#2563eb" : "#cbd5e1",
+                border: allFiles.length >= 2 ? "1px solid #bfdbfe" : "1px solid #e2e8f0",
+                cursor: allFiles.length >= 2 ? "pointer" : "not-allowed",
+              }}
+              title={
+                allFiles.length >= 2
+                  ? "여러 파일을 묶어서 AI에게 합치도록 요청"
+                  : "파일이 2개 이상일 때 활성화됩니다"
+              }
             >
-              <Layers style={{ width: 11, height: 11 }} />
-              선택
+              <Layers style={{ width: 12, height: 12 }} />
+              {allFiles.length >= 2
+                ? "🗂 여러 파일 합치기"
+                : "🗂 여러 파일 합치기 (파일 2개 이상 필요)"}
             </button>
-          )
-        ) : (
-          <>
-            <span className="text-[10px] font-semibold text-slate-500">
-              {selectedCount}개 선택됨
-            </span>
-            <button
-              onClick={exitSelectMode}
-              className="flex items-center gap-1 text-[10px] text-slate-400 hover:text-slate-700 px-1.5 py-0.5 rounded transition-colors"
-            >
-              <X style={{ width: 11, height: 11 }} />
-              취소
-            </button>
-          </>
-        )}
-      </div>
+          ) : (
+            <div className="flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg" style={{ background: "#eff6ff", border: "1px solid #bfdbfe" }}>
+              <span className="text-[11px] font-semibold" style={{ color: "#1e40af" }}>
+                합칠 파일을 골라주세요 · {selectedCount}개 선택됨
+              </span>
+              <button
+                onClick={exitSelectMode}
+                className="flex items-center gap-1 text-[10px] text-slate-500 hover:text-slate-800 px-1.5 py-0.5 rounded transition-colors"
+              >
+                <X style={{ width: 11, height: 11 }} />
+                취소
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="px-2 space-y-0.5">
         {folders.map((folder) => {
