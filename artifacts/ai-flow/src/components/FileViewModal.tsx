@@ -54,37 +54,37 @@ export function FileViewModal({ file, onClose, onRefresh }: Props) {
   const WRAPPERS: Record<string, Wrapper> = {
     DRAFTS: {
       prefix:
-        "[참고 자료 — 읽기만 해주세요]\n" +
-        "아래는 제가 나중에 다시 보려고 저장해둔 이전 AI 응답입니다.\n" +
-        "지금은 요약·해석·평가·이어쓰기를 하지 마시고, 조용히 읽고 대기만 해주세요.\n" +
-        "다음 메시지에서 제가 무엇을 할지 알려드릴게요.\n\n" +
+        "[REFERENCE — READ ONLY]\n" +
+        "Below is a saved AI response I'm keeping for later reference.\n" +
+        "Please don't summarize, interpret, evaluate, or build on it right now. Just read it quietly and wait.\n" +
+        "I'll tell you what to do in my next message.\n\n" +
         "---\n",
-      suffix: "\n---\n(여기까지 참고 자료입니다. 다음 지시를 기다려주세요.)",
+      suffix: "\n---\n(End of reference material. Please wait for my next instruction.)",
       hint: "📎 복사 시 AI가 장황하게 해석하지 않도록 '참고 자료' 안내 문구가 앞뒤에 자동으로 붙습니다.",
       confirm: "✓ '참고용으로 읽기만 해줘' 안내와 함께 복사됨. AI에 붙여넣고 다음 지시를 보내세요.",
     },
     NEXT: {
       suffix:
         "\n\n---\n" +
-        "위 계획대로 IMMEDIATE 항목부터 실제 작업을 시작해줘. " +
-        "막혀있는 BLOCKERS가 있으면 먼저 그것부터 같이 풀자.",
+        "Start actual work from the IMMEDIATE item above. " +
+        "If anything in BLOCKERS is in the way, let's unblock that first together.",
       hint: "📎 복사 시 'IMMEDIATE 부터 시작해줘' 명령이 자동으로 뒤에 붙어요. AI에 붙여넣으면 바로 작업이 시작됩니다.",
       confirm: "✓ '작업 시작 명령'과 함께 복사됨. AI에 그대로 붙여넣으면 즉시 작업이 시작됩니다.",
     },
     CURRENT: {
       suffix:
         "\n\n---\n" +
-        "위 내용은 내가 직전 작업을 어디까지 했는지 정리한 컨텍스트야. " +
-        "지금 이 시점에서 자연스럽게 이어 작업할 수 있도록 도와줘. " +
-        "내가 빠뜨린 게 보이면 짚어주고, 다음 단계 한 가지만 추천해줘.",
+        "The above is the context for where I left off on my last session. " +
+        "Help me pick up naturally from this point. " +
+        "If you notice anything I missed, point it out, and suggest just one next step.",
       hint: "📎 복사 시 '이어서 작업해줘' 안내가 자동으로 뒤에 붙어요.",
       confirm: "✓ '이어서 작업' 안내와 함께 복사됨.",
     },
     ANCHORS: {
       suffix:
         "\n\n---\n" +
-        "위 결정들은 이 프로젝트에서 이미 합의된 안전선이야. " +
-        "앞으로 작업할 때 이 기준에서 벗어나는 제안을 하기 전엔 반드시 먼저 알려줘.",
+        "The decisions above are agreed-upon guardrails for this project. " +
+        "Before suggesting anything that breaks away from them, always check with me first.",
       hint: "📎 복사 시 '이 결정 기준으로 작업해줘' 안내가 자동으로 뒤에 붙어요.",
       confirm: "✓ '결정 기준' 안내와 함께 복사됨.",
     },
