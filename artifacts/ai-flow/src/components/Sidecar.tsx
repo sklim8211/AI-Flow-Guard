@@ -20,6 +20,7 @@ import {
   Unplug,
   Link,
   PanelRight,
+  Info,
   LifeBuoy,
   RotateCcw,
   Siren,
@@ -535,6 +536,23 @@ export function Sidecar() {
             </button>
           </>
         )}
+
+        {/* About / 소개 — opens landing page in new tab */}
+        <div style={{ width: 20, height: 1, background: "#e2e8f0", margin: "6px 0 2px" }} />
+        <a
+          href="/landing/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="relative group w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+          style={{ color: "#64748b", textDecoration: "none" }}
+        >
+          <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: "#f1f5f9" }} />
+          <Info className="relative z-10" style={{ width: 16, height: 16 }} />
+          <span className={tipClass}>
+            <span className="block font-semibold">Sidecar 소개</span>
+            <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>새 탭에서 열기</span>
+          </span>
+        </a>
 
         {/* Side toggle — flip panel left/right (visible in all modes) */}
         <div style={{ flex: 1 }} />
