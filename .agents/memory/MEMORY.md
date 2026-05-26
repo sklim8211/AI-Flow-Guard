@@ -1,1 +1,2 @@
 - [Republish data safety](republish-data-safety.md) — Replit republish of a static PWA does NOT wipe localStorage on the same origin; a reported "data loss after publish" almost always means dev-preview vs `.replit.app` origin mismatch.
+- [Go-to-market direction](go-to-market.md) — QQ Sidecar targets the English-speaking indie/maker market first, not Korea. Don't propose Korean-market features, pricing, or channels.
