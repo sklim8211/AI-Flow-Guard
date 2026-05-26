@@ -1,0 +1,1 @@
+- [Republish data safety](republish-data-safety.md) — Replit republish of a static PWA does NOT wipe localStorage on the same origin; a reported "data loss after publish" almost always means dev-preview vs `.replit.app` origin mismatch.
