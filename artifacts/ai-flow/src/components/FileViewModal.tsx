@@ -43,22 +43,61 @@ export function FileViewModal({ file, onClose, onRefresh }: Props) {
     }
   };
 
-  // Wrap DRAFTS originals so the AI treats them as silent reference material,
-  // not as something to summarize/critique. The user drives the next message.
-  const REFERENCE_WRAPPER_PREFIX =
-    "[참고 자료 — 읽기만 해주세요]\n" +
-    "아래는 제가 나중에 다시 보려고 저장해둔 이전 AI 응답입니다.\n" +
-    "지금은 요약·해석·평가·이어쓰기를 하지 마시고, 조용히 읽고 대기만 해주세요.\n" +
-    "다음 메시지에서 제가 무엇을 할지 알려드릴게요.\n\n" +
-    "---\n";
-  const REFERENCE_WRAPPER_SUFFIX = "\n---\n(여기까지 참고 자료입니다. 다음 지시를 기다려주세요.)";
+  // Folder-aware copy wrappers.
+  // The standard prompts produce well-formed handoff documents (Resume/Next/Anchors).
+  // But when a user pastes such a document into a fresh AI message without a follow-up
+  // instruction, the AI tends to acknowledge ("got it, looks great") instead of acting.
+  // We append a short, intent-specific instruction at copy time so the document becomes
+  // an actionable prompt. The DRAFTS wrapper is the inverse case: prevent the AI from
+  // over-interpreting saved reference material.
+  type Wrapper = { prefix?: string; suffix?: string; hint: string; confirm: string };
+  const WRAPPERS: Record<string, Wrapper> = {
+    DRAFTS: {
+      prefix:
+        "[참고 자료 — 읽기만 해주세요]\n" +
+        "아래는 제가 나중에 다시 보려고 저장해둔 이전 AI 응답입니다.\n" +
+        "지금은 요약·해석·평가·이어쓰기를 하지 마시고, 조용히 읽고 대기만 해주세요.\n" +
+        "다음 메시지에서 제가 무엇을 할지 알려드릴게요.\n\n" +
+        "---\n",
+      suffix: "\n---\n(여기까지 참고 자료입니다. 다음 지시를 기다려주세요.)",
+      hint: "📎 복사 시 AI가 장황하게 해석하지 않도록 '참고 자료' 안내 문구가 앞뒤에 자동으로 붙습니다.",
+      confirm: "✓ '참고용으로 읽기만 해줘' 안내와 함께 복사됨. AI에 붙여넣고 다음 지시를 보내세요.",
+    },
+    NEXT: {
+      suffix:
+        "\n\n---\n" +
+        "위 계획대로 IMMEDIATE 항목부터 실제 작업을 시작해줘. " +
+        "막혀있는 BLOCKERS가 있으면 먼저 그것부터 같이 풀자.",
+      hint: "📎 복사 시 'IMMEDIATE 부터 시작해줘' 명령이 자동으로 뒤에 붙어요. AI에 붙여넣으면 바로 작업이 시작됩니다.",
+      confirm: "✓ '작업 시작 명령'과 함께 복사됨. AI에 그대로 붙여넣으면 즉시 작업이 시작됩니다.",
+    },
+    CURRENT: {
+      suffix:
+        "\n\n---\n" +
+        "위 내용은 내가 직전 작업을 어디까지 했는지 정리한 컨텍스트야. " +
+        "지금 이 시점에서 자연스럽게 이어 작업할 수 있도록 도와줘. " +
+        "내가 빠뜨린 게 보이면 짚어주고, 다음 단계 한 가지만 추천해줘.",
+      hint: "📎 복사 시 '이어서 작업해줘' 안내가 자동으로 뒤에 붙어요.",
+      confirm: "✓ '이어서 작업' 안내와 함께 복사됨.",
+    },
+    ANCHORS: {
+      suffix:
+        "\n\n---\n" +
+        "위 결정들은 이 프로젝트에서 이미 합의된 안전선이야. " +
+        "앞으로 작업할 때 이 기준에서 벗어나는 제안을 하기 전엔 반드시 먼저 알려줘.",
+      hint: "📎 복사 시 '이 결정 기준으로 작업해줘' 안내가 자동으로 뒤에 붙어요.",
+      confirm: "✓ '결정 기준' 안내와 함께 복사됨.",
+    },
+  };
 
-  const isDraft = !!file && ws.getFolderPath(file.folderId)[0]?.toUpperCase() === "DRAFTS";
+  const folderName = file ? ws.getFolderPath(file.folderId)[0]?.toUpperCase() : undefined;
+  const wrapper = folderName ? WRAPPERS[folderName] : undefined;
+  const isDraft = folderName === "DRAFTS";
 
   const handleCopy = () => {
     if (!file) return;
-    const text = isDraft
-      ? REFERENCE_WRAPPER_PREFIX + file.content + REFERENCE_WRAPPER_SUFFIX
+    const text = wrapper
+      ? (wrapper.prefix ?? "") + file.content + (wrapper.suffix ?? "")
       : file.content;
     navigator.clipboard.writeText(text).catch(() => {
       const el = document.createElement("textarea");
@@ -69,7 +108,7 @@ export function FileViewModal({ file, onClose, onRefresh }: Props) {
       document.body.removeChild(el);
     });
     setCopied(true);
-    setWrappedCopy(isDraft);
+    setWrappedCopy(!!wrapper);
     setTimeout(() => { setCopied(false); setWrappedCopy(false); }, 2200);
   };
 
@@ -146,7 +185,7 @@ export function FileViewModal({ file, onClose, onRefresh }: Props) {
                   <button
                     onClick={handleCopy}
                     className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
-                    title={isDraft ? "복사 (AI에 '참고용'으로 안내 문구가 자동 추가됩니다)" : "복사"}
+                    title={wrapper ? `복사 (AI 명령 자동 추가: ${folderName})` : "복사"}
                   >
                     {copied ? (
                       <Check style={{ width: 14, height: 14, color: "#16a34a" }} />
@@ -205,19 +244,20 @@ export function FileViewModal({ file, onClose, onRefresh }: Props) {
                 )}
               </div>
 
-              {/* DRAFTS hint or copy confirmation */}
-              {(isDraft || wrappedCopy) && (
+              {/* Wrapper hint or copy confirmation */}
+              {wrapper && (
                 <div
                   className="px-5 py-2 flex items-center gap-2 flex-shrink-0"
                   style={{
-                    background: wrappedCopy ? "#ecfdf5" : "#fef3c7",
+                    background: wrappedCopy ? "#ecfdf5" : isDraft ? "#fef3c7" : "#eff6ff",
                     borderTop: "1px solid #f1f5f9",
                   }}
                 >
-                  <span className="text-[10px] font-semibold" style={{ color: wrappedCopy ? "#047857" : "#92400e" }}>
-                    {wrappedCopy
-                      ? "✓ '참고용으로 읽기만 해줘' 안내와 함께 복사됨. AI에 붙여넣고 다음 지시를 보내세요."
-                      : "📎 복사 시 AI가 장황하게 해석하지 않도록 '참고 자료' 안내 문구가 앞뒤에 자동으로 붙습니다."}
+                  <span
+                    className="text-[10px] font-semibold leading-snug"
+                    style={{ color: wrappedCopy ? "#047857" : isDraft ? "#92400e" : "#1d4ed8" }}
+                  >
+                    {wrappedCopy ? wrapper.confirm : wrapper.hint}
                   </span>
                 </div>
               )}
