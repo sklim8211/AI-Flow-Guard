@@ -540,7 +540,7 @@ export function Sidecar() {
         {/* About / 소개 — opens landing page in new tab */}
         <div style={{ width: 20, height: 1, background: "#e2e8f0", margin: "6px 0 2px" }} />
         <a
-          href="/landing/"
+          href="/"
           target="_blank"
           rel="noopener noreferrer"
           className="relative group w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95"
