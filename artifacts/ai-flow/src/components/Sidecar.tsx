@@ -1096,7 +1096,6 @@ export function Sidecar() {
       {/* ── Save reminder toast ─────────────────────────── */}
       <SaveReminderToast
         suppressed={!!viewFile || saveModalOpen || showSOS || showRestorePicker || showOnboarding || !!activePrompt}
-        onSaveClick={() => { setSaveModalOpen(true); setPanelOpen(true); }}
       />
 
       {/* ── File View Modal ─────────────────────────────── */}
