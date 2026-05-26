@@ -125,6 +125,9 @@ export function Sidecar() {
   // SOS recovery mode
   const [showSOS, setShowSOS] = useState(false);
 
+  // Restore picker (lists SAFE backup files to inject into Restore prompt)
+  const [showRestorePicker, setShowRestorePicker] = useState(false);
+
   // Onboarding (first-visit only)
   const [showOnboarding, setShowOnboarding] = useState(
     () => !localStorage.getItem("qq_onboarded")
@@ -183,6 +186,7 @@ export function Sidecar() {
         if (viewFile) { setViewFile(null); return; }
         if (saveModalOpen) { setSaveModalOpen(false); setClipboardContent(""); return; }
         if (showSOS) { setShowSOS(false); return; }
+        if (showRestorePicker) { setShowRestorePicker(false); return; }
         if (showOnboarding) { return; } // onboarding must be dismissed via button
         if (activePrompt) { setActivePrompt(null); return; }
         if (isSidePanel) return; // side panel mode: panel always open
@@ -191,7 +195,7 @@ export function Sidecar() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activePrompt, saveModalOpen, viewFile, showSOS, showOnboarding]);
+  }, [activePrompt, saveModalOpen, viewFile, showSOS, showRestorePicker, showOnboarding]);
 
   // PWA install detection
   useEffect(() => {
@@ -237,12 +241,44 @@ export function Sidecar() {
   const openPromptFromSOS = (promptId: string) => {
     const def = PROMPT_DEFS.find((x) => x.id === promptId);
     if (!def) return;
+    setShowSOS(false);
+    if (def.id === "restore") {
+      openRestoreFlow();
+      return;
+    }
     const project = ws.getProjects().find((p) => p.id === ws.getActiveProjectId());
     const wf = project?.workflow ?? null;
     setActivePrompt({ label: def.label, prompt: getPromptText(def.id, wf) });
     setShowSave(false);
-    setShowSOS(false);
     setPanelOpen(true);
+  };
+
+  /** Open the Restore picker — lets user choose a backup file from SAFE before opening the prompt. */
+  const openRestoreFlow = () => {
+    setShowRestorePicker(true);
+    setPanelOpen(true);
+  };
+
+  /** Build the Restore prompt with the chosen backup file's content injected, then open it. */
+  const openRestoreWithFile = (file: WFile | null) => {
+    const project = ws.getProjects().find((p) => p.id === ws.getActiveProjectId());
+    const wf = project?.workflow ?? null;
+    const baseText = getPromptText("restore", wf);
+    const PLACEHOLDER = "[paste backup file here]";
+    let finalText = baseText;
+    if (file) {
+      const occurrences = baseText.split(PLACEHOLDER).length - 1;
+      if (occurrences === 1) {
+        finalText = baseText.replace(PLACEHOLDER, file.content.trim());
+      } else {
+        // Template drifted (0 or multiple placeholders). Fail safe: append.
+        finalText = `${baseText}\n\n${file.content.trim()}`;
+      }
+    }
+    const label = file ? `Restore — ${file.name}` : "Restore From Backup";
+    setShowRestorePicker(false);
+    setActivePrompt({ label, prompt: finalText });
+    setShowSave(false);
   };
 
   const handleConsolidate = (files: WFile[]) => {
@@ -453,7 +489,11 @@ export function Sidecar() {
         {displayPrompts.map((item) => (
           <button
             key={item.id}
-            onClick={() => { setActivePrompt({ label: item.label, prompt: item.prompt }); setShowSave(false); }}
+            onClick={() => {
+              if (item.id === "restore") { openRestoreFlow(); return; }
+              setActivePrompt({ label: item.label, prompt: item.prompt });
+              setShowSave(false);
+            }}
             className="relative group w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95"
             style={{ color: item.color }}
           >
@@ -690,7 +730,11 @@ export function Sidecar() {
                   {displayPrompts.map((item) => (
                     <button
                       key={item.id}
-                      onClick={() => { setActivePrompt({ label: item.label, prompt: item.prompt }); setShowSave(false); }}
+                      onClick={() => {
+                        if (item.id === "restore") { openRestoreFlow(); return; }
+                        setActivePrompt({ label: item.label, prompt: item.prompt });
+                        setShowSave(false);
+                      }}
                       className="w-full flex items-start gap-3 px-4 py-3 hover:bg-slate-50 active:bg-slate-100 transition-colors text-left group cursor-pointer"
                     >
                       <item.icon className="mt-0.5 shrink-0" style={{ width: 15, height: 15, color: item.color }} />
@@ -1051,7 +1095,7 @@ export function Sidecar() {
 
       {/* ── Save reminder toast ─────────────────────────── */}
       <SaveReminderToast
-        suppressed={!!viewFile || saveModalOpen || showSOS || showOnboarding || !!activePrompt}
+        suppressed={!!viewFile || saveModalOpen || showSOS || showRestorePicker || showOnboarding || !!activePrompt}
         onSaveClick={() => { setSaveModalOpen(true); setPanelOpen(true); }}
       />
 
@@ -1127,6 +1171,93 @@ export function Sidecar() {
             </motion.div>
           </motion.div>
         )}
+      </AnimatePresence>
+
+      {/* ── Restore Picker Modal ────────────────────────── */}
+      <AnimatePresence>
+        {showRestorePicker && (() => {
+          const safeFiles = activeProjectId
+            ? ws.getFilesInFolderByName(activeProjectId, "SAFE")
+            : [];
+          return (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="fixed inset-0 z-[10000] flex items-center justify-center p-4"
+              style={{ background: "rgba(15,23,42,0.45)", backdropFilter: "blur(4px)" }}
+              onClick={() => setShowRestorePicker(false)}
+            >
+              <motion.div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="restore-picker-title"
+                initial={{ opacity: 0, scale: 0.95, y: 8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 8 }}
+                transition={{ type: "spring", bounce: 0.15, duration: 0.25 }}
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-md rounded-2xl overflow-hidden"
+                style={{ background: "#fff", boxShadow: "0 24px 60px rgba(0,0,0,0.25)" }}
+              >
+                <div className="px-5 pt-5 pb-3 flex items-start gap-3" style={{ background: "linear-gradient(135deg,#ecfccb,#fff)" }}>
+                  <RotateCcw style={{ width: 22, height: 22, color: "#65a30d", flexShrink: 0, marginTop: 2 }} aria-hidden="true" />
+                  <div className="flex-1 min-w-0">
+                    <p id="restore-picker-title" className="text-sm font-bold text-slate-800">백업 파일 선택</p>
+                    <p className="text-[11px] text-slate-500 mt-1 leading-snug">
+                      복원할 백업을 고르면, AI에게 바로 보낼 프롬프트를 한 번에 만들어 드려요.
+                    </p>
+                  </div>
+                  <button onClick={() => setShowRestorePicker(false)} className="text-slate-400 hover:text-slate-700 transition-colors">
+                    <X style={{ width: 16, height: 16 }} />
+                  </button>
+                </div>
+
+                <div className="max-h-72 overflow-y-auto px-3 py-2">
+                  {safeFiles.length === 0 ? (
+                    <div className="px-3 py-6 text-center">
+                      <p className="text-xs text-slate-500 leading-relaxed">
+                        SAFE 폴더에 백업 파일이 없어요.<br />
+                        먼저 <span className="font-semibold text-slate-700">Backup</span> 아이콘으로 백업을 받아두세요.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      {safeFiles.map((file) => {
+                        const date = new Date(file.createdAt);
+                        const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+                        return (
+                          <button
+                            key={file.id}
+                            onClick={() => openRestoreWithFile(file)}
+                            className="w-full text-left rounded-lg px-3 py-2.5 transition-all hover:bg-slate-50 active:bg-slate-100"
+                            style={{ border: "1px solid #e2e8f0" }}
+                          >
+                            <p className="text-xs font-semibold text-slate-800 truncate">{file.name}</p>
+                            <p className="text-[10px] text-slate-400 mt-0.5">{dateStr}</p>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                <div className="px-5 py-3 flex items-center justify-between gap-2" style={{ borderTop: "1px solid #f1f5f9", background: "#f8fafc" }}>
+                  <p className="text-[10px] text-slate-400 flex-1">
+                    {safeFiles.length > 0 ? "파일을 클릭하면 프롬프트에 자동으로 들어갑니다." : ""}
+                  </p>
+                  <button
+                    onClick={() => openRestoreWithFile(null)}
+                    className="text-[11px] font-semibold text-slate-500 hover:text-slate-700 px-2 py-1 rounded-md transition-colors"
+                  >
+                    백업 없이 열기
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          );
+        })()}
       </AnimatePresence>
 
       {/* ── Onboarding Card (first visit only) ──────────── */}
