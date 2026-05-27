@@ -18,3 +18,9 @@ id = "ecwMK-W4Hfl6njqCHlQ3w"
 uri = "file://exports/QQ-Sidecar-론칭-전-테스트-시나리오.md"
 type = "text"
 title = "QQ Sidecar 론칭 전 종합 테스트 시나리오"
+
+[[outputs]]
+id = "Adt0tAEE-xJZ4_mbM8j9I"
+uri = "file://상황가이드-검토안.txt"
+type = "text"
+title = "지금 어떤 상황? — 검토안"
