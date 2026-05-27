@@ -1,0 +1,39 @@
+"What's your situation right now?" — Card Phrases (English)
+
+
+Big cards (3 — most common situations)
+────────────────────────────────────────
+
+1) 🌅  I lost track of where I left off
+       → Resume
+
+2) 💭  This chat is too long — I can't scroll back to find anything
+       → Compress
+
+3) 🧱  About to make a big change. Don't want to break what's working
+       → Backup
+
+
+Small lines (5 — bottom of modal)
+────────────────────────────────────────
+
+4) 🔄  The AI keeps forgetting decisions we already made
+       → Anchors
+
+5) 🧭  Not sure what to do next
+       → Next
+
+6) 🚨  The AI just made a mess — I want to roll back
+       → Restore
+
+7) 📋  Want to wrap up what I did today
+       → Summary
+
+8) 🗂  I have a bunch of old notes I want to merge
+       → Consolidate
+
+
+Note
+────
+영어권 카피에서는 한국어보다 더 짧고 동사부터 시작하는 게 자연스러워서
+그 톤으로 맞췄습니다.

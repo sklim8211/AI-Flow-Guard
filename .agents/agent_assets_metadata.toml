@@ -24,3 +24,9 @@ id = "Adt0tAEE-xJZ4_mbM8j9I"
 uri = "file://상황가이드-검토안.txt"
 type = "text"
 title = "지금 어떤 상황? — 검토안"
+
+[[outputs]]
+id = "WTe8EIonvzf2nLixL_G57"
+uri = "file://card-phrases-en.txt"
+type = "text"
+title = "Card Phrases (English)"
