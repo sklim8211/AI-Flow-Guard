@@ -54,3 +54,9 @@ id = "uwkS3mQot1fYHxeOP-yHT"
 uri = "file://GitHub-푸시-가이드.md"
 type = "text"
 title = "GitHub 푸시 가이드 (인쇄용)"
+
+[[outputs]]
+id = "ePERa7_Yfahi0bhDgyva8"
+uri = "file://동료영입-메일.md"
+type = "text"
+title = "동료영입 메일 초안"
