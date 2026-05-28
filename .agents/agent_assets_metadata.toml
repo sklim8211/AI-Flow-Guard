@@ -42,3 +42,9 @@ id = "HtxZBKz1oYaHRmYRXJ8Me"
 uri = "file://QQ-Sidecar-미해결-할일.md"
 type = "text"
 title = "QQ Sidecar — 미해결 / 할 일 (인쇄용)"
+
+[[outputs]]
+id = "euPuNyDkompxVDBDhn-5d"
+uri = "file://파일저장-현황분석.md"
+type = "text"
+title = "파일 저장 현황 분석 (인쇄용)"
