@@ -1,8 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "BASE_PATH=/ PORT=3000 pnpm --filter @workspace/ai-flow run build",
+  "buildCommand": "BASE_PATH=/ PORT=3000 pnpm --filter @workspace/ai-flow run build && rm -rf dist && cp -r artifacts/ai-flow/dist/public dist",
   "installCommand": "pnpm install --frozen-lockfile",
-  "outputDirectory": "artifacts/ai-flow/dist/public",
+  "outputDirectory": "dist",
   "framework": null,
   "rewrites": [
     { "source": "/((?!assets/|icon|favicon|apple-touch-icon|robots\\.txt|manifest\\.webmanifest|sw\\.js|workbox-).*)", "destination": "/index.html" }
