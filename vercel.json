@@ -1,22 +1,24 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "BASE_PATH=/ PORT=3000 pnpm --filter @workspace/ai-flow run build && rm -rf dist && cp -r artifacts/ai-flow/dist/public dist",
+  "buildCommand": "BASE_PATH=/ PORT=3000 pnpm --filter @workspace/landing run build && BASE_PATH=/app/ PORT=3001 pnpm --filter @workspace/ai-flow run build && rm -rf dist && cp -r artifacts/landing/dist/public dist && mkdir -p dist/app && cp -r artifacts/ai-flow/dist/public/. dist/app/",
   "installCommand": "pnpm install --frozen-lockfile",
   "outputDirectory": "dist",
   "framework": null,
   "rewrites": [
-    { "source": "/((?!assets/|icon|favicon|apple-touch-icon|robots\\.txt|manifest\\.webmanifest|sw\\.js|workbox-).*)", "destination": "/index.html" }
+    { "source": "/app/((?!assets/|icon|favicon|apple-touch-icon|robots\\.txt|manifest\\.webmanifest|sw\\.js|workbox-).*)", "destination": "/app/index.html" },
+    { "source": "/app", "destination": "/app/index.html" },
+    { "source": "/((?!app/|app$|assets/|icon|favicon|apple-touch-icon|robots\\.txt|manifest\\.webmanifest|sw\\.js|workbox-).*)", "destination": "/index.html" }
   ],
   "headers": [
     {
-      "source": "/sw.js",
+      "source": "/app/sw.js",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" },
-        { "key": "Service-Worker-Allowed", "value": "/" }
+        { "key": "Service-Worker-Allowed", "value": "/app/" }
       ]
     },
     {
-      "source": "/manifest.webmanifest",
+      "source": "/app/manifest.webmanifest",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" },
         { "key": "Content-Type", "value": "application/manifest+json" }
@@ -24,6 +26,12 @@
     },
     {
       "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/app/assets/(.*)",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
