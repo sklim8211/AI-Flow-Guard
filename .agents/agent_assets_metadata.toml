@@ -30,3 +30,9 @@ id = "WTe8EIonvzf2nLixL_G57"
 uri = "file://card-phrases-en.txt"
 type = "text"
 title = "Card Phrases (English)"
+
+[[outputs]]
+id = "5IvJEC9e270R_fQL5hFCR"
+uri = "file://QQ-Sidecar-전체기록.md"
+type = "text"
+title = "QQ Sidecar — 전체 기록 (인쇄용)"
