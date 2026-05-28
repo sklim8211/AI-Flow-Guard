@@ -36,3 +36,9 @@ id = "5IvJEC9e270R_fQL5hFCR"
 uri = "file://QQ-Sidecar-전체기록.md"
 type = "text"
 title = "QQ Sidecar — 전체 기록 (인쇄용)"
+
+[[outputs]]
+id = "HtxZBKz1oYaHRmYRXJ8Me"
+uri = "file://QQ-Sidecar-미해결-할일.md"
+type = "text"
+title = "QQ Sidecar — 미해결 / 할 일 (인쇄용)"
