@@ -48,3 +48,9 @@ id = "euPuNyDkompxVDBDhn-5d"
 uri = "file://파일저장-현황분석.md"
 type = "text"
 title = "파일 저장 현황 분석 (인쇄용)"
+
+[[outputs]]
+id = "uwkS3mQot1fYHxeOP-yHT"
+uri = "file://GitHub-푸시-가이드.md"
+type = "text"
+title = "GitHub 푸시 가이드 (인쇄용)"
