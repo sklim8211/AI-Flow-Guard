@@ -1,0 +1,69 @@
+Create a first-time onboarding modal for new users.
+
+TRIGGER: Show only when localStorage key "qq_onboarded" 
+does not exist. Never show again after completion or skip.
+
+STRUCTURE: 6 screens with dot progress indicator.
+
+Screen 1 — Hook (quick path):
+- Three lines: "You closed the chat yesterday. / Today you 
+  opened a new one. / It's all gone."
+- Four feature pills: Resume / Compress / Anchors / Merge
+- Primary button: "Try Resume now →" 
+  → opens Resume prompt, sets qq_onboarded = true, closes modal
+- Secondary link: "See how it works first" → goes to Screen 2
+- Tertiary link: "Skip for now" → closes modal, 
+  does NOT set qq_onboarded (shows again next visit)
+
+Screens 2–5 — Story scenes (next/back navigation):
+Scene 2: Day 1 — Resume
+Scene 3: Day 3 — Coming back
+Scene 4: Week 2 — Compress  
+Scene 5: Week 2 Day 4 — Anchors
+Each scene: day label + description + Claude response 
+box (monospace) + payoff line
+Navigation: Back / "Skip story" (jumps to Screen 6) / Next
+
+Screen 6 — Final CTA:
+- "Now try it yourself."
+- Four action lines: Click Resume / Copy / Paste / Save
+- "That's your first Sidecar save."
+- Primary button: "Try Resume now →" 
+  → opens Resume prompt, sets qq_onboarded = true
+- "Skip for now" link
+
+DESIGN:
+- Modal overlay with semi-transparent backdrop
+- White card, max-width 380px, centered
+- Dot progress indicator top
+- English only
+Do not change any existing functionality
+
+SCENE CONTENT:
+
+Screen 2 — Day 1:
+day: "Day 1 — 5:00 PM. Time to stop."
+desc: "Two hours in. Big decisions made. Chat is 40 messages long."
+action: Resume → Copy prompt → Paste into Claude → Save response
+result: "CURRENT: Onboarding flow in progress. Email verification removed.\nNEXT: Design the first-time user screen.\nDECISIONS: No backend for MVP. Frontend only."
+payoff: "Auto-filed to CURRENT. Laptop closed. Done."
+
+Screen 3 — Day 3:
+day: "Day 3 — Back after two days away."
+desc: "Open Sidecar. Find the Resume file. Copy. Paste into new Claude chat."
+result: "Got it. You're building the onboarding flow.\nLast decision: skip email verification.\nEmpty state screen is next. Want to start there?"
+payoff: "No re-explaining. No scrolling. Straight to work in 30 seconds."
+
+Screen 4 — Week 2:
+day: "Week 2 — The chat is getting too long."
+desc: "300 messages. Claude is forgetting early decisions."
+action: Compress → Copy prompt → Paste into Claude → Save
+result: "Core decisions: Frontend only. No email verification.\nCurrent state: Welcome + profile screens done.\nDrop this into a new chat to continue."
+payoff: "Same project. Full memory. Clean start."
+
+Screen 5 — Week 2 Day 4:
+day: "Week 2, Day 4 — A decision that must not be forgotten."
+desc: "No AI API calls. Ever. Not a constraint — a philosophy."
+action: Anchors → Copy prompt → Paste into Claude → Save to ANCHORS
+result: "ANCHOR: No direct AI API calls — ever.\nReasoning: privacy, cost, trust.\nDO NOT reverse without a full team discussion."
+payoff: "Three weeks later — someone suggests adding an API. One file. Two minutes. Decision held."
