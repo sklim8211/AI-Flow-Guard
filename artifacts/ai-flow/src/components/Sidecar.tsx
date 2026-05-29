@@ -238,6 +238,12 @@ export function Sidecar() {
     setShowOnboarding(false);
   };
 
+  const startWithResume = () => {
+    localStorage.setItem("qq_onboarded", "1");
+    setShowOnboarding(false);
+    openPromptFromSOS("resume");
+  };
+
   const openPromptFromSOS = (promptId: string) => {
     const def = PROMPT_DEFS.find((x) => x.id === promptId);
     if (!def) return;
@@ -1286,47 +1292,52 @@ export function Sidecar() {
               transition={{ type: "spring", bounce: 0.18, duration: 0.4 }}
               role="dialog"
               aria-modal="true"
-              aria-label="QQ Sidecar 환영합니다"
+              aria-label="Welcome to QQ Sidecar"
               className="w-full max-w-md rounded-2xl overflow-hidden"
               style={{ background: "#fff", boxShadow: "0 30px 70px rgba(0,0,0,0.3)" }}
             >
-              <div className="px-7 pt-7 pb-2 flex items-start gap-3" style={{ background: "linear-gradient(135deg,#f1f5f9,#fff)" }}>
-                <Sparkles style={{ width: 24, height: 24, color: "#0f172a", flexShrink: 0, marginTop: 4 }} />
-                <div>
-                  <p className="text-lg font-bold text-slate-800">QQ Sidecar에 오신 걸 환영해요</p>
-                  <p className="text-xs text-slate-500 mt-1">30초 안에 핵심만 짚어드릴게요.</p>
-                </div>
+              <div className="px-7 pt-8 pb-2">
+                <p className="text-[22px] font-bold text-slate-900 leading-snug">
+                  You closed the chat yesterday.
+                </p>
+                <p className="text-[22px] font-bold text-slate-900 leading-snug">
+                  Today you opened a new one.
+                </p>
+                <p className="text-[22px] font-bold leading-snug" style={{ color: "#dc2626" }}>
+                  It's all gone.
+                </p>
               </div>
 
-              <div className="px-7 py-4 space-y-3">
-                {[
-                  { n: "1", title: "이건 AI 안전망이에요", desc: "ChatGPT나 Claude로 작업할 때 컨텍스트를 잃지 않도록 도와줍니다. AI에 직접 연결되지 않아요." },
-                  { n: "2", title: "보라색 ▭ 아이콘으로 화면 옆에 고정", desc: "오른쪽 사이드바 아래쪽 보라색 아이콘을 누르면 ChatGPT 옆에 좁게 자동 배치돼요. 그게 가장 편한 사용법이에요." },
-                  { n: "3", title: "색깔 아이콘 → 프롬프트 카피 → AI에 붙여넣기", desc: "받은 답변을 다시 우리 앱 \"AI 응답 저장하기\"에 붙여넣으면 폴더·파일명이 자동으로 채워져요." },
-                  { n: "4", title: "위기 상황엔 빨간 🚨 SOS", desc: "AI가 이상해지거나 큰 수정 전, 사이드바의 빨간 사이렌을 누르면 상황별 가이드가 열려요." },
-                ].map((s) => (
-                  <div key={s.n} className="flex items-start gap-3">
+              <div className="px-7 py-3">
+                <div className="flex flex-wrap gap-2">
+                  {["Resume", "Compress", "Anchors", "Merge"].map((p) => (
                     <span
-                      className="flex items-center justify-center rounded-full text-xs font-bold shrink-0"
-                      style={{ width: 22, height: 22, background: "#0f172a", color: "#fff" }}
+                      key={p}
+                      className="px-3 py-1 rounded-full text-[11px] font-semibold"
+                      style={{ background: "#f1f5f9", color: "#475569" }}
                     >
-                      {s.n}
+                      {p}
                     </span>
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-slate-800">{s.title}</p>
-                      <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">{s.desc}</p>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+                <p className="text-xs text-slate-500 mt-3 leading-relaxed">
+                  Sidecar keeps your AI work in files — so you can pick up exactly where you left off.
+                </p>
               </div>
 
-              <div className="px-7 py-4" style={{ borderTop: "1px solid #f1f5f9" }}>
+              <div className="px-7 pt-2 pb-6 space-y-3">
                 <button
-                  onClick={dismissOnboarding}
+                  onClick={startWithResume}
                   className="w-full py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all hover:opacity-90 active:scale-[0.99]"
                   style={{ background: "#0f172a", color: "#fff" }}
                 >
-                  시작하기 <ArrowRight style={{ width: 14, height: 14 }} />
+                  Try Resume now <ArrowRight style={{ width: 14, height: 14 }} />
+                </button>
+                <button
+                  onClick={dismissOnboarding}
+                  className="w-full text-xs text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  Skip for now
                 </button>
               </div>
             </motion.div>
