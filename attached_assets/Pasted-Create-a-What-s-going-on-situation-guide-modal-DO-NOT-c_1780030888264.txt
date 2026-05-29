@@ -1,0 +1,82 @@
+Create a "What's going on?" situation guide modal.
+
+DO NOT change any existing functionality.
+Reuse the existing openPromptFromSOS(id) handler.
+
+─────────────────────────────────
+COMPONENT 1: Situation Guide Modal
+─────────────────────────────────
+
+TRIGGER: Sidebar button click only (no auto-trigger).
+localStorage key: qq_situation_seen (for future use, 
+no auto logic needed now)
+
+HEADLINE: "What's going on right now?"
+SUBLINE: "Pick the closest — we'll show you what to use."
+
+3 LARGE CARDS (top section):
+
+Card 1:
+text: "I forgot where I left off yesterday"
+tool: Resume
+action: openPromptFromSOS('resume')
+
+Card 2:
+text: "My chat is way too long to scroll through"
+tool: Compress
+action: openPromptFromSOS('compress')
+
+Card 3:
+text: "About to make a big change — don't want to break anything"
+tool: Backup
+action: openPromptFromSOS('backup')
+
+5 SMALL ROWS (bottom section):
+
+Row 4:
+text: "AI keeps forgetting what we decided"
+tool: Anchors
+action: openPromptFromSOS('anchors')
+
+Row 5:
+text: "Not sure what to do next"
+tool: Next
+action: openPromptFromSOS('next')
+
+Row 6:
+text: "Something went wrong — I need to undo this"
+tool: Restore
+action: openPromptFromSOS('restore')
+
+Row 7:
+text: "Ready to wrap up for today"
+tool: Summary
+action: openPromptFromSOS('summary')
+
+Row 8:
+text: "Merge a few old files into one"
+tool: Consolidate
+action: openPromptFromSOS('consolidate')
+
+CARD CLICK BEHAVIOR:
+- Click any card/row → openPromptFromSOS(tool id) → 
+  modal closes → prompt panel opens
+- No new save flow, no new modal
+
+DESIGN:
+- Modal overlay, semi-transparent backdrop
+- White card, max-width 400px, centered
+- 3 large cards on top (equal width, 2 columns or stacked)
+- 5 small rows below (single column, compact)
+- English only
+- Close button top right (X)
+
+─────────────────────────────────
+COMPONENT 2: Sidebar Button
+─────────────────────────────────
+
+LABEL: ❓ Help
+POSITION: Sidebar icon list (same style as existing icons)
+ACTION: Opens the situation guide modal above
+
+─────────────────────────────────
