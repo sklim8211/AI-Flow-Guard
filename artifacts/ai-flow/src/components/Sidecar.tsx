@@ -183,6 +183,22 @@ export function Sidecar() {
     setWsRefresh((n) => n + 1);
   }, []);
 
+  // Ensure a default project always exists so first-run flows (onboarding →
+  // Resume → Save) have a valid place to save. Without this, brand-new users
+  // hit a disabled Save button (no project / no folder selected).
+  useEffect(() => {
+    if (ws.getProjects().length === 0) {
+      ws.createProject("My Workspace");
+      setProjects(ws.getProjects());
+      setActiveProjectId(ws.getActiveProjectId());
+    } else if (!ws.getActiveProjectId()) {
+      const first = ws.getProjects()[0];
+      ws.setActiveProject(first.id);
+      setActiveProjectId(first.id);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
