@@ -28,6 +28,7 @@ import {
   ArrowRight,
   ArrowLeftRight,
   ClipboardPaste,
+  HelpCircle,
 } from "lucide-react";
 import { ws } from "../lib/workspace";
 import { fsAccess } from "../lib/fsAccess";
@@ -124,6 +125,8 @@ export function Sidecar() {
 
   // SOS recovery mode
   const [showSOS, setShowSOS] = useState(false);
+  // "What's going on?" situation guide (button-triggered only)
+  const [showSituation, setShowSituation] = useState(false);
 
   // Restore picker (lists SAFE backup files to inject into Restore prompt)
   const [showRestorePicker, setShowRestorePicker] = useState(false);
@@ -186,6 +189,7 @@ export function Sidecar() {
         if (viewFile) { setViewFile(null); return; }
         if (saveModalOpen) { setSaveModalOpen(false); setClipboardContent(""); return; }
         if (showSOS) { setShowSOS(false); return; }
+        if (showSituation) { setShowSituation(false); return; }
         if (showRestorePicker) { setShowRestorePicker(false); return; }
         if (showOnboarding) { return; } // onboarding must be dismissed via button
         if (activePrompt) { setActivePrompt(null); return; }
@@ -195,7 +199,7 @@ export function Sidecar() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activePrompt, saveModalOpen, viewFile, showSOS, showRestorePicker, showOnboarding]);
+  }, [activePrompt, saveModalOpen, viewFile, showSOS, showSituation, showRestorePicker, showOnboarding]);
 
   // PWA install detection
   useEffect(() => {
@@ -242,6 +246,16 @@ export function Sidecar() {
     localStorage.setItem("qq_onboarded", "1");
     setShowOnboarding(false);
     openPromptFromSOS("resume");
+  };
+
+  const openSituation = () => {
+    localStorage.setItem("qq_situation_seen", "1");
+    setShowSituation(true);
+  };
+
+  const pickSituation = (promptId: string) => {
+    setShowSituation(false);
+    openPromptFromSOS(promptId);
   };
 
   const openPromptFromSOS = (promptId: string) => {
@@ -537,6 +551,20 @@ export function Sidecar() {
           <span className={tipClass}>
             <span className="block font-semibold">SOS 복구 모드</span>
             <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>AI가 이상해졌을 때</span>
+          </span>
+        </button>
+
+        {/* What's going on? situation guide */}
+        <button
+          onClick={openSituation}
+          className="relative group w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+          style={{ color: "#0369a1" }}
+        >
+          <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: "#e0f2fe" }} />
+          <HelpCircle className="relative z-10" style={{ width: 18, height: 18 }} />
+          <span className={tipClass}>
+            <span className="block font-semibold">Help</span>
+            <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>What's going on right now?</span>
           </span>
         </button>
 
@@ -1110,7 +1138,7 @@ export function Sidecar() {
 
       {/* ── Save reminder toast ─────────────────────────── */}
       <SaveReminderToast
-        suppressed={!!viewFile || saveModalOpen || showSOS || showRestorePicker || showOnboarding || !!activePrompt}
+        suppressed={!!viewFile || saveModalOpen || showSOS || showSituation || showRestorePicker || showOnboarding || !!activePrompt}
       />
 
       {/* ── File View Modal ─────────────────────────────── */}
@@ -1181,6 +1209,99 @@ export function Sidecar() {
 
               <div className="px-6 py-3 text-[10px] text-slate-400 text-center" style={{ borderTop: "1px solid #f1f5f9" }}>
                 프롬프트를 카피해서 ChatGPT/Claude에 붙여넣으면 됩니다. 우리는 AI에 연결되지 않은 안전망입니다.
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── "What's going on?" Situation Guide Modal ────── */}
+      <AnimatePresence>
+        {showSituation && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            className="fixed inset-0 z-[10000] flex items-center justify-center p-4"
+            style={{ background: "rgba(15,23,42,0.55)", backdropFilter: "blur(4px)" }}
+            onClick={() => setShowSituation(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.96, y: 10, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.96, y: 10, opacity: 0 }}
+              transition={{ type: "spring", bounce: 0.15, duration: 0.3 }}
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-label="What's going on right now?"
+              className="w-full max-w-md rounded-2xl overflow-hidden"
+              style={{ background: "#fff", boxShadow: "0 24px 60px rgba(0,0,0,0.25)" }}
+            >
+              <div className="px-6 pt-6 pb-4 flex items-start gap-3" style={{ background: "linear-gradient(135deg,#e0f2fe,#fff)" }}>
+                <HelpCircle style={{ width: 26, height: 26, color: "#0369a1", flexShrink: 0, marginTop: 2 }} />
+                <div className="flex-1">
+                  <p className="text-base font-bold text-slate-800">What's going on right now?</p>
+                  <p className="text-xs text-slate-500 mt-1">Pick the closest — we'll show you what to use.</p>
+                </div>
+                <button onClick={() => setShowSituation(false)} className="text-slate-400 hover:text-slate-700 transition-colors">
+                  <X style={{ width: 16, height: 16 }} />
+                </button>
+              </div>
+
+              {/* 3 big situation cards */}
+              <div className="px-4 pt-3 grid grid-cols-1 gap-2">
+                {[
+                  { id: "resume", emoji: "▶️", title: "I lost where I was", desc: "Forgot how far you got. Pick this back up where you left off.", action: "Open Resume" },
+                  { id: "compress", emoji: "🌀", title: "The AI lost the thread", desc: "It's rambling or forgot earlier context. Compress and paste into a fresh chat.", action: "Open Compress" },
+                  { id: "backup", emoji: "🛟", title: "I'm about to make a big change", desc: "Take a safety snapshot before you touch anything.", action: "Open Backup" },
+                ].map((c) => (
+                  <button
+                    key={c.id}
+                    onClick={() => pickSituation(c.id)}
+                    className="w-full text-left rounded-xl p-3 flex items-start gap-3 transition-all hover:scale-[1.01] active:scale-100"
+                    style={{ background: "#f0f9ff", border: "1px solid #bae6fd" }}
+                  >
+                    <span style={{ fontSize: 22, lineHeight: 1, marginTop: 2 }}>{c.emoji}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-slate-800">{c.title}</p>
+                      <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">{c.desc}</p>
+                      <p className="text-[11px] font-semibold mt-1.5 flex items-center gap-1" style={{ color: "#0369a1" }}>
+                        {c.action} <ArrowRight style={{ width: 11, height: 11 }} />
+                      </p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {/* smaller secondary rows */}
+              <div className="px-4 pt-2 pb-3 grid grid-cols-2 gap-2">
+                {[
+                  { id: "anchors", emoji: "⚓", title: "Why did we decide that?", action: "Anchors" },
+                  { id: "next", emoji: "✅", title: "What do I do next?", action: "Next" },
+                  { id: "restore", emoji: "↺", title: "Go back to a backup", action: "Restore" },
+                  { id: "summary", emoji: "📄", title: "Sum up everything", action: "Summary" },
+                ].map((r) => (
+                  <button
+                    key={r.id}
+                    onClick={() => pickSituation(r.id)}
+                    className="text-left rounded-lg p-2.5 flex items-start gap-2 transition-all hover:scale-[1.01] active:scale-100"
+                    style={{ background: "#f8fafc", border: "1px solid #e2e8f0" }}
+                  >
+                    <span style={{ fontSize: 16, lineHeight: 1, marginTop: 1 }}>{r.emoji}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[11px] font-semibold text-slate-700 leading-snug">{r.title}</p>
+                      <p className="text-[10px] font-semibold mt-1 flex items-center gap-1" style={{ color: "#0369a1" }}>
+                        {r.action} <ArrowRight style={{ width: 9, height: 9 }} />
+                      </p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              <div className="px-6 py-3 text-[10px] text-slate-400 text-center" style={{ borderTop: "1px solid #f1f5f9" }}>
+                We copy a prompt for you to paste into ChatGPT/Claude. We're a safety net — not connected to any AI.
               </div>
             </motion.div>
           </motion.div>
