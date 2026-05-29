@@ -102,6 +102,7 @@ export function SaveResultModal({
   const [fsSaving, setFsSaving] = useState(false);
   const [autoDetected, setAutoDetected] = useState<ParsedMetadata | null>(null);
   const [collisionAction, setCollisionAction] = useState<"new" | "overwrite">("new");
+  const [emptyError, setEmptyError] = useState(false);
   // Tracks fields the user manually edited — we won't overwrite those.
   const [touched, setTouched] = useState<{ title: boolean; folder: boolean; type: boolean }>({
     title: false,
@@ -176,6 +177,11 @@ export function SaveResultModal({
 
   const handleSave = async () => {
     if (!projectId || !folderId || !title.trim()) return;
+    // Block saving empty / whitespace-only content — nothing meaningful to keep.
+    if (!content.replace(/\s/g, "")) {
+      setEmptyError(true);
+      return;
+    }
     // Decide final name based on collision action
     const finalName =
       existingFile && collisionAction === "new" ? suggestedNewName : title.trim();
@@ -223,6 +229,7 @@ export function SaveResultModal({
     setFolderId(fallback?.id ?? folders[0]?.id ?? "");
     setSaved(false);
     setAutoDetected(null);
+    setEmptyError(false);
     setTouched({ title: false, folder: false, type: false });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -363,11 +370,17 @@ export function SaveResultModal({
                   </label>
                   <textarea
                     value={content}
-                    onChange={(e) => setContent(e.target.value)}
+                    onChange={(e) => { setContent(e.target.value); if (emptyError) setEmptyError(false); }}
                     placeholder="ChatGPT / Claude 응답을 여기 붙여넣으세요. 메타데이터가 있으면 자동으로 분류됩니다."
                     rows={5}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-slate-400 transition-colors resize-none font-mono leading-relaxed"
+                    className="w-full bg-slate-50 border rounded-lg px-3 py-2 text-xs text-slate-700 placeholder:text-slate-300 focus:outline-none transition-colors resize-none font-mono leading-relaxed"
+                    style={{ borderColor: emptyError ? "#fca5a5" : undefined }}
                   />
+                  {emptyError && (
+                    <p className="mt-1.5 text-[11px] font-medium" style={{ color: "#dc2626" }}>
+                      Nothing to save — paste an AI reply first
+                    </p>
+                  )}
                 </div>
               </div>
 
