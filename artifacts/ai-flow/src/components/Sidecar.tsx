@@ -283,6 +283,15 @@ export function Sidecar() {
 
   const handleConsolidate = (files: WFile[]) => {
     if (files.length < 2) return;
+    const empties = files.filter((f) => !f.content || !f.content.trim());
+    if (empties.length > 0) {
+      const names = empties.map((f) => f.name).join(", ");
+      setClipboardError(
+        `내용이 비어 있는 파일이 ${empties.length}개 있어요 (${names}). 빈 파일은 합쳐도 AI에게 전달할 내용이 없습니다.`
+      );
+      setTimeout(() => setClipboardError(null), 5000);
+      if (empties.length === files.length) return;
+    }
     const sources = files.map((f) => ({ name: f.name, content: f.content }));
     const promptText = getConsolidatePrompt(sources);
     setActivePrompt({
@@ -1021,7 +1030,7 @@ export function Sidecar() {
                 {/* Actions */}
                 <div className="px-5 py-4" style={{ borderTop: "1px solid #f1f5f9" }}>
                   <p className="text-[10px] text-slate-400 mb-3">
-                    이 프롬프트를 복사해서 ChatGPT나 Claude에 붙여넣으세요.
+                    아래 버튼을 눌러 복사하세요. (마우스로 직접 드래그하면 화면에 보이는 부분만 복사돼 내용이 빠질 수 있어요.)
                   </p>
                   <button
                     onClick={handleCopy}
