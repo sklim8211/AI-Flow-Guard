@@ -1100,7 +1100,7 @@ export function Sidecar() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 12 }}
-            className="fixed bottom-4 left-4 right-4 z-[10001] max-w-sm mx-auto px-4 py-3 rounded-xl text-xs font-semibold text-center"
+            className="fixed bottom-4 left-4 right-4 z-[100001] max-w-sm mx-auto px-4 py-3 rounded-xl text-xs font-semibold text-center"
             style={{ background: "#fef2f2", border: "1px solid #fecaca", color: "#b91c1c", boxShadow: "0 10px 30px rgba(0,0,0,0.12)" }}
           >
             {clipboardError}
