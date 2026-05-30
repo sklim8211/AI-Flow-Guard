@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Sunrise, Moon, ArrowRight, FileText, Anchor as AnchorIcon, ListChecks, Sparkles } from "lucide-react";
+import { Sunrise, Moon, ArrowRight, FileText, Anchor as AnchorIcon, ListChecks, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
 import { ws, parseFileMeta, type WFile } from "../lib/workspace";
 import { getTodayLabels, type WorkflowType } from "../lib/prompts";
 
@@ -31,6 +31,24 @@ function fmtRelative(ts: number) {
   return new Date(ts).toLocaleDateString();
 }
 
+/**
+ * Pull the first few non-empty body lines from a saved file for an inline
+ * preview: strip an outer fenced code block, drop the YAML frontmatter, and
+ * skip the trailing `filename:` line so only real content shows.
+ */
+function bodyPreview(raw: string, maxLines = 3): string[] {
+  if (!raw) return [];
+  let body = raw.trim();
+  const fence = body.match(/^```[a-zA-Z]*\n([\s\S]*?)\n```\s*$/);
+  if (fence) body = fence[1];
+  body = body.replace(/^---\s*\n[\s\S]*?\n---\s*\n?/, "");
+  return body
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0 && !/^filename:\s/i.test(l))
+    .slice(0, maxLines);
+}
+
 export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, onGoToPrompts, onGoToWorkspace }: Props) {
   const [mode, setMode] = useState<"start" | "end">("start");
   const labels = getTodayLabels(workflow);
@@ -41,6 +59,29 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
     const id = setInterval(() => setTick((n) => n + 1), 60 * 1000);
     return () => clearInterval(id);
   }, []);
+
+  /**
+   * Which CURRENT-folder card is expanded to show a body preview. On app load
+   * (and whenever the active project / workflow changes, or a new CURRENT file
+   * lands) we auto-expand the most recent one. Keyed off projectId / workflow /
+   * refreshKey — NOT the minute tick — so a user who manually collapses it
+   * isn't re-expanded every minute. The workflow filter mirrors `data`.
+   */
+  const [expandedCurrentId, setExpandedCurrentId] = useState<string | null>(null);
+  const recentCurrentId = useMemo(() => {
+    if (!projectId) return null;
+    const activeWf: WorkflowType = workflow ?? "development";
+    const matches = (file: WFile) => {
+      const m = parseFileMeta(file.content);
+      if (!m.workflow) return true;
+      if (m.workflow === "common") return true;
+      return m.workflow === activeWf;
+    };
+    return ws.getFilesInFolderByName(projectId, "CURRENT").filter(matches)[0]?.id ?? null;
+  }, [projectId, workflow, refreshKey]);
+  useEffect(() => {
+    setExpandedCurrentId(recentCurrentId);
+  }, [recentCurrentId]);
 
   const data = useMemo(() => {
     if (!projectId) return null;
@@ -119,9 +160,11 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
 
   /* ── Start mode ──────────────────────────────────── */
   if (mode === "start") {
-    const fileRow = (file: WFile) => {
+    const fileRow = (file: WFile, expandable = false) => {
       const meta = data.getMeta(file);
       const isCommon = meta.workflow === "common";
+      const expanded = expandable && expandedCurrentId === file.id;
+      const preview = expanded ? bodyPreview(file.content) : [];
       return (
         <button
           key={file.id}
@@ -135,10 +178,42 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
               )}
               {file.name.replace(/\.md$/, "")}
             </span>
-            <span className="text-[10px] text-slate-400 shrink-0">{fmtRelative(file.createdAt)}</span>
+            <span className="flex items-center gap-1 shrink-0">
+              <span className="text-[10px] text-slate-400">{fmtRelative(file.createdAt)}</span>
+              {expandable && (
+                <span
+                  role="button"
+                  tabIndex={0}
+                  aria-label={expanded ? "Collapse preview" : "Expand preview"}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExpandedCurrentId((cur) => (cur === file.id ? null : file.id));
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setExpandedCurrentId((cur) => (cur === file.id ? null : file.id));
+                    }
+                  }}
+                  className="p-0.5 rounded text-slate-400 hover:text-slate-600 hover:bg-slate-200 cursor-pointer"
+                >
+                  {expanded
+                    ? <ChevronUp style={{ width: 12, height: 12 }} />
+                    : <ChevronDown style={{ width: 12, height: 12 }} />}
+                </span>
+              )}
+            </span>
           </div>
           {meta.summary && (
             <p className="text-[11px] text-slate-500 line-clamp-2">{meta.summary}</p>
+          )}
+          {expanded && preview.length > 0 && (
+            <div className="mt-1.5 pt-1.5 border-t border-slate-100 space-y-0.5">
+              {preview.map((line, i) => (
+                <p key={i} className="text-[11px] text-slate-400 line-clamp-1">{line}</p>
+              ))}
+            </div>
           )}
         </button>
       );
@@ -224,7 +299,7 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
                   {labels.current} ({data.current.length})
                 </h3>
               </div>
-              <div className="space-y-1">{data.current.map(fileRow)}</div>
+              <div className="space-y-1">{data.current.map((f) => fileRow(f, true))}</div>
             </section>
           )}
 
@@ -237,7 +312,7 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
                   {labels.next} ({data.next.length})
                 </h3>
               </div>
-              <div className="space-y-1">{data.next.map(fileRow)}</div>
+              <div className="space-y-1">{data.next.map((f) => fileRow(f))}</div>
             </section>
           )}
 
@@ -250,7 +325,7 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
                   {labels.anchors} ({data.anchors.length})
                 </h3>
               </div>
-              <div className="space-y-1">{data.anchors.map(fileRow)}</div>
+              <div className="space-y-1">{data.anchors.map((f) => fileRow(f))}</div>
             </section>
           )}
         </div>
