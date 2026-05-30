@@ -268,7 +268,7 @@ export function FileViewModal({ file, onClose, onRefresh }: Props) {
                 style={{ borderTop: "1px solid #f1f5f9" }}
               >
                 <span className="text-[10px] text-slate-400">
-                  {new Date(file.updatedAt).toLocaleDateString("ko-KR", {
+                  {new Date(file.updatedAt).toLocaleDateString("en-US", {
                     year: "numeric",
                     month: "short",
                     day: "numeric",
