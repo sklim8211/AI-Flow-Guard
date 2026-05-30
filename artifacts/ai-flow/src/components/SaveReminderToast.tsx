@@ -80,12 +80,12 @@ export function SaveReminderToast({
               <Bell style={{ width: 16, height: 16 }} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-slate-800">한 시간 동안 저장된 게 없어요.</p>
+              <p className="text-xs font-semibold text-slate-800">Nothing saved in the last hour.</p>
             </div>
             <button
               onClick={dismiss}
               className="text-slate-300 hover:text-slate-600 transition-colors shrink-0"
-              aria-label="닫기"
+              aria-label="Close"
             >
               <X style={{ width: 14, height: 14 }} />
             </button>
