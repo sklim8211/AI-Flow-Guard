@@ -1201,7 +1201,8 @@ export function Sidecar() {
 
               <div className="px-4 py-3 space-y-2">
                 {[
-                  { id: "compress", emoji: "🌀", title: "The AI lost the context", desc: "It's rambling / can't remember the earlier chat. Make a compressed version and paste it into a fresh session.", action: "Open compress prompt" },
+                  { id: "resume", emoji: "🧭", title: "I have no idea where I left off", desc: "Rebuild your working context fast.", action: "Open resume prompt" },
+                  { id: "compress", emoji: "🌀", title: "The AI lost the context", desc: "It's rambling / can't remember the earlier chat. Make a compressed version and paste it into a fresh session. Also use this when responses are getting too long or the chat is hitting its limit.", action: "Open compress prompt" },
                   { id: "backup", emoji: "🛟", title: "Scared before a big edit", desc: "Grab a backup snapshot of the current state and save it to the SAFE folder.", action: "Open backup prompt" },
                   { id: "restore", emoji: "↺", title: "Need to go back to a backup", desc: "Paste a backup file you already saved into the AI to restore the context.", action: "Open restore prompt" },
                 ].map((step) => (
