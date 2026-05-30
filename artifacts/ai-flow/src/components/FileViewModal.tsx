@@ -36,7 +36,7 @@ export function FileViewModal({ file, onClose, onRefresh }: Props) {
 
   const handleDelete = () => {
     if (!file) return;
-    if (confirm(`"${file.name}"을 삭제할까요?`)) {
+    if (confirm(`Delete "${file.name}"?`)) {
       ws.deleteFile(file.id);
       onRefresh();
       onClose();
@@ -60,16 +60,16 @@ export function FileViewModal({ file, onClose, onRefresh }: Props) {
         "I'll tell you what to do in my next message.\n\n" +
         "---\n",
       suffix: "\n---\n(End of reference material. Please wait for my next instruction.)",
-      hint: "📎 복사 시 AI가 장황하게 해석하지 않도록 '참고 자료' 안내 문구가 앞뒤에 자동으로 붙습니다.",
-      confirm: "✓ '참고용으로 읽기만 해줘' 안내와 함께 복사됨. AI에 붙여넣고 다음 지시를 보내세요.",
+      hint: "📎 A reference wrapper is added automatically so the AI reads this as context, not a command.",
+      confirm: "✓ Copied with context wrapper. Paste into your AI chat, then give your next instruction.",
     },
     NEXT: {
       suffix:
         "\n\n---\n" +
         "Start actual work from the IMMEDIATE item above. " +
         "If anything in BLOCKERS is in the way, let's unblock that first together.",
-      hint: "📎 복사 시 'IMMEDIATE 부터 시작해줘' 명령이 자동으로 뒤에 붙어요. AI에 붙여넣으면 바로 작업이 시작됩니다.",
-      confirm: "✓ '작업 시작 명령'과 함께 복사됨. AI에 그대로 붙여넣으면 즉시 작업이 시작됩니다.",
+      hint: "📎 A resume command is added automatically when you copy.",
+      confirm: "✓ Copied with a start-work command. Paste into your AI chat to begin right away.",
     },
     CURRENT: {
       suffix:
@@ -77,16 +77,16 @@ export function FileViewModal({ file, onClose, onRefresh }: Props) {
         "The above is the context for where I left off on my last session. " +
         "Help me pick up naturally from this point. " +
         "If you notice anything I missed, point it out, and suggest just one next step.",
-      hint: "📎 복사 시 '이어서 작업해줘' 안내가 자동으로 뒤에 붙어요.",
-      confirm: "✓ '이어서 작업' 안내와 함께 복사됨.",
+      hint: "📎 A continue prompt is added automatically when you copy.",
+      confirm: "✓ Copied with a continue prompt.",
     },
     ANCHORS: {
       suffix:
         "\n\n---\n" +
         "The decisions above are agreed-upon guardrails for this project. " +
         "Before suggesting anything that breaks away from them, always check with me first.",
-      hint: "📎 복사 시 '이 결정 기준으로 작업해줘' 안내가 자동으로 뒤에 붙어요.",
-      confirm: "✓ '결정 기준' 안내와 함께 복사됨.",
+      hint: "📎 A guardrails note is added automatically when you copy.",
+      confirm: "✓ Copied with a guardrails note.",
     },
   };
 
@@ -185,7 +185,7 @@ export function FileViewModal({ file, onClose, onRefresh }: Props) {
                   <button
                     onClick={handleCopy}
                     className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
-                    title={wrapper ? `복사 (AI 명령 자동 추가: ${folderName})` : "복사"}
+                    title={wrapper ? `Copy (AI command auto-added: ${folderName})` : "Copy"}
                   >
                     {copied ? (
                       <Check style={{ width: 14, height: 14, color: "#16a34a" }} />
@@ -197,7 +197,7 @@ export function FileViewModal({ file, onClose, onRefresh }: Props) {
                     <button
                       onClick={saveEdit}
                       className="p-1.5 rounded-lg hover:bg-emerald-50 text-emerald-600 transition-colors"
-                      title="저장"
+                      title="Save"
                     >
                       <Save style={{ width: 14, height: 14 }} />
                     </button>
@@ -205,7 +205,7 @@ export function FileViewModal({ file, onClose, onRefresh }: Props) {
                     <button
                       onClick={startEdit}
                       className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
-                      title="편집"
+                      title="Edit"
                     >
                       <Edit3 style={{ width: 14, height: 14 }} />
                     </button>
@@ -213,7 +213,7 @@ export function FileViewModal({ file, onClose, onRefresh }: Props) {
                   <button
                     onClick={handleDelete}
                     className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
-                    title="삭제"
+                    title="Delete"
                   >
                     <Trash2 style={{ width: 14, height: 14 }} />
                   </button>
@@ -238,7 +238,7 @@ export function FileViewModal({ file, onClose, onRefresh }: Props) {
                 ) : (
                   <pre className="text-xs text-slate-600 whitespace-pre-wrap font-mono leading-relaxed">
                     {file.content || (
-                      <span className="text-slate-300 italic">내용 없음</span>
+                      <span className="text-slate-300 italic">Empty</span>
                     )}
                   </pre>
                 )}
@@ -282,7 +282,7 @@ export function FileViewModal({ file, onClose, onRefresh }: Props) {
                     className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all"
                     style={{ background: "#0f172a", color: "#fff" }}
                   >
-                    저장
+                    Save
                   </button>
                 )}
               </div>
