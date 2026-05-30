@@ -22,12 +22,12 @@ function fmtTime(ts: number) {
 function fmtRelative(ts: number) {
   const diffMs = Date.now() - ts;
   const mins = Math.floor(diffMs / 60000);
-  if (mins < 1) return "방금";
-  if (mins < 60) return `${mins}분 전`;
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}시간 전`;
+  if (hrs < 24) return `${hrs}h ago`;
   const days = Math.floor(hrs / 24);
-  if (days < 7) return `${days}일 전`;
+  if (days < 7) return `${days}d ago`;
   return new Date(ts).toLocaleDateString();
 }
 
@@ -64,7 +64,7 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
     };
 
     /**
-     * A file belongs in "오늘" only if its workflow stamp matches the active
+     * A file belongs in "Today" only if its workflow stamp matches the active
      * workflow, or if it's a common safety doc (compress/backup/restore), or
      * if it has no workflow field at all (legacy files from before the
      * workflow concept existed). This keeps the dashboard honest about what
@@ -109,8 +109,8 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
         <Sparkles style={{ width: 32, height: 32, color: "#cbd5e1" }} className="mb-3" />
-        <p className="text-sm font-semibold text-slate-600 mb-1">프로젝트가 없어요</p>
-        <p className="text-xs text-slate-400 mb-4">Workspace 탭에서 프로젝트를 만들면<br/>여기에 작업 흐름이 보입니다.</p>
+        <p className="text-sm font-semibold text-slate-600 mb-1">No projects yet</p>
+        <p className="text-xs text-slate-400 mb-4">Create a project in the Workspace tab<br/>and your work will show up here.</p>
       </div>
     );
   }
@@ -131,7 +131,7 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
           <div className="flex items-center justify-between gap-2 mb-0.5">
             <span className="text-xs font-semibold text-slate-700 truncate flex items-center gap-1.5">
               {isCommon && (
-                <span title="공통 안전 도구로 만든 파일" style={{ fontSize: 10 }}>🛟</span>
+                <span title="Made with a common safety tool" style={{ fontSize: 10 }}>🛟</span>
               )}
               {file.name.replace(/\.md$/, "")}
             </span>
@@ -150,23 +150,23 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
           {data.hiddenTodayCount > 0 && (
             <div
               className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 flex items-center justify-between gap-2"
-              title="다른 모드에서 만든 파일은 그 모드로 전환해야 보입니다."
+              title="Files made in other modes are hidden until you switch to that mode."
             >
               <span className="text-[11px] text-slate-600">
-                다른 모드 파일 <b>{data.hiddenTodayCount}개</b> 숨김
+                <b>{data.hiddenTodayCount}</b> files from other modes hidden
               </span>
               {onGoToWorkspace && (
                 <button
                   onClick={onGoToWorkspace}
                   className="text-[11px] font-semibold text-slate-700 hover:text-slate-900 inline-flex items-center gap-1"
                 >
-                  Workspace에서 보기 <ArrowRight style={{ width: 11, height: 11 }} />
+                  View in Workspace <ArrowRight style={{ width: 11, height: 11 }} />
                 </button>
               )}
             </div>
           )}
 
-          {/* 이어가기 — most recent */}
+          {/* Resume — most recent */}
           {data.mostRecent ? (
             <section>
               <div className="flex items-center gap-2 mb-2">
@@ -177,7 +177,7 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
                 <div className="flex items-center justify-between gap-2 mb-1">
                   <span className="text-xs font-bold text-slate-800 truncate flex items-center gap-1.5">
                     {data.getMeta(data.mostRecent).workflow === "common" && (
-                      <span title="공통 안전 도구로 만든 파일" style={{ fontSize: 10 }}>🛟</span>
+                      <span title="Made with a common safety tool" style={{ fontSize: 10 }}>🛟</span>
                     )}
                     {data.mostRecent.name.replace(/\.md$/, "")}
                   </span>
@@ -204,18 +204,18 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
                 <h3 className="text-[11px] font-bold tracking-wider uppercase text-slate-600">{labels.resume}</h3>
               </div>
               <div className="rounded-xl border border-dashed border-slate-200 p-3 text-center">
-                <p className="text-[11px] text-slate-400 mb-2">아직 저장한 작업이 없어요.</p>
+                <p className="text-[11px] text-slate-400 mb-2">Nothing saved yet.</p>
                 <button
                   onClick={onGoToPrompts}
                   className="text-[11px] font-semibold text-slate-700 hover:text-slate-900 inline-flex items-center gap-1"
                 >
-                  프롬프트 보러가기 <ArrowRight style={{ width: 11, height: 11 }} />
+                  Browse prompts <ArrowRight style={{ width: 11, height: 11 }} />
                 </button>
               </div>
             </section>
           )}
 
-          {/* 현재 */}
+          {/* Current */}
           {data.current.length > 0 && (
             <section>
               <div className="flex items-center gap-2 mb-2">
@@ -228,7 +228,7 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
             </section>
           )}
 
-          {/* 다음 */}
+          {/* Next */}
           {data.next.length > 0 && (
             <section>
               <div className="flex items-center gap-2 mb-2">
@@ -241,7 +241,7 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
             </section>
           )}
 
-          {/* 핵심 결정 */}
+          {/* Anchors */}
           {data.anchors.length > 0 && (
             <section>
               <div className="flex items-center gap-2 mb-2">
@@ -277,17 +277,17 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
         {data.hiddenTodayCount > 0 && (
           <div
             className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 flex items-center justify-between gap-2"
-            title="다른 모드에서 만든 파일은 그 모드로 전환해야 보입니다."
+            title="Files made in other modes are hidden until you switch to that mode."
           >
             <span className="text-[11px] text-slate-600">
-              다른 모드 파일 <b>{data.hiddenTodayCount}개</b> 숨김
+              <b>{data.hiddenTodayCount}</b> files from other modes hidden
             </span>
             {onGoToWorkspace && (
               <button
                 onClick={onGoToWorkspace}
                 className="text-[11px] font-semibold text-slate-700 hover:text-slate-900 inline-flex items-center gap-1"
               >
-                Workspace에서 보기 <ArrowRight style={{ width: 11, height: 11 }} />
+                View in Workspace <ArrowRight style={{ width: 11, height: 11 }} />
               </button>
             )}
           </div>
@@ -296,10 +296,10 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
         <div className="text-center py-2">
           <Moon style={{ width: 28, height: 28, color: "#6366f1" }} className="mx-auto mb-2" />
           <h2 className="text-sm font-bold text-slate-800">{labels.endTitle}</h2>
-          <p className="text-[11px] text-slate-500 mt-1">수고하셨어요.</p>
+          <p className="text-[11px] text-slate-500 mt-1">Nice work today.</p>
         </div>
 
-        {/* 오늘 저장 */}
+        {/* Saved today */}
         <section>
           <div className="flex items-center gap-2 mb-2">
             <FileText style={{ width: 14, height: 14, color: "#3b82f6" }} />
@@ -320,7 +320,7 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-xs font-semibold text-slate-700 truncate flex items-center gap-1.5">
                         {meta.workflow === "common" && (
-                          <span title="공통 안전 도구로 만든 파일" style={{ fontSize: 10 }}>🛟</span>
+                          <span title="Made with a common safety tool" style={{ fontSize: 10 }}>🛟</span>
                         )}
                         {file.name.replace(/\.md$/, "")}
                       </span>
@@ -338,7 +338,7 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
           )}
         </section>
 
-        {/* 오늘의 핵심 결정 */}
+        {/* Today's anchors */}
         {data.todayAnchors.length > 0 && (
           <section>
             <div className="flex items-center gap-2 mb-2">
@@ -358,7 +358,7 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
                   >
                     <span className="text-xs font-semibold text-slate-700 truncate flex items-center gap-1.5">
                       {meta.workflow === "common" && (
-                        <span title="공통 안전 도구로 만든 파일" style={{ fontSize: 10 }}>🛟</span>
+                        <span title="Made with a common safety tool" style={{ fontSize: 10 }}>🛟</span>
                       )}
                       {file.name.replace(/\.md$/, "")}
                     </span>
@@ -372,7 +372,7 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
           </section>
         )}
 
-        {/* 내일 이어갈 것 */}
+        {/* Tomorrow's pickup */}
         {data.todayNext.length > 0 && (
           <section>
             <div className="flex items-center gap-2 mb-2">
@@ -392,7 +392,7 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
                   >
                     <span className="text-xs font-semibold text-slate-700 truncate flex items-center gap-1.5">
                       {meta.workflow === "common" && (
-                        <span title="공통 안전 도구로 만든 파일" style={{ fontSize: 10 }}>🛟</span>
+                        <span title="Made with a common safety tool" style={{ fontSize: 10 }}>🛟</span>
                       )}
                       {file.name.replace(/\.md$/, "")}
                     </span>
