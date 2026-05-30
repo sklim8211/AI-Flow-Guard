@@ -66,3 +66,9 @@ id = "IkTKbrA85Eiz1fhFpWP8p"
 uri = "file://상황모달-기획안.md"
 type = "text"
 title = "「지금 어떤 상황?」 상황 가이드 모달 — 기획안"
+
+[[outputs]]
+id = "iRlZ0RVWyClAPuTMEmH51"
+uri = "file://한국어-텍스트-스캔-결과.md"
+type = "text"
+title = "한국어 텍스트 스캔 결과 (7개 파일)"
