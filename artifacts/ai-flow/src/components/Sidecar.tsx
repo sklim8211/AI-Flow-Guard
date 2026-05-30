@@ -323,7 +323,7 @@ export function Sidecar() {
     if (empties.length > 0) {
       const names = empties.map((f) => f.name).join(", ");
       setClipboardError(
-        `내용이 비어 있는 파일이 ${empties.length}개 있어요 (${names}). 빈 파일은 합쳐도 AI에게 전달할 내용이 없습니다.`
+        `${empties.length} file(s) have empty content (${names}). Empty files have nothing to pass to the AI.`
       );
       setTimeout(() => setClipboardError(null), 5000);
       if (empties.length === files.length) return;
@@ -331,7 +331,7 @@ export function Sidecar() {
     const sources = files.map((f) => ({ name: f.name, content: f.content }));
     const promptText = getConsolidatePrompt(sources);
     setActivePrompt({
-      label: `Consolidate (${files.length}개 합치기)`,
+      label: `Consolidate (${files.length} files)`,
       prompt: promptText,
     });
     setShowSave(false);
@@ -343,7 +343,7 @@ export function Sidecar() {
     try {
       const text = await navigator.clipboard.readText();
       if (!text || !text.trim()) {
-        setClipboardError("클립보드가 비어 있어요. AI 응답을 먼저 카피해주세요.");
+        setClipboardError("Clipboard is empty. Copy an AI response first.");
         setTimeout(() => setClipboardError(null), 3500);
         return;
       }
@@ -351,7 +351,7 @@ export function Sidecar() {
       setSaveModalOpen(true);
       setPanelOpen(true);
     } catch {
-      setClipboardError("클립보드 읽기 권한이 필요해요. 브라우저 허용 후 다시 시도해주세요.");
+      setClipboardError("Clipboard access needed. Allow it in your browser and try again.");
       setTimeout(() => setClipboardError(null), 4000);
     }
   };
@@ -507,7 +507,7 @@ export function Sidecar() {
             >
               <Sparkles style={{ width: 16, height: 16 }} />
               <span className={tipClass}>
-                {panelOpen ? "패널 닫기" : "QQ Sidecar"}
+                {panelOpen ? "Close panel" : "QQ Sidecar"}
               </span>
             </button>
 
@@ -523,8 +523,8 @@ export function Sidecar() {
         >
           <ClipboardPaste className="relative z-10" style={{ width: 16, height: 16 }} />
           <span className={tipClass}>
-            <span className="block font-semibold">클립보드에서 저장</span>
-            <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>카피한 AI 응답을 바로 저장</span>
+            <span className="block font-semibold">Save from clipboard</span>
+            <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>Save a copied AI response instantly</span>
           </span>
         </button>
 
@@ -565,8 +565,8 @@ export function Sidecar() {
           <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: "#fee2e2" }} />
           <Siren className="relative z-10" style={{ width: 18, height: 18 }} />
           <span className={tipClass}>
-            <span className="block font-semibold">SOS 복구 모드</span>
-            <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>AI가 이상해졌을 때</span>
+            <span className="block font-semibold">SOS recovery mode</span>
+            <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>When the AI goes sideways</span>
           </span>
         </button>
 
@@ -596,7 +596,7 @@ export function Sidecar() {
           <FolderOpen className="relative z-10" style={{ width: 17, height: 17 }} />
           <span className={tipClass}>
             <span className="block font-semibold">Workspace</span>
-            <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>프로젝트 & 파일</span>
+            <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>Projects & files</span>
           </span>
         </button>
 
@@ -611,8 +611,8 @@ export function Sidecar() {
             >
               <Download className="relative z-10" style={{ width: 15, height: 15 }} />
               <span className={tipClass}>
-                <span className="block font-semibold">앱으로 설치</span>
-                <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>바탕화면에서 바로 실행</span>
+                <span className="block font-semibold">Install as app</span>
+                <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>Launch straight from your desktop</span>
               </span>
             </button>
           </>
@@ -629,14 +629,14 @@ export function Sidecar() {
             >
               <PanelRight className="relative z-10" style={{ width: 15, height: 15 }} />
               <span className={tipClass}>
-                <span className="block font-semibold">화면 옆에 고정</span>
-                <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>ChatGPT 옆에 좁게 띄우기</span>
+                <span className="block font-semibold">Pin beside your screen</span>
+                <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>Dock it narrow next to ChatGPT</span>
               </span>
             </button>
           </>
         )}
 
-        {/* About / 소개 — opens landing page in new tab */}
+        {/* About — opens landing page in new tab */}
         <div style={{ width: 20, height: 1, background: "#e2e8f0", margin: "6px 0 2px" }} />
         <a
           href="/"
@@ -648,8 +648,8 @@ export function Sidecar() {
           <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: "#f1f5f9" }} />
           <Info className="relative z-10" style={{ width: 16, height: 16 }} />
           <span className={tipClass}>
-            <span className="block font-semibold">Sidecar 소개</span>
-            <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>새 탭에서 열기</span>
+            <span className="block font-semibold">About Sidecar</span>
+            <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>Open in a new tab</span>
           </span>
         </a>
 
@@ -659,12 +659,12 @@ export function Sidecar() {
           onClick={() => setPanelSide((s) => (s === "right" ? "left" : "right"))}
           className="relative group w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95"
           style={{ color: "#64748b", background: "#f1f5f9" }}
-          title={isRight ? "왼쪽으로 옮기기" : "오른쪽으로 옮기기"}
+          title={isRight ? "Move to left" : "Move to right"}
         >
           <ArrowLeftRight style={{ width: 14, height: 14 }} />
           <span className={tipClass}>
-            <span className="block font-semibold">{isRight ? "왼쪽으로 옮기기" : "오른쪽으로 옮기기"}</span>
-            <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>패널 위치 바꾸기</span>
+            <span className="block font-semibold">{isRight ? "Move to left" : "Move to right"}</span>
+            <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>Switch panel side</span>
           </span>
         </button>
       </div>
@@ -706,9 +706,9 @@ export function Sidecar() {
                         background: activeWorkflowDef ? "#eef2ff" : "#f1f5f9",
                         color: activeWorkflowDef ? "#4338ca" : "#64748b",
                       }}
-                      title="직군 변경"
+                      title="Change workflow"
                     >
-                      <span>{activeWorkflowDef ? `${activeWorkflowDef.emoji} ${activeWorkflowDef.label} 모드` : "💻 개발 모드 (기본)"}</span>
+                      <span>{activeWorkflowDef ? `${activeWorkflowDef.emoji} ${activeWorkflowDef.label} mode` : "💻 Development mode (default)"}</span>
                       <ChevronDown style={{ width: 9, height: 9 }} />
                     </button>
                     {workflowMenuOpen && (
@@ -738,7 +738,7 @@ export function Sidecar() {
                             className="w-full px-3 py-2 hover:bg-slate-50 text-left text-[10px] font-semibold text-slate-500 transition-colors"
                             style={{ borderTop: "1px solid #f1f5f9" }}
                           >
-                            직군 미지정으로 되돌리기
+                            Reset to no workflow
                           </button>
                         )}
                       </div>
@@ -765,7 +765,7 @@ export function Sidecar() {
                     color: tab === t ? "#fff" : "#94a3b8",
                   }}
                 >
-                  {t === "today" ? "오늘" : t === "prompts" ? "Prompts" : "Workspace"}
+                  {t === "today" ? "Today" : t === "prompts" ? "Prompts" : "Workspace"}
                 </button>
               ))}
             </div>
@@ -820,7 +820,7 @@ export function Sidecar() {
                     </span>
                     <button
                       onClick={handleDisconnectFs}
-                      title="연결 해제"
+                      title="Disconnect"
                       className="text-slate-300 hover:text-red-400 transition-colors"
                     >
                       <Unplug style={{ width: 11, height: 11 }} />
@@ -840,7 +840,7 @@ export function Sidecar() {
                       disabled={fsConnecting}
                       className="text-[10px] font-bold text-amber-600 hover:text-amber-800 transition-colors disabled:opacity-50"
                     >
-                      {fsConnecting ? "연결중…" : "재연결"}
+                      {fsConnecting ? "Connecting…" : "Reconnect"}
                     </button>
                     <button onClick={handleDisconnectFs} className="text-slate-300 hover:text-red-400 transition-colors">
                       <X style={{ width: 10, height: 10 }} />
@@ -862,10 +862,10 @@ export function Sidecar() {
                         </div>
                         <div>
                           <p className="text-xs font-bold text-slate-700">
-                            {fsConnecting ? "폴더 선택 중…" : "Choose Workspace Folder"}
+                            {fsConnecting ? "Choosing folder…" : "Choose Workspace Folder"}
                           </p>
                           <p className="text-[10px] text-slate-400 mt-0.5">
-                            로컬 폴더에 파일을 직접 저장합니다
+                            Save files straight to a local folder
                           </p>
                         </div>
                       </button>
@@ -875,7 +875,7 @@ export function Sidecar() {
                           <HardDrive style={{ width: 15, height: 15, color: "#d97706" }} />
                         </div>
                         <div>
-                          <p className="text-xs font-semibold text-slate-600">브라우저 미지원</p>
+                          <p className="text-xs font-semibold text-slate-600">Browser not supported</p>
                           <p className="text-[10px] text-slate-400 mt-0.5 leading-relaxed">
                             Local folder access is not supported in this browser.<br />
                             Please use <strong>Chrome</strong> or <strong>Edge</strong>.
@@ -890,7 +890,7 @@ export function Sidecar() {
                 <div className="px-3 py-3" style={{ borderBottom: "1px solid #f1f5f9" }}>
                   {projects.length === 0 ? (
                     <div className="text-center py-2">
-                      <p className="text-[11px] text-slate-400 mb-2">프로젝트가 없습니다</p>
+                      <p className="text-[11px] text-slate-400 mb-2">No projects yet</p>
                     </div>
                   ) : (
                     <div className="relative">
@@ -901,7 +901,7 @@ export function Sidecar() {
                       >
                         <FolderOpen style={{ width: 13, height: 13, color: "#f59e0b", flexShrink: 0 }} />
                         <span className="flex-1 text-xs font-semibold text-slate-700 truncate">
-                          {activeProject?.name ?? "프로젝트 선택"}
+                          {activeProject?.name ?? "Select a project"}
                         </span>
                         <ChevronDown style={{ width: 12, height: 12, color: "#94a3b8" }} />
                       </button>
@@ -920,9 +920,9 @@ export function Sidecar() {
                                 {p.name}
                               </button>
                               <button
-                                onClick={() => { if (confirm(`"${p.name}" 프로젝트를 삭제할까요?\n\n프로젝트 안의 모든 파일과 폴더가 함께 사라집니다. (로컬 디스크 폴더가 연결된 경우, 디스크 파일은 남습니다.)`)) { ws.deleteProject(p.id); refreshWorkspace(); setProjectMenuOpen(false); } }}
+                                onClick={() => { if (confirm(`Delete the "${p.name}" project?\n\nAll files and folders inside it will be removed too. (If a local disk folder is linked, the files on disk stay.)`)) { ws.deleteProject(p.id); refreshWorkspace(); setProjectMenuOpen(false); } }}
                                 className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-all"
-                                title="이 프로젝트 삭제"
+                                title="Delete this project"
                               >
                                 <Trash2 style={{ width: 12, height: 12 }} />
                               </button>
@@ -943,7 +943,7 @@ export function Sidecar() {
                           value={newProjectName}
                           onChange={(e) => setNewProjectName(e.target.value)}
                           onKeyDown={(e) => { if (e.key === "Enter") handleCreateProject(); if (e.key === "Escape") { setCreatingProject(false); setNewProjectWorkflow(null); } }}
-                          placeholder="프로젝트 이름..."
+                          placeholder="Project name..."
                           className="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-slate-400"
                         />
                         <button
@@ -951,18 +951,18 @@ export function Sidecar() {
                           className="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all"
                           style={{ background: "#0f172a", color: "#fff" }}
                         >
-                          생성
+                          Create
                         </button>
                         <button
                           onClick={() => { setCreatingProject(false); setNewProjectName(""); setNewProjectWorkflow(null); }}
                           className="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all hover:bg-slate-100"
                           style={{ background: "#f8fafc", color: "#64748b", border: "1px solid #e2e8f0" }}
                         >
-                          취소
+                          Cancel
                         </button>
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold text-slate-500 tracking-wider mb-1">직군 (선택)</p>
+                        <p className="text-[10px] font-bold text-slate-500 tracking-wider mb-1">Workflow (optional)</p>
                         <div className="flex flex-wrap gap-1">
                           {WORKFLOWS.map((wf) => (
                             <button
@@ -981,8 +981,8 @@ export function Sidecar() {
                         </div>
                         <p className="text-[10px] text-slate-400 mt-1 leading-snug">
                           {newProjectWorkflow
-                            ? `프롬프트가 ${getWorkflowDef(newProjectWorkflow)?.label}용으로 맞춰집니다.`
-                            : "고르지 않으면 공통(개발 기본)으로 시작합니다. 나중에 변경 가능."}
+                            ? `Prompts will be tuned for ${getWorkflowDef(newProjectWorkflow)?.label}.`
+                            : "If you skip this, you start on common (development default). You can change it later."}
                         </p>
                       </div>
                     </div>
@@ -992,7 +992,7 @@ export function Sidecar() {
                       className="mt-2 w-full flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-semibold text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-colors"
                     >
                       <Plus style={{ width: 12, height: 12 }} />
-                      새 프로젝트
+                      New project
                     </button>
                   )}
                 </div>
@@ -1013,7 +1013,7 @@ export function Sidecar() {
                   ) : (
                     <div className="flex flex-col items-center justify-center py-12 px-4 gap-2 text-center">
                       <FolderOpen style={{ width: 28, height: 28, color: "#cbd5e1" }} />
-                      <p className="text-[11px] text-slate-400">프로젝트를 만들면<br />폴더 구조가 자동 생성됩니다</p>
+                      <p className="text-[11px] text-slate-400">Create a project and<br />the folder structure is built for you</p>
                     </div>
                   )}
                 </div>
@@ -1027,7 +1027,7 @@ export function Sidecar() {
                       style={{ background: "#f8fafc", border: "1px solid #e2e8f0", color: "#64748b" }}
                     >
                       <Save style={{ width: 13, height: 13 }} />
-                      결과 저장
+                      Save result
                     </button>
                   </div>
                 )}
@@ -1080,7 +1080,7 @@ export function Sidecar() {
                 {/* Actions */}
                 <div className="px-5 py-4" style={{ borderTop: "1px solid #f1f5f9" }}>
                   <p className="text-[10px] text-slate-400 mb-3">
-                    아래 버튼을 눌러 복사하세요. (마우스로 직접 드래그하면 화면에 보이는 부분만 복사돼 내용이 빠질 수 있어요.)
+                    Click the button below to copy. (Dragging with your mouse only grabs what's visible on screen, so parts can get cut off.)
                   </p>
                   <button
                     onClick={handleCopy}
@@ -1091,7 +1091,7 @@ export function Sidecar() {
                       border: copied ? "1px solid #bbf7d0" : "none",
                     }}
                   >
-                    {copied ? <><Check style={{ width: 15, height: 15 }} /> 복사됨!</> : <><Copy style={{ width: 15, height: 15 }} /> Copy Prompt</>}
+                    {copied ? <><Check style={{ width: 15, height: 15 }} /> Copied!</> : <><Copy style={{ width: 15, height: 15 }} /> Copy Prompt</>}
                   </button>
 
                   {/* Save result button — appears after copy */}
@@ -1107,7 +1107,7 @@ export function Sidecar() {
                         style={{ background: "#f8fafc", border: "1px solid #e2e8f0", color: "#64748b" }}
                       >
                         <Save style={{ width: 15, height: 15 }} />
-                        AI 응답 저장하기
+                        Save AI response
                       </motion.button>
                     )}
                   </AnimatePresence>
@@ -1125,9 +1125,9 @@ export function Sidecar() {
         rootHandle={rootHandle}
         defaultTitle={
           clipboardContent
-            ? `원본 — ${new Date().toLocaleDateString("ko-KR")}`
+            ? `Original — ${new Date().toLocaleDateString("en-US")}`
             : activePrompt
-              ? `${activePrompt.label} — ${new Date().toLocaleDateString("ko-KR")}`
+              ? `${activePrompt.label} — ${new Date().toLocaleDateString("en-US")}`
               : ""
         }
         defaultContent={clipboardContent}
@@ -1184,15 +1184,15 @@ export function Sidecar() {
               onClick={(e) => e.stopPropagation()}
               role="dialog"
               aria-modal="true"
-              aria-label="SOS 복구 모드"
+              aria-label="SOS recovery mode"
               className="w-full max-w-md rounded-2xl overflow-hidden"
               style={{ background: "#fff", boxShadow: "0 24px 60px rgba(0,0,0,0.25)" }}
             >
               <div className="px-6 pt-6 pb-4 flex items-start gap-3" style={{ background: "linear-gradient(135deg,#fee2e2,#fff)" }}>
                 <Siren style={{ width: 28, height: 28, color: "#dc2626", flexShrink: 0, marginTop: 2 }} />
                 <div className="flex-1">
-                  <p className="text-base font-bold text-slate-800">SOS 복구 모드</p>
-                  <p className="text-xs text-slate-500 mt-1">지금 무슨 일이 벌어졌나요? 상황에 맞는 프롬프트를 열어드릴게요.</p>
+                  <p className="text-base font-bold text-slate-800">SOS recovery mode</p>
+                  <p className="text-xs text-slate-500 mt-1">What just happened? We'll open the right prompt for your situation.</p>
                 </div>
                 <button onClick={() => setShowSOS(false)} className="text-slate-400 hover:text-slate-700 transition-colors">
                   <X style={{ width: 16, height: 16 }} />
@@ -1201,9 +1201,9 @@ export function Sidecar() {
 
               <div className="px-4 py-3 space-y-2">
                 {[
-                  { id: "compress", emoji: "🌀", title: "AI가 컨텍스트를 잃었어요", desc: "헛소리 시작 / 이전 대화 못 기억함. 압축본을 만들어 새 세션에 붙여넣으세요.", action: "압축 프롬프트 열기" },
-                  { id: "backup", emoji: "🛟", title: "큰 수정 전, 무서워요", desc: "지금 상태 그대로 백업 스냅샷을 받아 SAFE 폴더에 저장하세요.", action: "백업 프롬프트 열기" },
-                  { id: "restore", emoji: "↺", title: "백업으로 돌아가야 해요", desc: "이미 저장해둔 백업 파일을 AI에게 붙여넣어 컨텍스트를 복원하세요.", action: "복원 프롬프트 열기" },
+                  { id: "compress", emoji: "🌀", title: "The AI lost the context", desc: "It's rambling / can't remember the earlier chat. Make a compressed version and paste it into a fresh session.", action: "Open compress prompt" },
+                  { id: "backup", emoji: "🛟", title: "Scared before a big edit", desc: "Grab a backup snapshot of the current state and save it to the SAFE folder.", action: "Open backup prompt" },
+                  { id: "restore", emoji: "↺", title: "Need to go back to a backup", desc: "Paste a backup file you already saved into the AI to restore the context.", action: "Open restore prompt" },
                 ].map((step) => (
                   <button
                     key={step.id}
@@ -1224,7 +1224,7 @@ export function Sidecar() {
               </div>
 
               <div className="px-6 py-3 text-[10px] text-slate-400 text-center" style={{ borderTop: "1px solid #f1f5f9" }}>
-                프롬프트를 카피해서 ChatGPT/Claude에 붙여넣으면 됩니다. 우리는 AI에 연결되지 않은 안전망입니다.
+                Just copy a prompt and paste it into ChatGPT/Claude. We're a safety net that isn't connected to any AI.
               </div>
             </motion.div>
           </motion.div>
@@ -1355,9 +1355,9 @@ export function Sidecar() {
                 <div className="px-5 pt-5 pb-3 flex items-start gap-3" style={{ background: "linear-gradient(135deg,#ecfccb,#fff)" }}>
                   <RotateCcw style={{ width: 22, height: 22, color: "#65a30d", flexShrink: 0, marginTop: 2 }} aria-hidden="true" />
                   <div className="flex-1 min-w-0">
-                    <p id="restore-picker-title" className="text-sm font-bold text-slate-800">백업 파일 선택</p>
+                    <p id="restore-picker-title" className="text-sm font-bold text-slate-800">Choose a backup file</p>
                     <p className="text-[11px] text-slate-500 mt-1 leading-snug">
-                      복원할 백업을 고르면, AI에게 바로 보낼 프롬프트를 한 번에 만들어 드려요.
+                      Pick a backup to restore and we'll build a ready-to-send prompt in one go.
                     </p>
                   </div>
                   <button onClick={() => setShowRestorePicker(false)} className="text-slate-400 hover:text-slate-700 transition-colors">
@@ -1369,8 +1369,8 @@ export function Sidecar() {
                   {safeFiles.length === 0 ? (
                     <div className="px-3 py-6 text-center">
                       <p className="text-xs text-slate-500 leading-relaxed">
-                        SAFE 폴더에 백업 파일이 없어요.<br />
-                        먼저 <span className="font-semibold text-slate-700">Backup</span> 아이콘으로 백업을 받아두세요.
+                        No backup files in the SAFE folder yet.<br />
+                        Grab a backup first with the <span className="font-semibold text-slate-700">Backup</span> icon.
                       </p>
                     </div>
                   ) : (
@@ -1396,13 +1396,13 @@ export function Sidecar() {
 
                 <div className="px-5 py-3 flex items-center justify-between gap-2" style={{ borderTop: "1px solid #f1f5f9", background: "#f8fafc" }}>
                   <p className="text-[10px] text-slate-400 flex-1">
-                    {safeFiles.length > 0 ? "파일을 클릭하면 프롬프트에 자동으로 들어갑니다." : ""}
+                    {safeFiles.length > 0 ? "Click a file and it drops straight into the prompt." : ""}
                   </p>
                   <button
                     onClick={() => openRestoreWithFile(null)}
                     className="text-[11px] font-semibold text-slate-500 hover:text-slate-700 px-2 py-1 rounded-md transition-colors"
                   >
-                    백업 없이 열기
+                    Open without a backup
                   </button>
                 </div>
               </motion.div>
@@ -1494,11 +1494,11 @@ export function Sidecar() {
           >
             <div className="text-3xl mb-2">✅</div>
             <div className="text-base font-bold text-slate-900 mb-1">
-              사이드 패널이 새 창으로 열렸어요
+              The side panel opened in a new window
             </div>
             <p className="text-sm text-slate-500 mb-5 leading-relaxed">
-              이 탭은 더 이상 필요하지 않아요.<br/>
-              직접 닫으셔도 되고, 아래 버튼으로 닫으실 수도 있어요.
+              You don't need this tab anymore.<br/>
+              Close it yourself, or use the button below.
             </p>
             <div className="flex gap-2">
               <button
@@ -1506,14 +1506,14 @@ export function Sidecar() {
                 className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all hover:opacity-90"
                 style={{ background: "#0f172a", color: "#fff" }}
               >
-                이 탭 닫기
+                Close this tab
               </button>
               <button
                 onClick={() => setSpawnedPopup(false)}
                 className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all hover:bg-slate-50"
                 style={{ background: "#fff", color: "#475569", border: "1px solid #e2e8f0" }}
               >
-                계속 사용
+                Keep using it
               </button>
             </div>
           </div>
