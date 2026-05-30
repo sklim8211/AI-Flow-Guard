@@ -17,7 +17,7 @@ function Home() {
     <div className="min-h-[100dvh] w-full flex items-center justify-center bg-slate-50 text-slate-400 selection:bg-slate-200">
       <div className="text-center opacity-60">
         <h1 className="text-sm font-medium tracking-wide uppercase text-slate-400">Quiet Question Sidecar</h1>
-        <p className="mt-2 text-xs">오른쪽 패널에서 프롬프트를 선택하세요.</p>
+        <p className="mt-2 text-xs">Select a prompt from the panel.</p>
       </div>
     </div>
   );
