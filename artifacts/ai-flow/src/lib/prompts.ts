@@ -20,17 +20,17 @@ export type WorkflowType =
 
 export interface WorkflowDef {
   id: WorkflowType;
-  label: string; // short Korean label
+  label: string; // short label
   emoji: string;
   description: string;
 }
 
 export const WORKFLOWS: WorkflowDef[] = [
-  { id: "development", label: "개발", emoji: "💻", description: "소프트웨어 / 엔지니어링 작업" },
-  { id: "writing", label: "글쓰기", emoji: "✍️", description: "소설·에세이·시나리오 등 창작" },
-  { id: "research", label: "리서치", emoji: "🔍", description: "조사·분석·가설 검증" },
-  { id: "design", label: "디자인", emoji: "🎨", description: "UX·UI·인터랙션" },
-  { id: "strategy", label: "전략·기획", emoji: "🧭", description: "제품·전략·의사결정" },
+  { id: "development", label: "Development", emoji: "💻", description: "Software & engineering" },
+  { id: "writing", label: "Writing", emoji: "✍️", description: "Fiction, essays, scripts" },
+  { id: "research", label: "Research", emoji: "🔍", description: "Research & analysis" },
+  { id: "design", label: "Design", emoji: "🎨", description: "UX, UI & interaction" },
+  { id: "strategy", label: "Strategy", emoji: "🧭", description: "Product & strategy" },
 ];
 
 export type PromptId =
@@ -51,13 +51,13 @@ export interface PromptDef {
 }
 
 export const PROMPT_DEFS: PromptDef[] = [
-  { id: "resume", label: "Resume Work", description: "이어서 작업하기", defaultFolder: "CURRENT", perWorkflow: true },
-  { id: "summary", label: "Work Summary", description: "세션 결과 정리", defaultFolder: "SUMMARIES", perWorkflow: true },
-  { id: "anchors", label: "Extract Anchors", description: "핵심 전환점 추출", defaultFolder: "ANCHORS", perWorkflow: true },
-  { id: "compress", label: "Compress Context", description: "맥락 압축 요약", defaultFolder: "CURRENT", perWorkflow: false },
-  { id: "next", label: "Next Actions", description: "다음 할 일 목록", defaultFolder: "NEXT", perWorkflow: true },
-  { id: "backup", label: "Backup Snapshot", description: "큰 수정 전 안전망", defaultFolder: "SAFE", perWorkflow: false },
-  { id: "restore", label: "Restore From Backup", description: "백업으로 컨텍스트 복원", defaultFolder: "CURRENT", perWorkflow: false },
+  { id: "resume", label: "Resume Work", description: "Pick up where you left off", defaultFolder: "CURRENT", perWorkflow: true },
+  { id: "summary", label: "Work Summary", description: "Wrap up the session", defaultFolder: "SUMMARIES", perWorkflow: true },
+  { id: "anchors", label: "Extract Anchors", description: "Pull out key turning points", defaultFolder: "ANCHORS", perWorkflow: true },
+  { id: "compress", label: "Compress Context", description: "Compress the context", defaultFolder: "CURRENT", perWorkflow: false },
+  { id: "next", label: "Next Actions", description: "List the next things to do", defaultFolder: "NEXT", perWorkflow: true },
+  { id: "backup", label: "Backup Snapshot", description: "Safety net before a big edit", defaultFolder: "SAFE", perWorkflow: false },
+  { id: "restore", label: "Restore From Backup", description: "Restore context from a backup", defaultFolder: "CURRENT", perWorkflow: false },
 ];
 
 /* ── Shared builder ────────────────────────────────────────── */
@@ -497,97 +497,97 @@ export function getWorkflowDef(id: WorkflowType | null): WorkflowDef | null {
 /* ── Today tab labels (per workflow) ───────────────────────── */
 
 /**
- * The "오늘" dashboard shows the same underlying folders for every project,
+ * The "Today" dashboard shows the same underlying folders for every project,
  * but the section labels are translated into each role's natural vocabulary.
  * Folder structure on disk stays identical — only what the user reads changes.
  */
 export interface TodayLabels {
-  resume: string;        // "이어가기" section (most recent file)
-  resumeOpen: string;    // CTA on resume card ("열어보기")
+  resume: string;        // "Pick up" section (most recent file)
+  resumeOpen: string;    // CTA on resume card ("Open")
   current: string;       // CURRENT folder section
   next: string;          // NEXT folder section
   anchors: string;       // ANCHORS folder section
-  endDay: string;        // "오늘 일 마치기" button
-  endTitle: string;      // End mode hero title ("오늘의 정리")
-  todaySaved: string;    // "오늘 저장한 것" section
+  endDay: string;        // "Wrap up today" button
+  endTitle: string;      // End mode hero title ("Today's wrap-up")
+  todaySaved: string;    // "Saved today" section
   todaySavedEmpty: string;
-  todayAnchors: string;  // "오늘의 핵심 결정" section
-  tomorrow: string;      // "내일 이어갈 것" section
-  backToStart: string;   // "시작 화면으로" button
+  todayAnchors: string;  // "Today's key decisions" section
+  tomorrow: string;      // "Pick up tomorrow" section
+  backToStart: string;   // "Back to start" button
 }
 
 const DEFAULT_LABELS: TodayLabels = {
-  resume: "이어가기",
-  resumeOpen: "열어보기",
-  current: "현재",
-  next: "다음 할 일",
-  anchors: "핵심 결정",
-  endDay: "오늘 일 마치기",
-  endTitle: "오늘의 정리",
-  todaySaved: "오늘 저장한 것",
-  todaySavedEmpty: "오늘 저장한 게 없어요.",
-  todayAnchors: "오늘의 핵심 결정",
-  tomorrow: "내일 이어갈 것",
-  backToStart: "시작 화면으로",
+  resume: "Pick up",
+  resumeOpen: "Open",
+  current: "Current",
+  next: "Next up",
+  anchors: "Key decisions",
+  endDay: "Wrap up today",
+  endTitle: "Today's wrap-up",
+  todaySaved: "Saved today",
+  todaySavedEmpty: "Nothing saved today.",
+  todayAnchors: "Today's key decisions",
+  tomorrow: "Pick up tomorrow",
+  backToStart: "Back to start",
 };
 
 const TODAY_LABELS: Record<WorkflowType, TodayLabels> = {
   development: DEFAULT_LABELS,
   writing: {
-    resume: "이어쓰기",
-    resumeOpen: "이어서 쓰기",
-    current: "쓰던 글",
-    next: "다음 신",
-    anchors: "감정 닻",
-    endDay: "오늘 쓰기 마치기",
-    endTitle: "오늘 쓴 글 정리",
-    todaySaved: "오늘 쓴 것",
-    todaySavedEmpty: "오늘 쓴 게 없어요.",
-    todayAnchors: "오늘 새긴 감정 닻",
-    tomorrow: "내일 이어 쓸 것",
-    backToStart: "쓰기 화면으로",
+    resume: "Keep writing",
+    resumeOpen: "Continue writing",
+    current: "Draft in progress",
+    next: "Next scene",
+    anchors: "Emotional anchors",
+    endDay: "Wrap up writing",
+    endTitle: "Today's writing wrap-up",
+    todaySaved: "Written today",
+    todaySavedEmpty: "Nothing written today.",
+    todayAnchors: "Emotional anchors set today",
+    tomorrow: "Keep writing tomorrow",
+    backToStart: "Back to writing",
   },
   research: {
-    resume: "이어 조사",
-    resumeOpen: "이어서 보기",
-    current: "현재 가설",
-    next: "다음 검증",
-    anchors: "핵심 발견",
-    endDay: "오늘 조사 마치기",
-    endTitle: "오늘의 조사 정리",
-    todaySaved: "오늘 조사한 것",
-    todaySavedEmpty: "오늘 기록한 게 없어요.",
-    todayAnchors: "오늘 발견",
-    tomorrow: "내일 파볼 것",
-    backToStart: "조사 화면으로",
+    resume: "Keep digging",
+    resumeOpen: "Continue",
+    current: "Current hypothesis",
+    next: "Next validation",
+    anchors: "Key findings",
+    endDay: "Wrap up research",
+    endTitle: "Today's research wrap-up",
+    todaySaved: "Researched today",
+    todaySavedEmpty: "Nothing logged today.",
+    todayAnchors: "Found today",
+    tomorrow: "Dig into tomorrow",
+    backToStart: "Back to research",
   },
   design: {
-    resume: "이어 작업",
-    resumeOpen: "시안 열기",
-    current: "현재 시안",
-    next: "다음 시안",
-    anchors: "UX 원칙",
-    endDay: "오늘 작업 마치기",
-    endTitle: "오늘의 디자인 정리",
-    todaySaved: "오늘 만든 것",
-    todaySavedEmpty: "오늘 저장한 시안이 없어요.",
-    todayAnchors: "오늘 정한 원칙",
-    tomorrow: "내일 이어갈 시안",
-    backToStart: "작업 화면으로",
+    resume: "Keep designing",
+    resumeOpen: "Open mockup",
+    current: "Current mockup",
+    next: "Next mockup",
+    anchors: "UX principles",
+    endDay: "Wrap up designing",
+    endTitle: "Today's design wrap-up",
+    todaySaved: "Made today",
+    todaySavedEmpty: "No mockups saved today.",
+    todayAnchors: "Principles set today",
+    tomorrow: "Pick up mockups tomorrow",
+    backToStart: "Back to designing",
   },
   strategy: {
-    resume: "이어가기",
-    resumeOpen: "열어보기",
-    current: "현재 방향",
-    next: "다음 액션",
-    anchors: "전략 닻",
-    endDay: "오늘 정리 마치기",
-    endTitle: "오늘의 전략 정리",
-    todaySaved: "오늘 정리한 것",
-    todaySavedEmpty: "오늘 정리한 게 없어요.",
-    todayAnchors: "오늘 굳힌 전략",
-    tomorrow: "내일 이어갈 것",
-    backToStart: "시작 화면으로",
+    resume: "Pick up",
+    resumeOpen: "Open",
+    current: "Current direction",
+    next: "Next action",
+    anchors: "Strategy anchors",
+    endDay: "Wrap up today",
+    endTitle: "Today's strategy wrap-up",
+    todaySaved: "Sorted out today",
+    todaySavedEmpty: "Nothing sorted out today.",
+    todayAnchors: "Strategy locked in today",
+    tomorrow: "Pick up tomorrow",
+    backToStart: "Back to start",
   },
 };
 
