@@ -270,7 +270,7 @@ export function SaveResultModal({
               >
                 <div className="flex items-center gap-2">
                   <FolderOpen style={{ width: 15, height: 15, color: "#f59e0b" }} />
-                  <p className="text-sm font-bold text-slate-800">결과 저장</p>
+                  <p className="text-sm font-bold text-slate-800">Save result</p>
                 </div>
                 <button onClick={onClose} className="text-slate-400 hover:text-slate-700 transition-colors">
                   <X style={{ width: 16, height: 16 }} />
@@ -284,7 +284,7 @@ export function SaveResultModal({
                     className="text-xs text-amber-700 px-3 py-2 rounded-lg"
                     style={{ background: "#fef3c7", border: "1px solid #fde68a" }}
                   >
-                    먼저 워크스페이스 탭에서 프로젝트를 만들어주세요.
+                    Create a project in the Workspace tab first.
                   </div>
                 )}
 
@@ -296,13 +296,13 @@ export function SaveResultModal({
                   >
                     <Sparkles style={{ width: 13, height: 13, marginTop: 1, flexShrink: 0 }} />
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold">자동 인식됨</p>
+                      <p className="font-semibold">Auto-detected</p>
                       <p className="mt-0.5 text-[10px] leading-snug" style={{ color: "#15803d" }}>
-                        {autoDetected.kind && <>종류: <b>{autoDetected.kind}</b> · </>}
-                        {autoDetected.workflow && autoDetected.workflow !== "common" && <>직군: <b>{autoDetected.workflow}</b> · </>}
-                        {autoDetected.filename && <>파일명: <b>{autoDetected.filename}</b></>}
+                        {autoDetected.kind && <>Kind: <b>{autoDetected.kind}</b> · </>}
+                        {autoDetected.workflow && autoDetected.workflow !== "common" && <>Workflow: <b>{autoDetected.workflow}</b> · </>}
+                        {autoDetected.filename && <>Filename: <b>{autoDetected.filename}</b></>}
                       </p>
-                      <p className="mt-0.5 text-[10px] text-slate-500">아래 값을 직접 바꿔도 됩니다.</p>
+                      <p className="mt-0.5 text-[10px] text-slate-500">You can change any of these below.</p>
                     </div>
                   </div>
                 )}
@@ -310,7 +310,7 @@ export function SaveResultModal({
                 {/* Folder picker */}
                 <div>
                   <label className="text-[10px] font-bold text-slate-500 tracking-wider block mb-1">
-                    저장 위치
+                    Save to
                   </label>
                   <select
                     value={folderId}
@@ -318,7 +318,7 @@ export function SaveResultModal({
                     disabled={!projectId}
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-slate-400 transition-colors"
                   >
-                    <option value="">폴더 선택...</option>
+                    <option value="">Select a folder...</option>
                     {folders.map((f) => (
                       <option key={f.id} value={f.id}>
                         /{f.name}
@@ -330,7 +330,7 @@ export function SaveResultModal({
                 {/* File type */}
                 <div>
                   <label className="text-[10px] font-bold text-slate-500 tracking-wider block mb-1">
-                    파일 종류
+                    File type
                   </label>
                   <div className="flex gap-1.5 flex-wrap">
                     {TYPE_OPTIONS.map((opt) => (
@@ -352,13 +352,13 @@ export function SaveResultModal({
                 {/* Title */}
                 <div>
                   <label className="text-[10px] font-bold text-slate-500 tracking-wider block mb-1">
-                    제목
+                    Title
                   </label>
                   <input
                     type="text"
                     value={title}
                     onChange={(e) => { setTitle(e.target.value); setTouched((t) => ({ ...t, title: true })); }}
-                    placeholder="파일 제목..."
+                    placeholder="File title..."
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-slate-400 transition-colors"
                   />
                 </div>
@@ -366,12 +366,12 @@ export function SaveResultModal({
                 {/* Content */}
                 <div>
                   <label className="text-[10px] font-bold text-slate-500 tracking-wider block mb-1">
-                    내용 (AI 응답 붙여넣기)
+                    Content (paste AI reply)
                   </label>
                   <textarea
                     value={content}
                     onChange={(e) => { setContent(e.target.value); if (emptyError) setEmptyError(false); }}
-                    placeholder="ChatGPT / Claude 응답을 여기 붙여넣으세요. 메타데이터가 있으면 자동으로 분류됩니다."
+                    placeholder="Paste your ChatGPT / Claude reply here. If it has metadata, it gets sorted automatically."
                     rows={5}
                     className="w-full bg-slate-50 border rounded-lg px-3 py-2 text-xs text-slate-700 placeholder:text-slate-300 focus:outline-none transition-colors resize-none font-mono leading-relaxed"
                     style={{ borderColor: emptyError ? "#fca5a5" : undefined }}
@@ -394,10 +394,10 @@ export function SaveResultModal({
                     <div className="flex items-start gap-2 mb-2">
                       <AlertTriangle style={{ width: 13, height: 13, marginTop: 1, flexShrink: 0 }} />
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold">같은 이름 파일이 이미 있어요</p>
+                        <p className="font-semibold">A file with this name already exists</p>
                         <p className="mt-0.5 text-[10px] leading-snug" style={{ color: "#a16207" }}>
-                          폴더에 <b>{existingFile.name}</b> 이(가) 있습니다.
-                          {" "}덮어쓰면 옛 내용은 사라집니다{rootHandle ? " (앱 + 연결한 폴더 모두)" : ""}.
+                          <b>{existingFile.name}</b> is already in this folder.
+                          {" "}Overwriting will erase the old content{rootHandle ? " (both the app and your linked folder)" : ""}.
                         </p>
                       </div>
                     </div>
@@ -411,7 +411,7 @@ export function SaveResultModal({
                           className="mt-0.5 cursor-pointer"
                         />
                         <span className="text-[11px] leading-snug" style={{ color: "#92400e" }}>
-                          새로 만들기 → <b>{suggestedNewName}</b>
+                          Create new → <b>{suggestedNewName}</b>
                         </span>
                       </label>
                       <label className="flex items-start gap-2 cursor-pointer">
@@ -423,11 +423,11 @@ export function SaveResultModal({
                           className="mt-0.5 cursor-pointer"
                         />
                         <span className="text-[11px] leading-snug" style={{ color: "#92400e" }}>
-                          덮어쓰기 (옛 내용 사라짐)
+                          Overwrite (old content is lost)
                         </span>
                       </label>
                       <p className="text-[10px]" style={{ color: "#a16207" }}>
-                        또는 위 <b>제목</b> 을 다르게 수정하세요.
+                        Or change the <b>Title</b> above to something different.
                       </p>
                     </div>
                   </div>
@@ -448,16 +448,16 @@ export function SaveResultModal({
                 >
                   <Save style={{ width: 14, height: 14 }} />
                   {fsSaving
-                    ? "디스크에 쓰는 중..."
+                    ? "Writing to disk..."
                     : saved
-                    ? "저장됨!"
+                    ? "Saved!"
                     : existingFile && collisionAction === "overwrite"
-                    ? "덮어쓰기"
+                    ? "Overwrite"
                     : existingFile && collisionAction === "new"
-                    ? `새로 만들기 (${suggestedNewName})`
+                    ? `Create new (${suggestedNewName})`
                     : rootHandle
-                    ? "저장 + 파일 생성"
-                    : "저장하기"}
+                    ? "Save + create file"
+                    : "Save"}
                 </button>
               </div>
             </div>
