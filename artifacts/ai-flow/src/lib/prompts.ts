@@ -448,7 +448,7 @@ Then write the body in this structure:
 End the output with ONE line in this exact format (the [N] number MUST match the version number you used in the header):
 filename: backup_v[N]_[slug].md
 
-Where [slug] is 3-5 lowercase English words joined by hyphens describing what THIS backup is specifically protecting (e.g. "before-router-refactor", "pre-payment-migration"). Do NOT use generic words like "backup", "snapshot", "before-changes", or the current date — the slug must tell future-you exactly what state this snapshot captures. Korean is allowed if the working content is in Korean (e.g. "라우터-리팩터-직전").
+Where [slug] is 3-5 lowercase English words joined by hyphens describing what THIS backup is specifically protecting (e.g. "before-router-refactor", "pre-payment-migration"). Do NOT use generic words like "backup", "snapshot", "before-changes", or the current date — the slug must tell future-you exactly what state this snapshot captures.
 
 Wrap the entire output (header + body + filename line) inside a single fenced markdown code block so I can copy it as one piece.`,
 
