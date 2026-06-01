@@ -40,8 +40,8 @@ type Copy = {
 const EN: Copy = {
   htmlLang: "en",
   badge: "Sidecar — a quiet workspace next to your AI",
-  heroH1: "Never lose your place in AI work again.",
-  heroSub1: "A quiet sidecar that remembers what your AI conversation forgets.",
+  heroH1: "Stop being the project manager of your own AI memory.",
+  heroSub1: "The continuity has to live somewhere you own — not in a chat window that resets.",
   heroSub2:
     "Sidecar helps you continue long AI work without rebuilding context from scratch.",
   ctaOpen: "Open Sidecar",
@@ -67,12 +67,9 @@ const EN: Copy = {
       quote: "“Wait… what were we doing again?”",
       problemTitle:
         "If you work with AI for hours or days, this probably feels familiar.",
-      problemBody: ["You come back later and suddenly:"],
-      problemBullets: [
-        "the direction feels unclear",
-        "the next step is missing",
-        "important reasoning feels disconnected",
-        "the workflow momentum is gone",
+      problemBody: [
+        "You come back later. The chat is still there. But the working state of the project is gone.",
+        "You're not lost because the AI failed. You're lost because continuity has to live somewhere — and chat history isn't it.",
       ],
       solveTitle: "Resume",
       solveLead:
@@ -95,7 +92,7 @@ const EN: Copy = {
       problemBody: [
         "Important ideas and decisions get buried inside large threads.",
         "You know the answer exists. You just don't want to dig through everything again.",
-        "The issue is not missing information. The issue is retrieval fatigue.",
+        "The chronological chat list is basically a graveyard. You know the answer exists. You just can't find it anymore.",
       ],
       problemBullets: [
         "important reasoning disappears inside long conversations",
@@ -109,8 +106,8 @@ const EN: Copy = {
         "Instead of rediscovering the same reasoning again and again, users can restore the decision path directly.",
     },
     {
-      quote: "“I don't want to rebuild context again.”",
-      problemTitle: "Most stored files eventually become difficult to interpret.",
+      quote: "“I don't lose the code. I lose the reasoning.”",
+      problemTitle: "A month later you can find the files. What disappears is why things ended up that way. The what survives. The why doesn't.",
       problemBody: [
         "You reopen a project and spend energy trying to remember what kind of document this is, what role it plays, and how it connects to the workflow.",
         "Users often return later and ask:",
@@ -154,7 +151,7 @@ const EN: Copy = {
         "This turns stopping into a recoverable pause instead of a hard interruption.",
     },
     {
-      quote: "“Why does this project folder finally feel understandable?”",
+      quote: "“It feels like I'm building infrastructure that should exist.”",
       problemTitle:
         "Most folders only store files. They do not preserve workflow.",
       problemBody: [
