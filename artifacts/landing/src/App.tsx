@@ -68,8 +68,8 @@ const EN: Copy = {
       problemTitle:
         "If you work with AI for hours or days, this probably feels familiar.",
       problemBody: [
-        "You come back later. The chat is still there. But the working state of the project is gone.",
-        "You're not lost because the AI failed. You're lost because continuity has to live somewhere — and chat history isn't it.",
+        "You come back later.\nThe chat is still there.\nBut the working state of the project is gone.",
+        "You're not lost because the AI failed.\nYou're lost because continuity has to live somewhere —\nand chat history isn't it.",
       ],
       solveTitle: "Resume",
       solveLead:
@@ -106,8 +106,8 @@ const EN: Copy = {
         "Instead of rediscovering the same reasoning again and again, users can restore the decision path directly.",
     },
     {
-      quote: "“I don't lose the code. I lose the reasoning.”",
-      problemTitle: "A month later you can find the files. What disappears is why things ended up that way. The what survives. The why doesn't.",
+      quote: "“I don't lose the code.\nI lose the reasoning.”",
+      problemTitle: "A month later you can find the files.\nWhat disappears is why things ended up that way.\nThe what survives. The why doesn't.",
       problemBody: [
         "You reopen a project and spend energy trying to remember what kind of document this is, what role it plays, and how it connects to the workflow.",
         "Users often return later and ask:",
@@ -502,14 +502,14 @@ function SectionBlock({
           <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
             {String(idx + 1).padStart(2, "0")} — {c.problemLabel}
           </p>
-          <h3 className="mt-3 text-2xl font-semibold text-slate-900 sm:text-3xl">
+          <h3 className="mt-3 whitespace-pre-line text-2xl font-semibold text-slate-900 sm:text-3xl">
             {s.quote}
           </h3>
-          <p className="mt-5 text-base leading-relaxed text-slate-600 sm:text-lg">
+          <p className="mt-5 whitespace-pre-line text-base leading-relaxed text-slate-600 sm:text-lg">
             {s.problemTitle}
           </p>
           {s.problemBody.map((p, i) => (
-            <p key={i} className="mt-4 text-base leading-relaxed text-slate-600">
+            <p key={i} className="mt-4 whitespace-pre-line text-base leading-relaxed text-slate-600">
               {p}
             </p>
           ))}
