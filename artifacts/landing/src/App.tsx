@@ -91,7 +91,6 @@ const EN: Copy = {
         "Long AI conversations become difficult to navigate over time.",
       problemBody: [
         "Important ideas and decisions get buried inside large threads.",
-        "You know the answer exists. You just don't want to dig through everything again.",
         "The chronological chat list is basically a graveyard. You know the answer exists. You just can't find it anymore.",
       ],
       problemBullets: [
