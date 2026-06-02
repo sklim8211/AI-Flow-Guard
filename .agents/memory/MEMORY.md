@@ -1,3 +1,4 @@
 - [Republish data safety](republish-data-safety.md) — Replit republish of a static PWA does NOT wipe localStorage on the same origin; a reported "data loss after publish" almost always means dev-preview vs `.replit.app` origin mismatch.
 - [AI handoff document acknowledgement trap](ai-handoff-document-acknowledgement.md) — pasting a structured handoff doc into AI without an imperative makes AI praise/summarize, not act; fix at copy time with folder-keyed suffix wrappers, never embed the command in the document body.
 - [Go-to-market direction](go-to-market.md) — QQ Sidecar targets the English-speaking indie/maker market first, not Korea. Don't propose Korean-market features, pricing, or channels.
+- [Pro monetization flow](monetization-pro-flow.md) — Lemon Squeezy paid tier ($8/mo, $72/yr), 50-file free cap; license activation is a client-side stub (any non-empty string), no real verification yet.

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Save, FolderOpen, Sparkles, AlertTriangle } from "lucide-react";
 import { ws, type FileType, type WFile } from "../lib/workspace";
 import { fsAccess } from "../lib/fsAccess";
+import { hasLicense, FREE_FILE_LIMIT } from "../lib/license";
 
 interface Props {
   open: boolean;
@@ -15,6 +16,8 @@ interface Props {
   rootHandle: FileSystemDirectoryHandle | null;
   onClose: () => void;
   onSaved: () => void;
+  /** Called when a new-file save is blocked by the free plan limit. */
+  onLimitReached?: () => void;
 }
 
 const TYPE_OPTIONS: { value: FileType; label: string }[] = [
@@ -93,6 +96,7 @@ export function SaveResultModal({
   rootHandle,
   onClose,
   onSaved,
+  onLimitReached,
 }: Props) {
   const [title, setTitle] = useState(defaultTitle);
   const [content, setContent] = useState(defaultContent);
@@ -180,6 +184,12 @@ export function SaveResultModal({
     // Block saving empty / whitespace-only content — nothing meaningful to keep.
     if (!content.replace(/\s/g, "")) {
       setEmptyError(true);
+      return;
+    }
+    // Free plan file limit — only blocks NEW files (overwrites don't grow the count).
+    const willCreateNew = !(existingFile && collisionAction === "overwrite");
+    if (willCreateNew && !hasLicense() && ws.getFiles().length >= FREE_FILE_LIMIT) {
+      onLimitReached?.();
       return;
     }
     // Decide final name based on collision action

@@ -1,0 +1,94 @@
+Add Pro upgrade flow to Sidecar app.
+Do not change any existing functionality.
+English only. Run type-check after all changes.
+
+─────────────────────────────────
+PART 1 — Upgrade button & plan selection modal
+─────────────────────────────────
+
+Add an "Upgrade to Pro" button in the sidebar
+(same style as existing sidebar buttons).
+Only show this button if qq_license_key does NOT 
+exist in localStorage.
+
+When clicked, show a modal with two options:
+
+Option 1 — Monthly
+Title: "Sidecar Pro"
+Price: "$8 / month"
+Button: "Get started →"
+Link: https://aisidecar.lemonsqueezy.com/checkout/buy/5e84f0f9-eef4-4e60-99b4-227da193caf0
+
+Option 2 — Annual (recommended)
+Title: "Sidecar Pro (Annual)"
+Price: "$72 / year"
+Badge: "Save 25%"
+Button: "Get started →"
+Link: https://aisidecar.lemonsqueezy.com/checkout/buy/e59e7eca-97bd-4358-b6fe-3357151ddaba
+
+Links open in a new tab.
+Modal has a close button (X).
+
+─────────────────────────────────
+PART 2 — License key input & activation
+─────────────────────────────────
+
+Add an "Activate Pro" option in the sidebar 
+(same style as existing sidebar buttons).
+Only show this button if qq_license_key does NOT 
+exist in localStorage.
+
+Show a modal with:
+- Title: "Activate your license"
+- Subtitle: "Enter the license key you received 
+  after purchase."
+- Input field placeholder: "XXXX-XXXX-XXXX-XXXX"
+- Button: "Activate"
+- On activation: save key to localStorage 
+  as qq_license_key
+- Success message: 
+  "Pro activated. Unlimited saves unlocked."
+- Error message if key is empty:
+  "Please enter a valid license key."
+
+Note: Accept any non-empty string as valid for now.
+Full Lemon Squeezy API verification can be added later.
+
+─────────────────────────────────
+PART 3 — Pro status indicator
+─────────────────────────────────
+
+If qq_license_key exists in localStorage:
+- Show "Pro" badge in the sidebar
+- Hide "Upgrade to Pro" button
+- Hide "Activate Pro" button
+- Show small text near badge: "Licensed ✓"
+
+─────────────────────────────────
+PART 4 — File limit enforcement
+─────────────────────────────────
+
+When user tries to save a file:
+- Count total files across all folders 
+  in localStorage
+- If count >= 50 AND qq_license_key does 
+  NOT exist in localStorage:
+  - Block the save action
+  - Show modal:
+    Title: "You've reached the free plan limit"
+    Message: "You've saved 50 files. 
+    Upgrade to Pro for unlimited saves."
+    Primary button: "Upgrade to Pro →"
+    → opens plan selection modal from PART 1
+    Secondary button: "Not now"
+    → closes modal, save is cancelled
+
+If qq_license_key exists in localStorage:
+- No file limit. Save proceeds normally.
+
+─────────────────────────────────
+SUMMARY OF localStorage KEYS USED
+─────────────────────────────────
+qq_license_key — stores Pro license key
+(all other existing keys remain unchanged)
+─────────────────────────────────

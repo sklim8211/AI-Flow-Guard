@@ -29,8 +29,12 @@ import {
   ArrowLeftRight,
   ClipboardPaste,
   HelpCircle,
+  Crown,
+  KeyRound,
 } from "lucide-react";
 import { ws } from "../lib/workspace";
+import { hasLicense } from "../lib/license";
+import { PlanModal, ActivateModal, LimitModal } from "./ProModals";
 import { fsAccess } from "../lib/fsAccess";
 import { WorkspaceView } from "./WorkspaceView";
 import { SaveResultModal } from "./SaveResultModal";
@@ -128,6 +132,12 @@ export function Sidecar() {
   // "What's going on?" situation guide (button-triggered only)
   const [showSituation, setShowSituation] = useState(false);
 
+  // Pro / licensing
+  const [licensed, setLicensed] = useState(() => hasLicense());
+  const [showPlans, setShowPlans] = useState(false);
+  const [showActivate, setShowActivate] = useState(false);
+  const [showLimit, setShowLimit] = useState(false);
+
   // Restore picker (lists SAFE backup files to inject into Restore prompt)
   const [showRestorePicker, setShowRestorePicker] = useState(false);
 
@@ -199,9 +209,19 @@ export function Sidecar() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Keep Pro status in sync when the license key changes in another tab/window.
+  useEffect(() => {
+    const sync = () => setLicensed(hasLicense());
+    window.addEventListener("storage", sync);
+    return () => window.removeEventListener("storage", sync);
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        if (showLimit) { setShowLimit(false); return; }
+        if (showPlans) { setShowPlans(false); return; }
+        if (showActivate) { setShowActivate(false); return; }
         if (viewFile) { setViewFile(null); return; }
         if (saveModalOpen) { setSaveModalOpen(false); setClipboardContent(""); return; }
         if (showSOS) { setShowSOS(false); return; }
@@ -214,7 +234,7 @@ export function Sidecar() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activePrompt, saveModalOpen, viewFile, showSOS, showSituation, showRestorePicker, showOnboarding]);
+  }, [activePrompt, saveModalOpen, viewFile, showSOS, showSituation, showRestorePicker, showOnboarding, showLimit, showPlans, showActivate]);
 
   // PWA install detection
   useEffect(() => {
@@ -589,6 +609,51 @@ export function Sidecar() {
             <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>Projects & files</span>
           </span>
         </button>
+
+        {/* Pro — upgrade / activate (hidden once licensed) or status badge */}
+        <div style={{ width: 20, height: 1, background: "#e2e8f0", margin: "6px 0 2px" }} />
+        {licensed ? (
+          <div className="relative group flex flex-col items-center gap-0.5 py-1">
+            <div
+              className="px-2 py-0.5 rounded-full flex items-center gap-1"
+              style={{ background: "#fef3c7", color: "#b45309" }}
+            >
+              <Crown style={{ width: 11, height: 11 }} />
+              <span className="text-[10px] font-bold">Pro</span>
+            </div>
+            <span className="text-[8px] font-semibold" style={{ color: "#16a34a" }}>Licensed ✓</span>
+            <span className={tipClass}>
+              <span className="block font-semibold">Sidecar Pro</span>
+              <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>Licensed ✓ · Unlimited saves</span>
+            </span>
+          </div>
+        ) : (
+          <>
+            <button
+              onClick={() => setShowPlans(true)}
+              className="relative group w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+              style={{ color: "#fff", background: "#b45309" }}
+            >
+              <Crown className="relative z-10" style={{ width: 16, height: 16 }} />
+              <span className={tipClass}>
+                <span className="block font-semibold">Upgrade to Pro</span>
+                <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>Unlimited saves</span>
+              </span>
+            </button>
+            <button
+              onClick={() => setShowActivate(true)}
+              className="relative group w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+              style={{ color: "#b45309" }}
+            >
+              <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: "#fef3c7" }} />
+              <KeyRound className="relative z-10" style={{ width: 16, height: 16 }} />
+              <span className={tipClass}>
+                <span className="block font-semibold">Activate Pro</span>
+                <span className="block text-[10px] mt-0.5" style={{ color: "#94a3b8" }}>Enter your license key</span>
+              </span>
+            </button>
+          </>
+        )}
 
         {/* Install as app — only when installable and not already installed */}
         {installEvent && !isInstalled && (
@@ -1125,6 +1190,20 @@ export function Sidecar() {
         defaultFolderName={clipboardContent ? "DRAFTS" : undefined}
         onClose={() => { setSaveModalOpen(false); setClipboardContent(""); }}
         onSaved={() => { markActivity(); refreshWorkspace(); setTab("today"); setPanelOpen(true); setClipboardContent(""); }}
+        onLimitReached={() => setShowLimit(true)}
+      />
+
+      {/* ── Pro: plans / activation / free-limit ─────────── */}
+      <PlanModal open={showPlans} onClose={() => setShowPlans(false)} />
+      <ActivateModal
+        open={showActivate}
+        onClose={() => setShowActivate(false)}
+        onActivated={() => { setLicensed(true); setShowActivate(false); }}
+      />
+      <LimitModal
+        open={showLimit}
+        onClose={() => setShowLimit(false)}
+        onUpgrade={() => { setShowLimit(false); setShowPlans(true); }}
       />
 
       {/* ── Clipboard error toast ───────────────────────── */}
@@ -1144,7 +1223,7 @@ export function Sidecar() {
 
       {/* ── Save reminder toast ─────────────────────────── */}
       <SaveReminderToast
-        suppressed={!!viewFile || saveModalOpen || showSOS || showSituation || showRestorePicker || showOnboarding || !!activePrompt}
+        suppressed={!!viewFile || saveModalOpen || showSOS || showSituation || showRestorePicker || showOnboarding || !!activePrompt || showPlans || showActivate || showLimit}
       />
 
       {/* ── File View Modal ─────────────────────────────── */}
