@@ -91,7 +91,7 @@ function buildPrompts(workflow: WorkflowType | null): DisplayPrompt[] {
 type PanelTab = "today" | "prompts" | "workspace";
 
 export function Sidecar() {
-  const [panelOpen, setPanelOpen] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(true);
   const [tab, setTab] = useState<PanelTab>("today");
 
   const [activePrompt, setActivePrompt] = useState<{
