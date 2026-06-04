@@ -286,6 +286,11 @@ export function TodayDashboard({ projectId, workflow, refreshKey, onOpenFile, on
                 >
                   Browse prompts <ArrowRight style={{ width: 11, height: 11 }} />
                 </button>
+                <p className="text-[11px] text-slate-400 mt-2 leading-relaxed">
+                  Best habit: save once at the end of each day.
+                  <br />
+                  Resume + Summary is enough for most days.
+                </p>
               </div>
             </section>
           )}

@@ -55,6 +55,14 @@ export function SaveReminderToast({
     markActivity();
   };
 
+  // Auto-dismiss after 8s. dismiss() resets the activity clock, so the next
+  // nudge fires intervalMs (1 hour) from now — same as a manual close.
+  useEffect(() => {
+    if (!visible) return;
+    const t = setTimeout(() => dismiss(), 8000);
+    return () => clearTimeout(t);
+  }, [visible]);
+
   return (
     <AnimatePresence>
       {visible && !suppressed && (
