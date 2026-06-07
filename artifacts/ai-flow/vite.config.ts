@@ -45,7 +45,7 @@ export default defineConfig({
       includeAssets: ["favicon.svg", "apple-touch-icon.png", "robots.txt"],
       manifest: {
         name: "Quiet Question Sidecar",
-        short_name: "QQ Sidecar",
+        short_name: "AISidecar",
         description:
           "AI 작업 중 놓치기 쉬운 것들을 기록하고, 문제 발생 시 빠르게 복구할 수 있는 사이드카",
         theme_color: "#0f172a",

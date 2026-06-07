@@ -1,4 +1,4 @@
-# Quiet Question Sidecar (QQ Sidecar)
+# Quiet Question Sidecar (AISidecar)
 
 AI(ChatGPT/Claude)로 작업하는 비전문가가 **컨텍스트를 잃지 않도록** 도와주는 떠 있는 사이드카 유틸리티. AI에 연결되지 않은 "안전망"이다.
 

@@ -519,7 +519,7 @@ export function Sidecar() {
         >
           <Sparkles style={{ width: 16, height: 16 }} />
           <span className={tipClass}>
-            {panelOpen ? "Close panel" : "QQ Sidecar"}
+            {panelOpen ? "Close panel" : "AISidecar"}
           </span>
         </button>
 
@@ -751,7 +751,7 @@ export function Sidecar() {
             {/* Panel header */}
             <div className="flex items-center justify-between px-4 py-3.5 gap-2" style={{ borderBottom: "1px solid #f1f5f9" }}>
               <div className="flex items-center gap-2 min-w-0">
-                <p className="text-xs font-bold text-slate-700 shrink-0">QQ Sidecar</p>
+                <p className="text-xs font-bold text-slate-700 shrink-0">AISidecar</p>
                 {activeProject && (
                   <div className="relative">
                     <button
@@ -1499,7 +1499,7 @@ export function Sidecar() {
               transition={{ type: "spring", bounce: 0.18, duration: 0.4 }}
               role="dialog"
               aria-modal="true"
-              aria-label="Welcome to QQ Sidecar"
+              aria-label="Welcome to AISidecar"
               className="w-full max-w-md rounded-2xl overflow-hidden"
               style={{ background: "#fff", boxShadow: "0 30px 70px rgba(0,0,0,0.3)" }}
             >
