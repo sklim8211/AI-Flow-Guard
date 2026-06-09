@@ -5,6 +5,7 @@ type Lang = "ko" | "en";
 
 type Section = {
   quote: string;
+  problemHeading?: string;
   problemTitle: string;
   problemBody: string[];
   problemBullets?: string[];
@@ -18,6 +19,7 @@ type Copy = {
   htmlLang: string;
   badge: string;
   heroH1: string;
+  heroTagline: string;
   heroSub1: string;
   heroSub2: string;
   ctaOpen: string;
@@ -41,6 +43,8 @@ const EN: Copy = {
   htmlLang: "en",
   badge: "Sidecar — a quiet workspace next to your AI",
   heroH1: "Stop being the project manager of your own AI memory.",
+  heroTagline:
+    "A local AI context manager and workflow workspace for ChatGPT & Claude users.",
   heroSub1: "The continuity has to live somewhere you own — not in a chat window that resets.",
   heroSub2:
     "Sidecar helps you continue long AI work without rebuilding context from scratch.",
@@ -65,6 +69,7 @@ const EN: Copy = {
   sections: [
     {
       quote: "“Wait… what were we doing again?”",
+      problemHeading: "Problem: Lost Chat Context & AI Restart Fatigue",
       problemTitle:
         "If you work with AI for hours or days, this probably feels familiar.",
       problemBody: [
@@ -87,6 +92,7 @@ const EN: Copy = {
     },
     {
       quote: "“I know it's somewhere in the chat.”",
+      problemHeading: "Problem: Buried Decisions in Long AI Conversations",
       problemTitle:
         "Long AI conversations become difficult to navigate over time.",
       problemBody: [
@@ -106,6 +112,7 @@ const EN: Copy = {
     },
     {
       quote: "“I don't lose the code.\nI lose the reasoning.”",
+      problemHeading: "Problem: Disappearing Reasoning in LLM Coding Sessions",
       problemTitle: "A month later you can find the files.\nWhat disappears is why things ended up that way.\nThe what survives. The why doesn't.",
       problemBody: [
         "You reopen a project and spend energy trying to remember what kind of document this is, what role it plays, and how it connects to the workflow.",
@@ -132,6 +139,7 @@ const EN: Copy = {
     },
     {
       quote: "“The work exists. But the momentum is gone.”",
+      problemHeading: "Problem: Lost Momentum in Long AI Collaborations",
       problemTitle: "Restarting work often feels heavier than the work itself.",
       problemBody: [
         "Files survive. Chats survive. Outputs survive. But the feeling of where the project was going often disappears.",
@@ -151,6 +159,7 @@ const EN: Copy = {
     },
     {
       quote: "“It feels like I'm building infrastructure that should exist.”",
+      problemHeading: "Problem: Static Folders That Don't Preserve Workflow",
       problemTitle:
         "Most folders only store files. They do not preserve workflow.",
       problemBody: [
@@ -179,6 +188,8 @@ const KO: Copy = {
   htmlLang: "ko",
   badge: "Sidecar — AI 옆에 조용히 두는 작업 공간",
   heroH1: "AI 작업, 다시는 흐름을 놓치지 마세요.",
+  heroTagline:
+    "ChatGPT·Claude 사용자를 위한 로컬 AI 컨텍스트 매니저이자 작업 흐름 작업 공간.",
   heroSub1: "AI 대화가 잊어버리는 것을 대신 기억해주는 조용한 사이드카.",
   heroSub2:
     "긴 AI 작업을 매번 처음부터 다시 설명하지 않고 그대로 이어갈 수 있게 도와줍니다.",
@@ -433,6 +444,9 @@ function Hero({ c }: { c: Copy }) {
           <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl sm:leading-[1.1]">
             {c.heroH1}
           </h1>
+          <p className="mt-4 text-lg font-medium leading-relaxed text-slate-700 sm:text-xl">
+            {c.heroTagline}
+          </p>
           <p className="mt-6 text-lg leading-relaxed text-slate-600 sm:text-xl">
             {c.heroSub1}
           </p>
@@ -498,9 +512,9 @@ function SectionBlock({
     <section className="px-6">
       <div className="mx-auto max-w-3xl">
         <div className="reveal">
-          <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
-            {String(idx + 1).padStart(2, "0")} — {c.problemLabel}
-          </p>
+          <h2 className="text-xs font-medium uppercase tracking-wider text-slate-400">
+            {String(idx + 1).padStart(2, "0")} — {s.problemHeading ?? c.problemLabel}
+          </h2>
           <h3 className="mt-3 whitespace-pre-line text-2xl font-semibold text-slate-900 sm:text-3xl">
             {s.quote}
           </h3>
