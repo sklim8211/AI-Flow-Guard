@@ -1,0 +1,50 @@
+Please optimize the current landing page HTML file for Google SEO and Core Web Vitals based on the following specific structural updates. Do not change the existing styling, aesthetic, or the core messaging; only enhance the HTML tags and inject metadata for search engine crawlers.
+
+1. Inject JSON-LD Schema Markup (Technical SEO)
+Please insert the following structural JSON-LD scripts inside the `<head>` tag. This is crucial for Google Rich Results.
+
+```html
+<script type="application/ld+json">
+{
+  "@context": "[https://schema.org](https://schema.org)",
+  "@type": "SoftwareApplication",
+  "name": "Sidecar",
+  "url": "[https://aisidecar.net](https://aisidecar.net)",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Web Browser",
+  "description": "Stop losing your AI chat context. Sidecar is a local, privacy-first workspace that preserves workflow continuity, reasoning structures, and project momentum for long AI conversations.",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "featureList": [
+    "Recoverable workflow states (Resume)",
+    "Decision tracking (Anchors)",
+    "Local file saving with Metadata Headers",
+    "No-account browser-based privacy"
+  ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "[https://schema.org](https://schema.org)",
+  "@type": "FAQPage",
+  "mainEntity": [{
+    "@type": "Question",
+    "name": "Does Sidecar connect to my ChatGPT or Claude account?",
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "No. Sidecar runs 100% locally in your browser and never connects to third-party AI APIs. It helps you keep track of your workflow context next to your screen without leaving your folder."
+    }
+  }, {
+    "@type": "Question",
+    "name": "Where does Sidecar save my project data?",
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Sidecar saves data directly to your local folder, not our servers. No account is needed, ensuring complete privacy and ownership of your AI workflow continuity."
+    }
+  }]
+}
+</script>
