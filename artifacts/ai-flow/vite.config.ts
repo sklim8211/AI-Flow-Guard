@@ -42,6 +42,9 @@ export default defineConfig({
     runtimeErrorOverlay(),
     VitePWA({
       registerType: "autoUpdate",
+      // We register the SW manually in main.tsx (with periodic update checks),
+      // so disable the auto-injected registration to avoid double registration.
+      injectRegister: false,
       includeAssets: ["favicon.svg", "apple-touch-icon.png", "robots.txt"],
       manifest: {
         name: "Quiet Question Sidecar",
@@ -64,6 +67,11 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,png,ico,woff2}"],
+        // Take control immediately and purge stale precaches so a new build
+        // activates without manual cache clearing.
+        clientsClaim: true,
+        skipWaiting: true,
+        cleanupOutdatedCaches: true,
       },
       devOptions: {
         enabled: true,

@@ -3,3 +3,4 @@
 - [Go-to-market direction](go-to-market.md) — QQ Sidecar targets the English-speaking indie/maker market first, not Korea. Don't propose Korean-market features, pricing, or channels.
 - [Pro monetization flow](monetization-pro-flow.md) — Lemon Squeezy paid tier ($8/mo, $72/yr), 50-file free cap; license activation is a client-side stub (any non-empty string), no real verification yet.
 - [kind→folder routing fragility](metadata-kind-routing.md) — AI-emitted YAML kind values get quoted/pluralized inconsistently; routing must strip quotes + accept singular/plural aliases or files silently fall back to CURRENT.
+- [PWA auto-update](pwa-auto-update.md) — autoUpdate + manual virtual:pwa-register w/ periodic update() forces new builds onto users; manual register needs workbox-window installed or dev white-screens.
