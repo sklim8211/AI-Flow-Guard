@@ -28,9 +28,13 @@ const TYPE_OPTIONS: { value: FileType; label: string }[] = [
   { value: "prompt", label: "Prompt" },
 ];
 
+// Keys include singular/plural and synonym aliases so AI-emitted kinds like
+// "anchor" (singular) still route correctly. Parser lowercases + strips quotes.
 const FOLDER_BY_KIND: Record<string, string> = {
   resume: "CURRENT",
   summary: "SUMMARIES",
+  summaries: "SUMMARIES",
+  anchor: "ANCHORS",
   anchors: "ANCHORS",
   compress: "CURRENT",
   next: "NEXT",
@@ -40,6 +44,8 @@ const FOLDER_BY_KIND: Record<string, string> = {
 const TYPE_BY_KIND: Record<string, FileType> = {
   resume: "note",
   summary: "summary",
+  summaries: "summary",
+  anchor: "anchor",
   anchors: "anchor",
   compress: "note",
   next: "note",
@@ -70,7 +76,8 @@ function parseMetadata(raw: string): ParsedMetadata {
       const m = line.match(/^([a-zA-Z_]+):\s*(.+)$/);
       if (!m) continue;
       const key = m[1];
-      const value = m[2].trim();
+      // Strip surrounding quotes — AI often emits YAML values like kind: "anchors".
+      const value = m[2].trim().replace(/^["']|["']$/g, "").trim();
       if (key === "kind") result.kind = value.toLowerCase();
       else if (key === "summary") result.summary = value;
       else if (key === "workflow") result.workflow = value.toLowerCase();
