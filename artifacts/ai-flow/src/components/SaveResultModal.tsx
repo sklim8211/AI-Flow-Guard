@@ -61,8 +61,10 @@ interface ParsedMetadata {
 
 function parseMetadata(raw: string): ParsedMetadata {
   if (!raw) return {};
+  // Normalize CRLF/CR → LF first. Pasted AI text often has \r\n line endings,
+  // which break the per-line regex (`.` won't match \r, `$` only stops at LF/end).
   // Strip outer fenced code block if present (``` or ```markdown etc.)
-  let body = raw.trim();
+  let body = raw.replace(/\r\n?/g, "\n").trim();
   const fenceMatch = body.match(/^```[a-zA-Z]*\n([\s\S]*?)\n```\s*$/);
   if (fenceMatch) body = fenceMatch[1];
 

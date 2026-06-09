@@ -309,7 +309,9 @@ export interface FileMeta {
 
 export function parseFileMeta(raw: string): FileMeta {
   if (!raw) return {};
-  let body = raw.trim();
+  // Normalize CRLF/CR → LF first. Pasted AI text often has \r\n line endings,
+  // which break the per-line regex (`.` won't match \r, `$` only stops at LF/end).
+  let body = raw.replace(/\r\n?/g, "\n").trim();
   const fenceMatch = body.match(/^```[a-zA-Z]*\n([\s\S]*?)\n```\s*$/);
   if (fenceMatch) body = fenceMatch[1];
   const result: FileMeta = {};
@@ -320,7 +322,8 @@ export function parseFileMeta(raw: string): FileMeta {
       const m = line.match(/^([a-zA-Z_]+):\s*(.+)$/);
       if (!m) continue;
       const key = m[1];
-      const value = m[2].trim();
+      // Strip surrounding quotes — AI often emits YAML values like kind: "anchors".
+      const value = m[2].trim().replace(/^["']|["']$/g, "").trim();
       if (key === "kind") result.kind = value.toLowerCase();
       else if (key === "summary") result.summary = value;
       else if (key === "workflow") result.workflow = value.toLowerCase();
