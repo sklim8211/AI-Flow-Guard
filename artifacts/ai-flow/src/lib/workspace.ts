@@ -311,9 +311,11 @@ export function parseFileMeta(raw: string): FileMeta {
   if (!raw) return {};
   // Normalize CRLF/CR → LF first. Pasted AI text often has \r\n line endings,
   // which break the per-line regex (`.` won't match \r, `$` only stops at LF/end).
+  // Strip outer fenced code block (3+ backticks/tildes; \1 matches closing fence
+  // length — AI escalates to 4+ backticks when the body contains ``` examples).
   let body = raw.replace(/\r\n?/g, "\n").trim();
-  const fenceMatch = body.match(/^```[a-zA-Z]*\n([\s\S]*?)\n```\s*$/);
-  if (fenceMatch) body = fenceMatch[1];
+  const fenceMatch = body.match(/^(`{3,}|~{3,})[a-zA-Z]*\n([\s\S]*?)\n\1\s*$/);
+  if (fenceMatch) body = fenceMatch[2].trim();
   const result: FileMeta = {};
   const yamlMatch = body.match(/^---\s*\n([\s\S]*?)\n---/);
   if (yamlMatch) {

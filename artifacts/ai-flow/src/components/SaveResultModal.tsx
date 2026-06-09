@@ -63,10 +63,13 @@ function parseMetadata(raw: string): ParsedMetadata {
   if (!raw) return {};
   // Normalize CRLF/CR → LF first. Pasted AI text often has \r\n line endings,
   // which break the per-line regex (`.` won't match \r, `$` only stops at LF/end).
-  // Strip outer fenced code block if present (``` or ```markdown etc.)
+  // Strip outer fenced code block if present. Our own prompt tells the AI to
+  // "wrap the entire output in a fenced markdown code block", and when the body
+  // contains ``` examples the AI escalates to 4+ backticks. The backreference
+  // (\1) matches the closing fence to the opening length; supports ``` and ~~~.
   let body = raw.replace(/\r\n?/g, "\n").trim();
-  const fenceMatch = body.match(/^```[a-zA-Z]*\n([\s\S]*?)\n```\s*$/);
-  if (fenceMatch) body = fenceMatch[1];
+  const fenceMatch = body.match(/^(`{3,}|~{3,})[a-zA-Z]*\n([\s\S]*?)\n\1\s*$/);
+  if (fenceMatch) body = fenceMatch[2].trim();
 
   const result: ParsedMetadata = {};
 
