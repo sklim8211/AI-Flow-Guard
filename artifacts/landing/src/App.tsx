@@ -15,13 +15,17 @@ type Section = {
   closing?: string;
 };
 
+type FaqItem = {
+  q: string;
+  a: string;
+};
+
 type Copy = {
   htmlLang: string;
   badge: string;
   heroH1: string;
   heroTagline: string;
   heroSub1: string;
-  heroSub2: string;
   ctaOpen: string;
   ctaSeeHow: string;
   trustShort: string;
@@ -36,18 +40,26 @@ type Copy = {
   ctaLead: string;
   ctaTrust: string;
   footer: string;
+  whoLabel: string;
+  whoTitle: string;
+  whoItems: string[];
+  whenLabel: string;
+  whenTitle: string;
+  whenItems: string[];
+  faqLabel: string;
+  faqTitle: string;
+  faqItems: FaqItem[];
   sections: Section[];
 };
 
 const EN: Copy = {
   htmlLang: "en",
   badge: "Sidecar — a quiet workspace next to your AI",
-  heroH1: "Stop being the project manager of your own AI memory.",
+  heroH1: "Your AI chat is still there. Your working state isn't.",
   heroTagline:
-    "A local AI context manager and workflow workspace for ChatGPT & Claude users.",
-  heroSub1: "The continuity has to live somewhere you own — not in a chat window that resets.",
-  heroSub2:
-    "Sidecar helps you continue long AI work without rebuilding context from scratch.",
+    "For builders, developers, and researchers running long projects across ChatGPT, Claude, and Cursor.",
+  heroSub1:
+    "Sidecar saves your working state, decisions, and next steps to your own local folder — so you can restart long AI work without rebuilding context from scratch.",
   ctaOpen: "Open Sidecar",
   ctaSeeHow: "See how it helps",
   trustShort: "No account. Runs in your browser. Saves to your folder, not ours.",
@@ -61,11 +73,47 @@ const EN: Copy = {
     "The conversation still exists. But the working state of the project does not.",
   problemLabel: "Problem",
   howLabel: "How Sidecar helps",
-  ctaH2: "Try Sidecar quietly.",
+  ctaH2: "Try Sidecar on your next AI session.",
   ctaLead: "No account needed. Runs in your browser. Saves to your folder, not ours.",
   ctaTrust:
     "Your AI conversations never leave your screen. Sidecar doesn't connect to ChatGPT, Claude, or anything else. It just helps you keep track.",
   footer: "© {year} Sidecar. Made for people who work with AI for real.",
+  whoLabel: "Who it's for",
+  whoTitle: "Built for people who work with AI across many sessions.",
+  whoItems: [
+    "Solo builders shipping projects over days and weeks, not minutes.",
+    "Developers using ChatGPT, Claude, or Cursor for ongoing work.",
+    "Researchers and writers managing long, evolving threads.",
+    "Anyone who feels restart fatigue when reopening AI work.",
+  ],
+  whenLabel: "When to use it",
+  whenTitle: "Reach for Sidecar when the work outlasts a single chat.",
+  whenItems: [
+    "When a project lasts more than one session.",
+    "When important reasoning gets buried in long chats.",
+    "When you need to preserve decisions and next steps.",
+    "When restarting feels harder than the work itself.",
+  ],
+  faqLabel: "FAQ",
+  faqTitle: "Questions, answered plainly.",
+  faqItems: [
+    {
+      q: "Does Sidecar connect to my ChatGPT or Claude account?",
+      a: "No. Sidecar runs entirely in your browser and never connects to ChatGPT, Claude, or any third-party AI API. You copy what matters into Sidecar yourself.",
+    },
+    {
+      q: "Can I use Sidecar alongside ChatGPT, Claude, or Cursor?",
+      a: "Yes. Sidecar sits next to whatever AI tool you use. It's tool-agnostic — anything you can copy, you can preserve.",
+    },
+    {
+      q: "Does Sidecar store my conversations on your servers?",
+      a: "No. Everything saves to your own local folder. There are no accounts and no servers holding your work.",
+    },
+    {
+      q: "Is this only for coding, or also for research and writing?",
+      a: "Any long AI work. Resume, Anchors, and Snapshots apply just as well to research, writing, and planning as they do to code.",
+    },
+  ],
   sections: [
     {
       quote: "“Wait… what were we doing again?”",
@@ -78,7 +126,7 @@ const EN: Copy = {
       ],
       solveTitle: "Resume",
       solveLead:
-        "Resume saves the current working state of the project in a structured format. Instead of rereading long chats, you can quickly restore where the project currently is, what matters right now, what should happen next, and what problems still remain.",
+        "Resume saves your project's working state in a structured format. Instead of rereading long chats, you instantly restore where things stand, what matters now, and what's next.",
       example: {
         label: "Example",
         lines: [
@@ -88,7 +136,7 @@ const EN: Copy = {
         ],
       },
       closing:
-        "Resume is not just a note. It is a recoverable workflow state. It helps both you and AI continue from the same point later.",
+        "Not just a note — a recoverable workflow state, so you and the AI continue from the same point.",
     },
     {
       quote: "“I know it's somewhere in the chat.”",
@@ -106,9 +154,9 @@ const EN: Copy = {
       ],
       solveTitle: "Anchors",
       solveLead:
-        "Anchors preserve important decisions and the reasoning behind them. Instead of only saving outputs, Anchors save why a decision was made, what direction was chosen, and what should remain consistent moving forward.",
+        "Anchors preserve key decisions and the reasoning behind them — not just the output, but why you chose this direction and what should stay consistent.",
       closing:
-        "Instead of rediscovering the same reasoning again and again, users can restore the decision path directly.",
+        "Restore the decision path directly, instead of rediscovering the same reasoning each time.",
     },
     {
       quote: "“I don't lose the code.\nI lose the reasoning.”",
@@ -126,7 +174,7 @@ const EN: Copy = {
       ],
       solveTitle: "Metadata Headers",
       solveLead:
-        "Metadata Headers help both users and AI immediately understand the role of a document.",
+        "Metadata Headers let you and the AI see a file's role at a glance — what it is, why it exists, and how it fits.",
       example: {
         label: "Example",
         lines: [
@@ -153,7 +201,7 @@ const EN: Copy = {
       ],
       solveTitle: "Summary & Snapshot",
       solveLead:
-        "Summary and Snapshot preserve the state of the workflow at important moments. They capture what was completed, what mattered, what should happen next, and where work should resume later.",
+        "Summary and Snapshot capture the workflow at key moments — what's done, what mattered, and where to resume later.",
       closing:
         "This turns stopping into a recoverable pause instead of a hard interruption.",
     },
@@ -168,7 +216,7 @@ const EN: Copy = {
       ],
       solveTitle: "A folder that knows what it holds",
       solveLead:
-        "Sidecar organizes work into clear roles: what you are doing now, what should happen next, and what must stay safe before a big change. Each file already carries its own metadata, so the folder reads itself.",
+        "Sidecar sorts work into clear roles — now, next, and what to keep safe before a big change. Each file carries its own metadata, so the folder reads itself.",
       example: {
         label: "Folders",
         lines: [
@@ -187,12 +235,11 @@ const EN: Copy = {
 const KO: Copy = {
   htmlLang: "ko",
   badge: "Sidecar — AI 옆에 조용히 두는 작업 공간",
-  heroH1: "AI 작업, 다시는 흐름을 놓치지 마세요.",
+  heroH1: "대화는 그대로인데, 작업 상태는 사라졌습니다.",
   heroTagline:
-    "ChatGPT·Claude 사용자를 위한 로컬 AI 컨텍스트 매니저이자 작업 흐름 작업 공간.",
-  heroSub1: "AI 대화가 잊어버리는 것을 대신 기억해주는 조용한 사이드카.",
-  heroSub2:
-    "긴 AI 작업을 매번 처음부터 다시 설명하지 않고 그대로 이어갈 수 있게 도와줍니다.",
+    "ChatGPT, Claude, Cursor로 긴 프로젝트를 이어가는 빌더·개발자·연구자를 위해.",
+  heroSub1:
+    "Sidecar는 작업 상태, 결정, 다음 할 일을 당신의 로컬 폴더에 저장합니다 — 컨텍스트를 처음부터 다시 쌓지 않고 긴 AI 작업을 이어갈 수 있게.",
   ctaOpen: "Sidecar 열기",
   ctaSeeHow: "어떻게 도움이 되는지 보기",
   trustShort:
@@ -206,12 +253,48 @@ const KO: Copy = {
   introP3: "대화는 남아 있습니다. 그런데 프로젝트의 작업 상태는 남아 있지 않습니다.",
   problemLabel: "문제",
   howLabel: "Sidecar는 이렇게 돕습니다",
-  ctaH2: "조용히 한 번 써보세요.",
+  ctaH2: "다음 AI 작업부터 한 번 써보세요.",
   ctaLead:
     "계정 만들 필요 없습니다. 브라우저에서 바로 동작합니다. 저장은 우리가 아니라 당신의 폴더에 됩니다.",
   ctaTrust:
     "당신의 AI 대화는 화면 밖으로 나가지 않습니다. Sidecar는 ChatGPT, Claude 그 어떤 것에도 연결되지 않습니다. 그저 당신이 흐름을 놓치지 않도록 도울 뿐입니다.",
   footer: "© {year} Sidecar. AI로 진짜 일하는 사람들을 위해.",
+  whoLabel: "이런 분께",
+  whoTitle: "여러 세션에 걸쳐 AI와 일하는 사람을 위해 만들었습니다.",
+  whoItems: [
+    "몇 분이 아니라 며칠, 몇 주 단위로 프로젝트를 끌고 가는 1인 빌더",
+    "ChatGPT, Claude, Cursor로 작업을 이어가는 개발자",
+    "길고 계속 바뀌는 맥락을 다루는 연구자·작가",
+    "AI 작업을 다시 열 때마다 재시작 피로를 느끼는 사람",
+  ],
+  whenLabel: "이럴 때",
+  whenTitle: "작업이 대화 하나로 끝나지 않을 때 꺼내 쓰세요.",
+  whenItems: [
+    "프로젝트가 한 세션을 넘길 때",
+    "중요한 판단 근거가 긴 대화에 묻힐 때",
+    "결정과 다음 할 일을 보존해야 할 때",
+    "다시 시작하는 게 작업 자체보다 무겁게 느껴질 때",
+  ],
+  faqLabel: "자주 묻는 질문",
+  faqTitle: "궁금한 점을 솔직하게 답합니다.",
+  faqItems: [
+    {
+      q: "Sidecar가 제 ChatGPT나 Claude 계정에 연결되나요?",
+      a: "아니요. Sidecar는 전적으로 브라우저에서 동작하며 ChatGPT, Claude 등 외부 AI API에 연결되지 않습니다. 중요한 내용은 직접 복사해 Sidecar에 담습니다.",
+    },
+    {
+      q: "ChatGPT, Claude, Cursor와 같이 쓸 수 있나요?",
+      a: "네. Sidecar는 어떤 AI 도구 옆에서도 함께 씁니다. 도구를 가리지 않습니다 — 복사할 수 있는 것이면 무엇이든 보존할 수 있습니다.",
+    },
+    {
+      q: "제 대화를 당신들 서버에 저장하나요?",
+      a: "아니요. 모든 것은 당신의 로컬 폴더에 저장됩니다. 계정도, 당신의 작업을 들고 있는 서버도 없습니다.",
+    },
+    {
+      q: "코딩 전용인가요, 아니면 연구·글쓰기에도 쓰나요?",
+      a: "긴 AI 작업이라면 무엇이든. Resume, Anchors, Snapshot은 코드뿐 아니라 연구, 글쓰기, 기획에도 똑같이 적용됩니다.",
+    },
+  ],
   sections: [
     {
       quote: "“잠깐… 우리가 뭐 하고 있었지?”",
@@ -226,7 +309,7 @@ const KO: Copy = {
       ],
       solveTitle: "Resume",
       solveLead:
-        "Resume는 프로젝트의 현재 작업 상태를 구조화된 형식으로 저장합니다. 긴 대화를 다시 읽지 않아도, 지금 프로젝트가 어디까지 와 있는지, 지금 중요한 게 무엇인지, 다음에 무엇을 해야 하는지, 어떤 문제가 남아 있는지를 빠르게 복구할 수 있습니다.",
+        "Resume는 프로젝트의 현재 작업 상태를 구조화된 형식으로 저장합니다. 긴 대화를 다시 읽지 않아도 지금 어디까지 왔는지, 무엇이 중요한지, 다음에 뭘 할지를 곧바로 복구합니다.",
       example: {
         label: "예시",
         lines: [
@@ -236,7 +319,7 @@ const KO: Copy = {
         ],
       },
       closing:
-        "Resume는 단순한 메모가 아닙니다. 복구 가능한 작업 상태입니다. 사용자도, AI도 같은 지점에서 다시 이어갈 수 있게 해줍니다.",
+        "단순한 메모가 아니라 복구 가능한 작업 상태입니다. 사용자도 AI도 같은 지점에서 다시 이어갑니다.",
     },
     {
       quote: "“분명 대화 어딘가에 있었는데.”",
@@ -254,7 +337,7 @@ const KO: Copy = {
       ],
       solveTitle: "Anchors",
       solveLead:
-        "Anchors는 중요한 결정과 그 이유를 함께 보존합니다. 결과물만 저장하는 게 아니라, 왜 그렇게 결정했는지, 어떤 방향을 택했는지, 앞으로도 지켜야 할 원칙은 무엇인지를 함께 남깁니다.",
+        "Anchors는 중요한 결정과 그 이유를 함께 보존합니다. 결과물만이 아니라 왜 그 방향을 택했는지, 무엇을 계속 지켜야 하는지까지 남깁니다.",
       closing:
         "같은 판단을 반복해서 다시 찾아내는 대신, 결정의 흐름을 그대로 복원할 수 있습니다.",
     },
@@ -274,7 +357,7 @@ const KO: Copy = {
       ],
       solveTitle: "Metadata Headers",
       solveLead:
-        "메타데이터 헤더는 사용자와 AI 모두에게 이 문서가 어떤 역할인지 즉시 알려줍니다.",
+        "메타데이터 헤더는 사용자와 AI 모두에게 이 문서가 무엇이고, 왜 있고, 어디에 들어맞는지 한눈에 알려줍니다.",
       example: {
         label: "예시",
         lines: [
@@ -302,7 +385,7 @@ const KO: Copy = {
       ],
       solveTitle: "Summary & Snapshot",
       solveLead:
-        "Summary와 Snapshot은 중요한 순간의 작업 상태를 보존합니다. 무엇을 마쳤고, 무엇이 중요했고, 다음에 무엇을 해야 하고, 나중에 어디서부터 이어갈지를 함께 담습니다.",
+        "Summary와 Snapshot은 중요한 순간의 작업 상태를 담습니다 — 무엇을 마쳤고, 무엇이 중요했고, 어디서부터 다시 이어갈지를.",
       closing:
         "그래서 멈춤이 단절이 아니라, 다시 이어갈 수 있는 정지가 됩니다.",
     },
@@ -316,7 +399,7 @@ const KO: Copy = {
       ],
       solveTitle: "스스로 자기를 설명하는 폴더",
       solveLead:
-        "Sidecar는 작업을 명확한 역할로 정리합니다 — 지금 하고 있는 것, 다음에 해야 할 것, 큰 변경 전에 반드시 지켜야 할 것. 각 파일은 자기 자신을 설명하는 메타데이터를 이미 가지고 있어서, 폴더가 스스로 읽힙니다.",
+        "Sidecar는 작업을 명확한 역할로 나눕니다 — 지금, 다음, 큰 변경 전에 지켜둘 것. 각 파일이 자기 메타데이터를 갖고 있어 폴더가 스스로 읽힙니다.",
       example: {
         label: "폴더",
         lines: [
@@ -450,9 +533,6 @@ function Hero({ c }: { c: Copy }) {
           <p className="mt-6 text-lg leading-relaxed text-slate-600 sm:text-xl">
             {c.heroSub1}
           </p>
-          <p className="mt-3 text-base leading-relaxed text-slate-500">
-            {c.heroSub2}
-          </p>
 
           <div className="mt-10 flex flex-wrap items-center gap-3">
             <a
@@ -573,6 +653,73 @@ function SectionBlock({
   );
 }
 
+function ListSection({
+  label,
+  title,
+  items,
+}: {
+  label: string;
+  title: string;
+  items: string[];
+}) {
+  return (
+    <section className="px-6">
+      <div className="mx-auto max-w-3xl reveal">
+        <p className="text-xs font-medium uppercase tracking-wider text-emerald-700">
+          {label}
+        </p>
+        <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+          {title}
+        </h2>
+        <ul className="mt-6 space-y-3">
+          {items.map((it, i) => (
+            <li
+              key={i}
+              className="flex gap-3 text-base leading-relaxed text-slate-600 sm:text-lg"
+            >
+              <span
+                aria-hidden
+                className="mt-2.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500"
+              />
+              <span>{it}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
+function FAQ({ c }: { c: Copy }) {
+  return (
+    <section className="px-6">
+      <div className="mx-auto max-w-3xl reveal">
+        <p className="text-xs font-medium uppercase tracking-wider text-emerald-700">
+          {c.faqLabel}
+        </p>
+        <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+          {c.faqTitle}
+        </h2>
+        <dl className="mt-8 space-y-6">
+          {c.faqItems.map((item, i) => (
+            <div
+              key={i}
+              className="border-b border-slate-200 pb-6 last:border-b-0 last:pb-0"
+            >
+              <dt className="text-base font-semibold text-slate-900">
+                {item.q}
+              </dt>
+              <dd className="mt-2 text-base leading-relaxed text-slate-600">
+                {item.a}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </section>
+  );
+}
+
 function CTA({ c }: { c: Copy }) {
   return (
     <section className="px-6 pb-32">
@@ -636,12 +783,22 @@ export default function App() {
       <div id="how">
         <Intro c={c} />
         <Divider />
+        <ListSection label={c.whoLabel} title={c.whoTitle} items={c.whoItems} />
+        <Divider />
+        <ListSection
+          label={c.whenLabel}
+          title={c.whenTitle}
+          items={c.whenItems}
+        />
+        <Divider />
         {c.sections.map((s, i) => (
           <div key={i}>
             <SectionBlock s={s} idx={i} c={c} />
             {i < c.sections.length - 1 && <Divider />}
           </div>
         ))}
+        <Divider />
+        <FAQ c={c} />
         <Divider />
         <CTA c={c} />
       </div>

@@ -1,0 +1,129 @@
+Update the landing page copy for https://aisidecar.net.
+
+Goal:
+Make the landing page messaging sharper, more concrete, and more conversion-friendly using a hybrid of:
+1) pain-first messaging
+2) target-specific messaging
+
+Do NOT broaden the product.
+Make it feel more specific and immediately understandable.
+
+Target audience:
+- solo builders
+- developers
+- researchers
+- people doing long AI projects across sessions
+- users working with ChatGPT, Claude, Cursor, Replit, and similar tools
+- people who reopen AI work and feel restart fatigue
+
+Core problem to communicate:
+Long AI work creates restart fatigue.
+Chat history still exists, but working state is lost.
+Important decisions get buried in long conversations.
+Reasoning disappears even when files survive.
+Users lose momentum when they return later.
+
+Core product promise:
+Sidecar helps users restart long AI work without rebuilding context from scratch.
+It preserves working state, decisions, reasoning, and next steps locally.
+
+Important product truths that must remain unchanged:
+- product name: Sidecar
+- Sidecar runs locally in the browser
+- no account required
+- saves to the user’s own folder
+- does NOT connect to ChatGPT, Claude, or third-party AI APIs
+- privacy-first positioning must remain
+- preserve the current SEO direction around long AI projects, context, decisions, reasoning, momentum, and continuity
+- do NOT rewrite the site into generic “AI productivity platform” language
+- do NOT do a full redesign unless necessary
+
+What to change:
+
+1. HERO
+Rewrite the hero section with this exact structure:
+- Line 1: pain-first headline
+- Line 2: target-specific subheadline
+- Line 3: short concrete explanation of what Sidecar does
+
+The hero must make clear:
+- this is for long AI work
+- this is for users of ChatGPT / Claude / Cursor / similar tools
+- Sidecar preserves working state, not just chat history
+- the benefit is easier restart and continuity
+
+2. CTA
+Replace soft or vague CTA copy with clearer action-oriented CTA copy.
+Keep the tone calm, not aggressive.
+
+3. WHO THIS IS FOR
+Add a short section that clearly identifies the best-fit users.
+Use bullets or short blocks.
+
+4. WHEN TO USE SIDECAR
+Add a short practical use-case section.
+Examples:
+- when a project lasts more than one session
+- when important reasoning gets buried in long chats
+- when you need to preserve decisions and next steps
+- when restarting feels harder than the work itself
+
+5. EXISTING FEATURE SECTIONS
+Keep the existing product logic around:
+- Resume
+- Anchors
+- Metadata Headers
+- Summary / Snapshot
+
+But rewrite these sections to be:
+- shorter
+- clearer
+- easier to scan
+- more benefit-oriented
+
+Keep the meaning. Improve clarity.
+
+6. FAQ
+Keep the privacy-related FAQ.
+Add 2–4 practical FAQ items such as:
+- Does Sidecar work with ChatGPT projects?
+- Can I use Sidecar alongside Claude or Cursor?
+- Does Sidecar store my conversations on your servers?
+- Is this only for coding, or also for research and writing?
+
+Tone requirements:
+- thoughtful
+- calm
+- intelligent
+- minimal
+- precise
+- not hypey
+- not gimmicky
+- not loud startup jargon
+
+Avoid phrases like:
+- revolutionize your workflow
+- ultimate AI productivity platform
+- supercharge everything
+- all-in-one AI workspace
+
+Implementation requirements:
+- keep the current visual style if possible
+- prioritize copy clarity and section hierarchy
+- improve scannability with shorter paragraphs and clearer headings
+- reorder sections only if it helps the page explain the product faster
+- do not touch title/meta/structured data unless absolutely necessary
+
+Deliverables:
+1. Implement the updated landing page copy directly
+2. Show me the final hero headline, subheadline, and CTA
+3. Summarize what was changed
+4. Confirm which SEO-critical elements were preserved
+
+Success criteria:
+A first-time visitor should understand within a few seconds:
+- who Sidecar is for
+- what problem it solves
+- when to use it
+- why it is different from just saving chat history
+- why it is useful for long ChatGPT / Claude / Cursor-style work
