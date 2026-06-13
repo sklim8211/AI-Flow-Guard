@@ -16,7 +16,7 @@ function Home() {
   return (
     <div className="min-h-[100dvh] w-full flex items-center justify-center bg-slate-50 text-slate-400 selection:bg-slate-200">
       <div className="text-center opacity-60">
-        <h1 className="text-sm font-medium tracking-wide uppercase text-slate-400">Quiet Question Sidecar</h1>
+        <h1 className="text-sm font-medium tracking-wide uppercase text-slate-400">AISidecar</h1>
         <p className="mt-2 text-xs">Select a prompt from the panel.</p>
       </div>
     </div>
