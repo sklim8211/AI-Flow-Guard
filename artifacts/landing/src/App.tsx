@@ -56,7 +56,7 @@ const ENV = {
   badge: "Sidecar — a quiet workspace next to your AI",
   heroH1: "Your AI chat is still there. Your working state isn't.",
   heroSub:
-    "Sidecar keeps long AI projects restartable — your working state, decisions, and next steps, held in one place you control.",
+    "Sidecar keeps long AI projects restartable — so work can continue without rebuilding context from scratch.",
   ctaOpen: "Open Sidecar",
   ctaSeeHow: "See how it works",
   trustShort: "No account. Runs in your browser. Saves to your folder, not ours.",
@@ -65,6 +65,12 @@ const ENV = {
   ideaTitle: "Your chat is a conversation. Your project is a working state.",
   ideaDef:
     "Working state = where the project stands, what matters now, what was decided, and what happens next.",
+  ideaRestartIntro: "A project stays restartable when these stay clear:",
+  ideaRestartItems: [
+    { t: "Resume", d: "where the project stands and what happens next" },
+    { t: "Anchor", d: "the decision that should stay fixed" },
+    { t: "Snapshot", d: "the point kept before a meaningful change" },
+  ],
   ideaBody:
     "Chat keeps the conversation. Sidecar keeps the project restartable. It isn't another place to talk to AI — it's where the project itself stays recoverable between sessions.",
 
@@ -104,21 +110,21 @@ const ENV = {
 
   forLabel: "Who it's for",
   forTitle: "Built for ongoing work, not one-off questions.",
-  notForHead: "You probably don't need Sidecar if…",
-  notFor: [
-    "You only ask quick, one-off AI questions.",
-    "You don't mind restarting from scratch each time.",
-    "Your AI use ends when the chat ends.",
-  ],
-  forHead: "Sidecar is built for you if…",
-  forList: [
-    "You work across multiple sessions, drafts, and files.",
-    "You research, write, code, or build over days or weeks.",
-    "You already use AI a lot, but the work keeps getting scattered.",
+  forTableHead: ["If this sounds like you…", "Sidecar?"],
+  forTable: [
+    { q: "You mostly ask quick one-off AI questions", a: "Probably not" },
+    { q: "You don't mind restarting from scratch each time", a: "Probably not" },
+    { q: "You work across multiple sessions, drafts, and files", a: "Yes" },
+    { q: "You research, write, code, or build over days or weeks", a: "Yes" },
+    { q: "Important decisions keep getting buried in long chats", a: "Yes" },
+    {
+      q: "You already use AI a lot, but the work keeps getting scattered",
+      a: "Yes",
+    },
   ],
 
-  practiceLabel: "How it works",
-  practiceTitle: "Plain and local.",
+  practiceLabel: "Plain and local",
+  practiceTitle: "What that means in practice.",
   practice: [
     "Runs in your browser.",
     "Saves to a local folder you choose.",
@@ -763,6 +769,21 @@ function EnPage() {
             <p className="mt-6 rounded-xl border border-slate-200 bg-slate-50/60 px-5 py-4 text-base font-medium leading-relaxed text-slate-800 sm:text-lg">
               {e.ideaDef}
             </p>
+            <p className="mt-6 text-base leading-relaxed text-slate-600 sm:text-lg">
+              {e.ideaRestartIntro}
+            </p>
+            <ul className="mt-4 space-y-2">
+              {e.ideaRestartItems.map((it, i) => (
+                <li
+                  key={i}
+                  className="text-base leading-relaxed text-slate-600 sm:text-lg"
+                >
+                  <span className="font-semibold text-slate-900">{it.t}</span>
+                  {" — "}
+                  {it.d}
+                </li>
+              ))}
+            </ul>
             <p className="mt-5 text-base leading-relaxed text-slate-600 sm:text-lg">
               {e.ideaBody}
             </p>
@@ -833,45 +854,44 @@ function EnPage() {
             <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
               {e.forTitle}
             </h2>
-            <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-xl border border-slate-200 bg-white p-6">
-                <h3 className="text-sm font-semibold text-slate-500">
-                  {e.notForHead}
-                </h3>
-                <ul className="mt-4 space-y-3">
-                  {e.notFor.map((it, i) => (
-                    <li
-                      key={i}
-                      className="flex gap-3 text-base leading-relaxed text-slate-600"
+            <div className="mt-8 overflow-hidden rounded-xl border border-slate-200">
+              <table className="w-full border-collapse text-left">
+                <thead>
+                  <tr className="bg-slate-50">
+                    <th
+                      scope="col"
+                      className="px-5 py-3 text-sm font-semibold text-slate-700"
                     >
-                      <span
-                        aria-hidden
-                        className="mt-2 inline-block h-1 w-1 shrink-0 rounded-full bg-slate-300"
-                      />
-                      <span>{it}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-6">
-                <h3 className="text-sm font-semibold text-emerald-800">
-                  {e.forHead}
-                </h3>
-                <ul className="mt-4 space-y-3">
-                  {e.forList.map((it, i) => (
-                    <li
-                      key={i}
-                      className="flex gap-3 text-base leading-relaxed text-slate-700"
+                      {e.forTableHead[0]}
+                    </th>
+                    <th
+                      scope="col"
+                      className="w-32 px-5 py-3 text-sm font-semibold text-slate-700"
                     >
-                      <span
-                        aria-hidden
-                        className="mt-2.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500"
-                      />
-                      <span>{it}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+                      {e.forTableHead[1]}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {e.forTable.map((row, i) => {
+                    const yes = row.a === "Yes";
+                    return (
+                      <tr key={i} className="border-t border-slate-200">
+                        <td className="px-5 py-3 text-base leading-relaxed text-slate-600">
+                          {row.q}
+                        </td>
+                        <td
+                          className={`px-5 py-3 text-sm font-medium ${
+                            yes ? "text-emerald-700" : "text-slate-500"
+                          }`}
+                        >
+                          {row.a}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
         </section>

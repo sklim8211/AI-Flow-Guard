@@ -1,0 +1,64 @@
+Revise the English landing page only.
+
+Do not edit, rewrite, replace, or touch the Korean landing page in any way.
+If both Korean and English versions exist in the same file or project, leave the Korean version exactly as it is.
+
+Make only the following four changes to the English landing page:
+
+1) Replace the hero supporting sentence
+
+Find this sentence:
+“Sidecar keeps long AI projects restartable — your working state, decisions, and next steps, held in one place you control.”
+
+Replace it with:
+“Sidecar keeps long AI projects restartable — so work can continue without rebuilding context from scratch.”
+
+2) Insert a short working-state block in “The idea” section
+
+In the section titled “The idea”, find this sentence:
+“Working state = where the project stands, what matters now, what was decided, and what happens next.”
+
+Directly after that sentence, insert this exact block:
+
+A project stays restartable when these stay clear:
+
+Resume — where the project stands and what happens next
+Anchor — the decision that should stay fixed
+Snapshot — the point kept before a meaningful change
+
+Do not add any new labels, examples, or concepts beyond this block.
+
+3) Convert the “Who it's for” section into a clear table
+
+Replace the current “Who it’s for” subsection content with this table:
+
+| If this sounds like you... | Sidecar? |
+|---|---|
+| You mostly ask quick one-off AI questions | Probably not |
+| You don’t mind restarting from scratch each time | Probably not |
+| You work across multiple sessions, drafts, and files | Yes |
+| You research, write, code, or build over days or weeks | Yes |
+| Important decisions keep getting buried in long chats | Yes |
+| You already use AI a lot, but the work keeps getting scattered | Yes |
+
+Keep the section title “Who it’s for”.
+
+4) Rename the “How it works” section
+
+Change the section title:
+“How it works”
+
+to:
+“Plain and local”
+
+Keep the existing bullets and supporting copy in that section unchanged unless a small formatting adjustment is needed.
+
+Important constraints:
+- Do not rewrite other sections
+- Do not add new concepts
+- Do not add “modes” explanations
+- Do not expand the copy
+- Do not change the overall page structure beyond the four edits above
+- Do not touch the Korean landing page
+
+After completing these four edits, deploy the updated site.
