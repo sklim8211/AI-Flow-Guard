@@ -1,0 +1,237 @@
+You are revising the Sidecar landing page.
+
+This is a rewrite task, not an add-on task.
+
+Your job is to make the page clearer, narrower, and more precise by integrating the strongest parts of the current landing page with the essential parts of the one-page manual.
+
+Do not just append new sections.
+Do not preserve repetitive copy just because it already exists.
+Do not make the page longer unless the added clarity is necessary.
+
+The result should feel sharper, easier to scan, and more immediately understandable.
+
+==================================================
+GOAL
+==================================================
+
+Rewrite the Sidecar landing page so that the right user understands, within seconds:
+
+1. what Sidecar is
+2. what problem it solves
+3. who it is for
+4. who it is not for
+5. why it is different from chat-based AI tools
+6. why it should not be misunderstood as a storage product
+
+The page should not try to convince everyone.
+It should help the right user immediately recognize:
+“This is exactly my problem.”
+
+The core idea of the page is:
+
+**Your AI chat is still there. Your working state isn’t.**
+
+Everything on the page should support that idea.
+
+==================================================
+CORE PRODUCT TRUTH
+==================================================
+
+Sidecar is not another AI chat tool.
+
+Sidecar is for ongoing AI work that continues across:
+- sessions
+- files
+- decisions
+- next steps
+
+Sidecar is not primarily about storing outputs.
+Sidecar is about keeping a project restartable.
+
+Use this exact definition once, near the top:
+
+**Working state = where the project stands, what matters now, what was decided, and what happens next.**
+
+==================================================
+ABSOLUTE DO NOTS
+==================================================
+
+Do not make Sidecar sound like:
+- a storage product
+- a file manager
+- a note-taking app
+- a memory layer for AI
+- a better chat interface
+- a replacement for ChatGPT, Claude, or Cursor
+- a general-purpose AI assistant
+
+Do not:
+- simply add new copy without removing repetition
+- keep multiple sections that say the same thing in different words
+- over-explain local storage
+- put local storage at the center of the value proposition
+- introduce new product concepts that are not already part of the current positioning
+- add “modes” explanations unless they are already essential to the current page
+- use hype, startup-slogan language, or dramatic metaphors
+- use clever but distracting lines that weaken clarity
+- write long paragraphs when a shorter one is enough
+- turn the page into a feature list
+
+Avoid lines like:
+- “The chronological chat list is basically a graveyard.”
+- “emotional momentum is lost.”
+
+Prefer precision over drama.
+
+==================================================
+MUST INCLUDE
+==================================================
+
+The revised page must include all of the following:
+
+1. The hero must center this idea:
+   **Your AI chat is still there. Your working state isn’t.**
+
+2. A short early section that clearly defines:
+   **Working state = where the project stands, what matters now, what was decided, and what happens next.**
+
+3. A clear distinction between chat and project continuity.
+   Include this exact idea clearly:
+   **Chat keeps the conversation. Sidecar keeps the project restartable.**
+
+4. A sharp “for / not for” distinction.
+   The page must clearly show:
+   - who probably does not need Sidecar
+   - who clearly does need Sidecar
+
+   Include examples of users who may not need it:
+   - people who only ask quick one-off AI questions
+   - people who do not mind restarting from scratch every time
+
+   Include examples of users who do need it:
+   - people working across multiple sessions, drafts, and files
+   - people doing research, writing, coding, or building over days or weeks
+   - people whose AI work gets scattered even though they already use AI often
+
+5. A simplified explanation of the core interaction model:
+   - Resume = return to the project without rebuilding context
+   - Anchor = keep a decision and its reasoning in place
+   - Snapshot = keep a recoverable point before change
+
+6. A brief practical section stating factual operational details:
+   - runs in browser
+   - saves to local folder
+   - no account
+   - no server storage
+   - works alongside AI tools
+
+   This section must stay secondary.
+   It must not become the main story.
+
+7. A short FAQ with plain answers.
+
+==================================================
+WHAT TO REDUCE OR MERGE
+==================================================
+
+Reduce the current problem narrative into only 3 clear problem themes:
+
+1. restart fatigue
+2. buried decisions / buried reasoning
+3. files survive, but workflow state does not
+
+Do not keep 5 separate problem sections if they are repeating the same underlying point.
+
+If the page contains sections that over-focus on:
+- folders
+- file structure
+- storage mechanics
+- implementation detail
+
+reduce them so they support the message instead of becoming the message.
+
+==================================================
+REQUIRED PAGE STRUCTURE
+==================================================
+
+Rewrite the landing page using exactly this structure:
+
+1. Hero
+   - headline
+   - one short supporting explanation
+   - CTA
+
+2. What working state means
+   - short and concrete
+   - define it once
+
+3. Why long AI work breaks
+   - restart fatigue
+   - buried decisions / buried reasoning
+   - loss of restart position
+
+4. How Sidecar helps
+   - Resume
+   - Anchor
+   - Snapshot
+
+5. Who it’s for / who it’s not for
+   - use a clean comparison table
+
+6. How it works in practice
+   - short factual section only
+   - browser, local folder, no account, no server storage, works alongside AI tools
+
+7. FAQ
+   - short, direct, plain
+
+==================================================
+TONE
+==================================================
+
+Write in plain, sharp English.
+
+The tone must be:
+- calm
+- precise
+- confident
+- practical
+- easy to scan
+
+The page must not sound:
+- broad
+- defensive
+- over-marketed
+- feature-heavy
+- overly clever
+
+==================================================
+COMPLETION CRITERIA
+==================================================
+
+The work is complete only if all of the following are true:
+
+1. The page is clearer and shorter in meaning, even if not dramatically shorter in word count.
+2. Repetition has been removed, not merely covered up by new copy.
+3. The main idea is unmistakable:
+   - chat preserves conversation
+   - Sidecar preserves working state for ongoing project work
+4. The page no longer reads like a storage product or folder tool.
+5. The right user can self-identify quickly.
+6. The wrong user can also quickly tell it is probably not for them.
+7. Resume, Anchor, and Snapshot are easy to understand in seconds.
+8. Local storage is present as a factual implementation detail, not as the core reason to use the product.
+9. The final page feels like one coherent message, not a pile of sections.
+
+==================================================
+FINAL INSTRUCTION
+==================================================
+
+Return the fully rewritten landing page copy only.
+
+Do not explain your reasoning.
+Do not provide options.
+Do not summarize what you changed.
+Do not include notes to the team.
+
+Just output the final revised landing page copy.

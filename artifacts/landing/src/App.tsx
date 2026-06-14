@@ -52,184 +52,110 @@ type Copy = {
   sections: Section[];
 };
 
-const EN: Copy = {
-  htmlLang: "en",
+const ENV = {
   badge: "Sidecar — a quiet workspace next to your AI",
   heroH1: "Your AI chat is still there. Your working state isn't.",
-  heroTagline:
-    "For builders, developers, and researchers running long projects across ChatGPT, Claude, and Cursor.",
-  heroSub1:
-    "Sidecar saves your working state, decisions, and next steps to your own local folder — so you can restart long AI work without rebuilding context from scratch.",
+  heroSub:
+    "Sidecar keeps long AI projects restartable — your working state, decisions, and next steps, held in one place you control.",
   ctaOpen: "Open Sidecar",
-  ctaSeeHow: "See how it helps",
+  ctaSeeHow: "See how it works",
   trustShort: "No account. Runs in your browser. Saves to your folder, not ours.",
-  introH2: "Why long AI work becomes exhausting",
-  introP1a: "Most AI tools preserve conversations.",
-  introP1b:
-    "But they do not preserve workflow continuity, reasoning structure, project momentum, or restart position.",
-  introP2:
-    "So every time you return, you spend energy reconstructing context again. That creates restart fatigue, confusion, repeated explanations, and broken momentum.",
-  introP3:
-    "The conversation still exists. But the working state of the project does not.",
-  problemLabel: "Problem",
+
+  ideaLabel: "The idea",
+  ideaTitle: "Your chat is a conversation. Your project is a working state.",
+  ideaDef:
+    "Working state = where the project stands, what matters now, what was decided, and what happens next.",
+  ideaBody:
+    "Chat keeps the conversation. Sidecar keeps the project restartable. It isn't another place to talk to AI — it's where the project itself stays recoverable between sessions.",
+
+  whyLabel: "Why long AI work breaks",
+  whyTitle: "Over a long project, three things quietly fall apart.",
+  why: [
+    {
+      t: "Restart fatigue",
+      d: "Every time you come back, you rebuild context from memory before you can do any real work.",
+    },
+    {
+      t: "Buried decisions and reasoning",
+      d: "The answer is somewhere in the thread, and so is the reason you chose it. Neither is easy to find again.",
+    },
+    {
+      t: "Files survive, working state doesn't",
+      d: "Your outputs and files are saved. Where the project was going is not.",
+    },
+  ],
+
   howLabel: "How Sidecar helps",
-  ctaH2: "Try Sidecar on your next AI session.",
-  ctaLead: "No account needed. Runs in your browser. Saves to your folder, not ours.",
-  ctaTrust:
-    "Your AI conversations never leave your screen. Sidecar doesn't connect to ChatGPT, Claude, or anything else. It just helps you keep track.",
-  footer: "© {year} Sidecar. Made for people who work with AI for real.",
-  whoLabel: "Who it's for",
-  whoTitle: "Built for people who work with AI across many sessions.",
-  whoItems: [
-    "Solo builders shipping projects over days and weeks, not minutes.",
-    "Developers using ChatGPT, Claude, or Cursor for ongoing work.",
-    "Researchers and writers managing long, evolving threads.",
-    "Anyone who feels restart fatigue when reopening AI work.",
+  howTitle: "Three simple moves keep a project recoverable.",
+  how: [
+    {
+      t: "Resume",
+      d: "Return to the project without rebuilding context. One file shows where things stand, what matters now, and what's next.",
+    },
+    {
+      t: "Anchor",
+      d: "Keep a decision and its reasoning in place, so you don't re-decide the same thing later.",
+    },
+    {
+      t: "Snapshot",
+      d: "Keep a recoverable point before a change, so you can move forward without losing the current state.",
+    },
   ],
-  whenLabel: "When to use it",
-  whenTitle: "Reach for Sidecar when the work outlasts a single chat.",
-  whenItems: [
-    "When a project lasts more than one session.",
-    "When important reasoning gets buried in long chats.",
-    "When you need to preserve decisions and next steps.",
-    "When restarting feels harder than the work itself.",
+
+  forLabel: "Who it's for",
+  forTitle: "Built for ongoing work, not one-off questions.",
+  notForHead: "You probably don't need Sidecar if…",
+  notFor: [
+    "You only ask quick, one-off AI questions.",
+    "You don't mind restarting from scratch each time.",
+    "Your AI use ends when the chat ends.",
   ],
+  forHead: "Sidecar is built for you if…",
+  forList: [
+    "You work across multiple sessions, drafts, and files.",
+    "You research, write, code, or build over days or weeks.",
+    "You already use AI a lot, but the work keeps getting scattered.",
+  ],
+
+  practiceLabel: "How it works",
+  practiceTitle: "Plain and local.",
+  practice: [
+    "Runs in your browser.",
+    "Saves to a local folder you choose.",
+    "No account.",
+    "No server storage.",
+    "Works alongside ChatGPT, Claude, Cursor, or any AI tool.",
+  ],
+  practiceNote:
+    "Sidecar never connects to your AI accounts. You copy in what matters, and it stays on your machine.",
+
   faqLabel: "FAQ",
   faqTitle: "Questions, answered plainly.",
-  faqItems: [
+  faq: [
     {
       q: "Does Sidecar connect to my ChatGPT or Claude account?",
-      a: "No. Sidecar runs entirely in your browser and never connects to ChatGPT, Claude, or any third-party AI API. You copy what matters into Sidecar yourself.",
+      a: "No. Sidecar runs in your browser and never connects to any AI account or API. You copy in what matters yourself.",
     },
     {
-      q: "Can I use Sidecar alongside ChatGPT, Claude, or Cursor?",
-      a: "Yes. Sidecar sits next to whatever AI tool you use. It's tool-agnostic — anything you can copy, you can preserve.",
+      q: "Can I use it alongside ChatGPT, Claude, or Cursor?",
+      a: "Yes. Sidecar sits next to whatever AI tool you use. Anything you can copy, you can keep.",
     },
     {
-      q: "Does Sidecar store my conversations on your servers?",
-      a: "No. Everything saves to your own local folder. There are no accounts and no servers holding your work.",
+      q: "Where is my data stored?",
+      a: "In a local folder you choose. There are no accounts and no servers holding your work.",
     },
     {
-      q: "Is this only for coding, or also for research and writing?",
-      a: "Any long AI work. Resume, Anchors, and Snapshots apply just as well to research, writing, and planning as they do to code.",
+      q: "Is this only for coding?",
+      a: "No. Resume, Anchor, and Snapshot work the same for research, writing, and planning as they do for code.",
     },
   ],
-  sections: [
-    {
-      quote: "“Wait… what were we doing again?”",
-      problemHeading: "Problem: Lost Chat Context & AI Restart Fatigue",
-      problemTitle:
-        "If you work with AI for hours or days, this probably feels familiar.",
-      problemBody: [
-        "You come back later.\nThe chat is still there.\nBut the working state of the project is gone.",
-        "You're not lost because the AI failed.\nYou're lost because continuity has to live somewhere —\nand chat history isn't it.",
-      ],
-      solveTitle: "Resume",
-      solveLead:
-        "Resume saves your project's working state in a structured format. Instead of rereading long chats, you instantly restore where things stand, what matters now, and what's next.",
-      example: {
-        label: "Example",
-        lines: [
-          { k: "CURRENT", v: "Landing page direction finalized" },
-          { k: "NEXT", v: "Refine onboarding structure" },
-          { k: "ISSUE", v: "Need clearer explanation for first-time users" },
-        ],
-      },
-      closing:
-        "Not just a note — a recoverable workflow state, so you and the AI continue from the same point.",
-    },
-    {
-      quote: "“I know it's somewhere in the chat.”",
-      problemHeading: "Problem: Buried Decisions in Long AI Conversations",
-      problemTitle:
-        "Long AI conversations become difficult to navigate over time.",
-      problemBody: [
-        "Important ideas and decisions get buried inside large threads.",
-        "The chronological chat list is basically a graveyard. You know the answer exists. You just can't find it anymore.",
-      ],
-      problemBullets: [
-        "important reasoning disappears inside long conversations",
-        "project decisions lose context",
-        "users forget why certain directions were chosen",
-      ],
-      solveTitle: "Anchors",
-      solveLead:
-        "Anchors preserve key decisions and the reasoning behind them — not just the output, but why you chose this direction and what should stay consistent.",
-      closing:
-        "Restore the decision path directly, instead of rediscovering the same reasoning each time.",
-    },
-    {
-      quote: "“I don't lose the code.\nI lose the reasoning.”",
-      problemHeading: "Problem: Disappearing Reasoning in LLM Coding Sessions",
-      problemTitle: "A month later you can find the files.\nWhat disappears is why things ended up that way.\nThe what survives. The why doesn't.",
-      problemBody: [
-        "You reopen a project and spend energy trying to remember what kind of document this is, what role it plays, and how it connects to the workflow.",
-        "Users often return later and ask:",
-      ],
-      problemBullets: [
-        "Is this the latest version?",
-        "Is this a summary or a working document?",
-        "Why was this saved?",
-        "How does this connect to the project?",
-      ],
-      solveTitle: "Metadata Headers",
-      solveLead:
-        "Metadata Headers let you and the AI see a file's role at a glance — what it is, why it exists, and how it fits.",
-      example: {
-        label: "Example",
-        lines: [
-          { k: "kind", v: "resume" },
-          { k: "summary", v: "current workflow state" },
-          { k: "keywords", v: "workflow, continuity, metadata" },
-        ],
-      },
-      closing: "The goal is not just storage. The goal is recoverable context.",
-    },
-    {
-      quote: "“The work exists. But the momentum is gone.”",
-      problemHeading: "Problem: Lost Momentum in Long AI Collaborations",
-      problemTitle: "Restarting work often feels heavier than the work itself.",
-      problemBody: [
-        "Files survive. Chats survive. Outputs survive. But the feeling of where the project was going often disappears.",
-        "Especially in long AI collaboration:",
-      ],
-      problemBullets: [
-        "reasoning fades",
-        "priorities shift",
-        "unresolved issues disappear",
-        "emotional momentum is lost",
-      ],
-      solveTitle: "Summary & Snapshot",
-      solveLead:
-        "Summary and Snapshot capture the workflow at key moments — what's done, what mattered, and where to resume later.",
-      closing:
-        "This turns stopping into a recoverable pause instead of a hard interruption.",
-    },
-    {
-      quote: "“It feels like I'm building infrastructure that should exist.”",
-      problemHeading: "Problem: Static Folders That Don't Preserve Workflow",
-      problemTitle:
-        "Most folders only store files. They do not preserve workflow.",
-      problemBody: [
-        "Over time, folders become archives instead of working systems.",
-        "Users accumulate chats, notes, drafts, and outputs — but lose the thread that ties them together.",
-      ],
-      solveTitle: "A folder that knows what it holds",
-      solveLead:
-        "Sidecar sorts work into clear roles — now, next, and what to keep safe before a big change. Each file carries its own metadata, so the folder reads itself.",
-      example: {
-        label: "Folders",
-        lines: [
-          { k: "CURRENT", v: "what the project is right now" },
-          { k: "NEXT", v: "what should happen next" },
-          { k: "SAFE", v: "snapshots taken before large changes" },
-          { k: "ANCHORS", v: "decisions and reasoning to keep" },
-        ],
-      },
-      closing:
-        "Instead of an archive of files, the folder becomes a living map of the project.",
-    },
-  ],
+
+  ctaH2: "Keep your next AI project restartable.",
+  ctaLead:
+    "No account needed. Runs in your browser. Saves to your folder, not ours.",
+  ctaTrust:
+    "Your AI conversations never leave your screen. Sidecar just helps you keep the project recoverable.",
+  footer: "© {year} Sidecar. Made for people who work with AI for real.",
 };
 
 const KO: Copy = {
@@ -414,8 +340,6 @@ const KO: Copy = {
     },
   ],
 };
-
-const COPY: Record<Lang, Copy> = { en: EN, ko: KO };
 
 function detectInitialLang(): Lang {
   if (typeof window === "undefined") return "ko";
@@ -755,30 +679,10 @@ function CTA({ c }: { c: Copy }) {
   );
 }
 
-export default function App() {
-  const [lang, setLang] = useState<Lang>(() => detectInitialLang());
-  const c = COPY[lang];
-  const ref = useReveal([lang]);
-
-  useEffect(() => {
-    try {
-      document.documentElement.lang = c.htmlLang;
-      window.localStorage.setItem("sidecar.landing.lang", lang);
-      const url = new URL(window.location.href);
-      if (url.searchParams.get("lang") !== lang) {
-        url.searchParams.set("lang", lang);
-        window.history.replaceState({}, "", url.toString());
-      }
-    } catch {
-      /* no-op */
-    }
-  }, [lang, c.htmlLang]);
-
-  const handleChange = useCallback((l: Lang) => setLang(l), []);
-
+function KoPage() {
+  const c = KO;
   return (
-    <div ref={ref} className="min-h-screen bg-white">
-      <LangToggle lang={lang} onChange={handleChange} />
+    <>
       <Hero c={c} />
       <div id="how">
         <Intro c={c} />
@@ -802,6 +706,289 @@ export default function App() {
         <Divider />
         <CTA c={c} />
       </div>
+    </>
+  );
+}
+
+function EnPage() {
+  const e = ENV;
+  return (
+    <>
+      <header className="px-6 pt-24 pb-16 sm:pt-32 sm:pb-24">
+        <div className="mx-auto max-w-3xl">
+          <div className="reveal">
+            <p className="mb-6 inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-500">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              {e.badge}
+            </p>
+            <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl sm:leading-[1.1]">
+              {e.heroH1}
+            </h1>
+            <p className="mt-6 text-lg leading-relaxed text-slate-600 sm:text-xl">
+              {e.heroSub}
+            </p>
+            <div className="mt-10 flex flex-wrap items-center gap-3">
+              <a
+                href="/app/"
+                className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-5 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800"
+              >
+                {e.ctaOpen}
+                <span aria-hidden>→</span>
+              </a>
+              <a
+                href="#how"
+                className="inline-flex items-center gap-2 rounded-md border border-slate-200 px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+              >
+                {e.ctaSeeHow}
+              </a>
+            </div>
+            <p className="mt-4 text-xs text-slate-400">{e.trustShort}</p>
+          </div>
+        </div>
+      </header>
+
+      <div id="how">
+        <section className="px-6">
+          <div className="mx-auto max-w-3xl reveal">
+            <p className="text-xs font-medium uppercase tracking-wider text-emerald-700">
+              {e.ideaLabel}
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+              {e.ideaTitle}
+            </h2>
+            <p className="mt-6 rounded-xl border border-slate-200 bg-slate-50/60 px-5 py-4 text-base font-medium leading-relaxed text-slate-800 sm:text-lg">
+              {e.ideaDef}
+            </p>
+            <p className="mt-5 text-base leading-relaxed text-slate-600 sm:text-lg">
+              {e.ideaBody}
+            </p>
+          </div>
+        </section>
+
+        <Divider />
+
+        <section className="px-6">
+          <div className="mx-auto max-w-3xl reveal">
+            <p className="text-xs font-medium uppercase tracking-wider text-emerald-700">
+              {e.whyLabel}
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+              {e.whyTitle}
+            </h2>
+            <div className="mt-8 space-y-4">
+              {e.why.map((w, i) => (
+                <div
+                  key={i}
+                  className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6"
+                >
+                  <h3 className="text-lg font-semibold text-slate-900">{w.t}</h3>
+                  <p className="mt-2 text-base leading-relaxed text-slate-600">
+                    {w.d}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <Divider />
+
+        <section className="px-6">
+          <div className="mx-auto max-w-3xl reveal">
+            <p className="text-xs font-medium uppercase tracking-wider text-emerald-700">
+              {e.howLabel}
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+              {e.howTitle}
+            </h2>
+            <div className="mt-8 grid gap-4 sm:grid-cols-3">
+              {e.how.map((h, i) => (
+                <div
+                  key={i}
+                  className="rounded-xl border border-slate-200 bg-slate-50/60 p-5"
+                >
+                  <h3 className="text-base font-semibold text-slate-900">
+                    {h.t}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                    {h.d}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <Divider />
+
+        <section className="px-6">
+          <div className="mx-auto max-w-3xl reveal">
+            <p className="text-xs font-medium uppercase tracking-wider text-emerald-700">
+              {e.forLabel}
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+              {e.forTitle}
+            </h2>
+            <div className="mt-8 grid gap-4 sm:grid-cols-2">
+              <div className="rounded-xl border border-slate-200 bg-white p-6">
+                <h3 className="text-sm font-semibold text-slate-500">
+                  {e.notForHead}
+                </h3>
+                <ul className="mt-4 space-y-3">
+                  {e.notFor.map((it, i) => (
+                    <li
+                      key={i}
+                      className="flex gap-3 text-base leading-relaxed text-slate-600"
+                    >
+                      <span
+                        aria-hidden
+                        className="mt-2 inline-block h-1 w-1 shrink-0 rounded-full bg-slate-300"
+                      />
+                      <span>{it}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-6">
+                <h3 className="text-sm font-semibold text-emerald-800">
+                  {e.forHead}
+                </h3>
+                <ul className="mt-4 space-y-3">
+                  {e.forList.map((it, i) => (
+                    <li
+                      key={i}
+                      className="flex gap-3 text-base leading-relaxed text-slate-700"
+                    >
+                      <span
+                        aria-hidden
+                        className="mt-2.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500"
+                      />
+                      <span>{it}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <Divider />
+
+        <section className="px-6">
+          <div className="mx-auto max-w-3xl reveal">
+            <p className="text-xs font-medium uppercase tracking-wider text-emerald-700">
+              {e.practiceLabel}
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+              {e.practiceTitle}
+            </h2>
+            <ul className="mt-6 grid gap-3 sm:grid-cols-2">
+              {e.practice.map((it, i) => (
+                <li
+                  key={i}
+                  className="flex gap-3 text-base leading-relaxed text-slate-600"
+                >
+                  <span
+                    aria-hidden
+                    className="mt-2.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500"
+                  />
+                  <span>{it}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-5 text-sm leading-relaxed text-slate-500">
+              {e.practiceNote}
+            </p>
+          </div>
+        </section>
+
+        <Divider />
+
+        <section className="px-6">
+          <div className="mx-auto max-w-3xl reveal">
+            <p className="text-xs font-medium uppercase tracking-wider text-emerald-700">
+              {e.faqLabel}
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+              {e.faqTitle}
+            </h2>
+            <dl className="mt-8 space-y-6">
+              {e.faq.map((item, i) => (
+                <div
+                  key={i}
+                  className="border-b border-slate-200 pb-6 last:border-b-0 last:pb-0"
+                >
+                  <dt className="text-base font-semibold text-slate-900">
+                    {item.q}
+                  </dt>
+                  <dd className="mt-2 text-base leading-relaxed text-slate-600">
+                    {item.a}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </section>
+
+        <Divider />
+
+        <section className="px-6 pb-32">
+          <div className="mx-auto max-w-3xl">
+            <div className="reveal rounded-2xl border border-slate-200 bg-white p-8 sm:p-12">
+              <h2 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+                {e.ctaH2}
+              </h2>
+              <p className="mt-4 text-base leading-relaxed text-slate-600 sm:text-lg">
+                {e.ctaLead}
+              </p>
+              <div className="mt-8">
+                <a
+                  href="/app/"
+                  className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-6 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800"
+                >
+                  {e.ctaOpen}
+                  <span aria-hidden>→</span>
+                </a>
+              </div>
+              <p className="mt-8 text-sm italic leading-relaxed text-slate-500">
+                {e.ctaTrust}
+              </p>
+            </div>
+            <p className="mt-10 text-center text-xs text-slate-400">
+              {e.footer.replace("{year}", String(new Date().getFullYear()))}
+            </p>
+          </div>
+        </section>
+      </div>
+    </>
+  );
+}
+
+export default function App() {
+  const [lang, setLang] = useState<Lang>(() => detectInitialLang());
+  const ref = useReveal([lang]);
+  const htmlLang = lang === "en" ? "en" : "ko";
+
+  useEffect(() => {
+    try {
+      document.documentElement.lang = htmlLang;
+      window.localStorage.setItem("sidecar.landing.lang", lang);
+      const url = new URL(window.location.href);
+      if (url.searchParams.get("lang") !== lang) {
+        url.searchParams.set("lang", lang);
+        window.history.replaceState({}, "", url.toString());
+      }
+    } catch {
+      /* no-op */
+    }
+  }, [lang, htmlLang]);
+
+  const handleChange = useCallback((l: Lang) => setLang(l), []);
+
+  return (
+    <div ref={ref} className="min-h-screen bg-white">
+      <LangToggle lang={lang} onChange={handleChange} />
+      {lang === "en" ? <EnPage /> : <KoPage />}
     </div>
   );
 }
