@@ -342,6 +342,10 @@ const KO: Copy = {
 };
 
 function detectInitialLang(): Lang {
+  // TEMP: Korean hidden — force English for all users.
+  // To restore Korean, set FORCE_ENGLISH back to false.
+  const FORCE_ENGLISH: boolean = true;
+  if (FORCE_ENGLISH) return "en";
   if (typeof window === "undefined") return "ko";
   try {
     const url = new URL(window.location.href);
@@ -987,7 +991,9 @@ export default function App() {
 
   return (
     <div ref={ref} className="min-h-screen bg-white">
-      <LangToggle lang={lang} onChange={handleChange} />
+      {/* TEMP: Korean hidden — language toggle hidden from users (English-only).
+          To restore, remove the `false &&` below to show the toggle again. */}
+      {false && <LangToggle lang={lang} onChange={handleChange} />}
       {lang === "en" ? <EnPage /> : <KoPage />}
     </div>
   );
