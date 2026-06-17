@@ -659,3 +659,39 @@ Wrap the entire output (header + body + filename line) inside a single fenced ma
 
 ${filesBlock}`;
 }
+
+/* ── Combine helpers (multi-file → single prompt) ───────────── */
+
+/** Shared formatter: render sources as numbered `===== FILE X: name =====` blocks. */
+function formatSourcesBlock(sources: ConsolidateSource[]): string {
+  return sources
+    .map((s, i) => `===== FILE ${i + 1}: ${s.name} =====\n${s.content.trim()}`)
+    .join("\n\n");
+}
+
+/** Weekly Summary: wrap the last 7 days of records into a recap prompt. */
+export function getWeeklySummaryPrompt(sources: ConsolidateSource[]): string {
+  return `Below are this week's work records.
+
+${formatSourcesBlock(sources)}
+
+Based on this, summarize what was completed this week, what was decided, and what carries over to next week.`;
+}
+
+/** Project Report: wrap the full project history into a status prompt. */
+export function getProjectReportPrompt(sources: ConsolidateSource[]): string {
+  return `Below is the complete work history for this project.
+
+${formatSourcesBlock(sources)}
+
+Summarize the current progress, key decisions made, unresolved issues, and next steps.`;
+}
+
+/** Resume Briefing: wrap the most recent working state into a quick brief prompt. */
+export function getResumeBriefingPrompt(sources: ConsolidateSource[]): string {
+  return `Below is the most recent working state of this project.
+
+${formatSourcesBlock(sources)}
+
+Briefly explain where this project currently stands and what should happen next.`;
+}

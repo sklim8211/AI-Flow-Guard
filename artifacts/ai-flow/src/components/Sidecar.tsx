@@ -31,8 +31,11 @@ import {
   HelpCircle,
   Crown,
   KeyRound,
+  CalendarDays,
+  ScrollText,
+  Rocket,
 } from "lucide-react";
-import { ws } from "../lib/workspace";
+import { ws, parseFileMeta } from "../lib/workspace";
 import { hasLicense } from "../lib/license";
 import { PlanModal, ActivateModal, LimitModal } from "./ProModals";
 import { fsAccess } from "../lib/fsAccess";
@@ -47,8 +50,12 @@ import {
   getPromptText,
   getWorkflowDef,
   getConsolidatePrompt,
+  getWeeklySummaryPrompt,
+  getProjectReportPrompt,
+  getResumeBriefingPrompt,
   type PromptId,
   type WorkflowType,
+  type ConsolidateSource,
 } from "../lib/prompts";
 import type { WFile } from "../lib/workspace";
 
@@ -352,6 +359,81 @@ export function Sidecar() {
     setActivePrompt({
       label: `Consolidate (${files.length} files)`,
       prompt: promptText,
+    });
+    setShowSave(false);
+    setPanelOpen(true);
+  };
+
+  // Files whose full content is at or below this length are included verbatim in
+  // the Weekly Summary; longer files fall back to their meta `summary` line.
+  const WEEKLY_SHORT_LIMIT = 500;
+
+  const flashError = (msg: string) => {
+    setClipboardError(msg);
+    setTimeout(() => setClipboardError(null), 4000);
+  };
+
+  // Button 1 — Weekly Summary: getFiles(projectId) filtered to the last 7 days.
+  const handleWeeklySummary = () => {
+    if (!activeProjectId) return;
+    const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const files = ws
+      .getFiles(activeProjectId)
+      .filter((f) => f.createdAt >= weekAgo && f.content.trim())
+      .sort((a, b) => a.createdAt - b.createdAt);
+    if (files.length === 0) {
+      flashError("No files saved in the last 7 days.");
+      return;
+    }
+    const sources: ConsolidateSource[] = files.map((f) => {
+      const trimmed = f.content.trim();
+      if (trimmed.length <= WEEKLY_SHORT_LIMIT) return { name: f.name, content: trimmed };
+      const meta = parseFileMeta(f.content);
+      return { name: f.name, content: meta.summary || trimmed };
+    });
+    setActivePrompt({
+      label: `Weekly Summary (${files.length} files)`,
+      prompt: getWeeklySummaryPrompt(sources),
+    });
+    setShowSave(false);
+    setPanelOpen(true);
+  };
+
+  // Button 2 — Project Report: all files for the current project, chronological.
+  const handleProjectReport = () => {
+    if (!activeProjectId) return;
+    const files = ws
+      .getFiles(activeProjectId)
+      .filter((f) => f.content.trim())
+      .sort((a, b) => a.createdAt - b.createdAt);
+    if (files.length === 0) {
+      flashError("This project has no saved files yet.");
+      return;
+    }
+    const sources: ConsolidateSource[] = files.map((f) => ({ name: f.name, content: f.content }));
+    setActivePrompt({
+      label: `Project Report (${files.length} files)`,
+      prompt: getProjectReportPrompt(sources),
+    });
+    setShowSave(false);
+    setPanelOpen(true);
+  };
+
+  // Button 3 — Resume Briefing: latest CURRENT (Resume) + latest ANCHORS file.
+  const handleResumeBriefing = () => {
+    if (!activeProjectId) return;
+    const resume = ws.getFilesInFolderByName(activeProjectId, "CURRENT", 1)[0] ?? null;
+    const anchor = ws.getFilesInFolderByName(activeProjectId, "ANCHORS", 1)[0] ?? null;
+    const sources: ConsolidateSource[] = [];
+    if (resume && resume.content.trim()) sources.push({ name: resume.name, content: resume.content });
+    if (anchor && anchor.content.trim()) sources.push({ name: anchor.name, content: anchor.content });
+    if (sources.length === 0) {
+      flashError("No Resume (CURRENT) or Anchors file found yet.");
+      return;
+    }
+    setActivePrompt({
+      label: "Resume Briefing",
+      prompt: getResumeBriefingPrompt(sources),
     });
     setShowSave(false);
     setPanelOpen(true);
@@ -841,6 +923,28 @@ export function Sidecar() {
             {tab === "prompts" && (
               <div className="flex-1 flex flex-col overflow-hidden">
                 <div className="flex-1 overflow-y-auto py-2">
+                  {/* Combine — build a prompt from existing saved files */}
+                  <p className="px-4 pt-1 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Combine
+                  </p>
+                  {[
+                    { id: "weekly", label: "Weekly Summary", description: "Last 7 days of files → a recap prompt", icon: CalendarDays, color: "#0ea5e9", onClick: handleWeeklySummary },
+                    { id: "report", label: "Project Report", description: "Every file in this project → a status prompt", icon: ScrollText, color: "#6366f1", onClick: handleProjectReport },
+                    { id: "briefing", label: "Resume Briefing", description: "Latest CURRENT + ANCHORS → a quick brief", icon: Rocket, color: "#f59e0b", onClick: handleResumeBriefing },
+                  ].map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={item.onClick}
+                      className="w-full flex items-start gap-3 px-4 py-3 hover:bg-slate-50 active:bg-slate-100 transition-colors text-left group cursor-pointer"
+                    >
+                      <item.icon className="mt-0.5 shrink-0" style={{ width: 15, height: 15, color: item.color }} />
+                      <div>
+                        <p className="text-xs font-semibold text-slate-700">{item.label}</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">{item.description}</p>
+                      </div>
+                    </button>
+                  ))}
+                  <div className="mx-4 my-2 border-t border-slate-100" />
                   {displayPrompts.map((item) => (
                     <button
                       key={item.id}
