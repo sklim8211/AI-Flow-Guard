@@ -71,11 +71,18 @@ interface PromptParts {
 
 function build(workflow: WorkflowType | "common", kind: PromptId, parts: PromptParts): string {
   const workflowLine = workflow === "common" ? "common" : workflow;
+  // Writing-mode only: an intent-declaration preamble so the AI treats the
+  // output as a context-preservation memo, not an edit to the prose itself.
+  // Applied once here at the wrapper level so all four writing-mode prompts
+  // (resume / summary / anchors / next) inherit it identically.
+  const intentPreamble = workflow === "writing"
+    ? "\n\nThis is a context-preservation memo for an ongoing creative writing project, to be restored in a future session. It records decisions already made and the reasoning behind them — it is not an edit to the prose itself."
+    : "";
   const focusBlock = parts.focus && parts.focus.length > 0
     ? `\n\nFocus on:\n${parts.focus.map((f) => `- ${f}`).join("\n")}`
     : "";
   const closingBlock = parts.closing ? `\n\n${parts.closing}` : "";
-  return `${parts.intro}${focusBlock}
+  return `${parts.intro}${intentPreamble}${focusBlock}
 
 Start the output with this YAML metadata header. Use the schema EXACTLY as shown — keep all field names and ordering, but replace every value inside square brackets with a real value. Do NOT keep the brackets or any inline comments in your output.
 
