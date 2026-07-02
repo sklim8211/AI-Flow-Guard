@@ -26,8 +26,21 @@ export function FileViewModal({ file, onClose, onRefresh }: Props) {
     setEditing(true);
   };
 
+  // Duplicate name check (edit mode only): another file in the same folder
+  // already using the edited name (case-insensitive). Blocks saving.
+  const duplicateFile: WFile | null = (() => {
+    if (!file || !editing) return null;
+    const trimmed = editName.trim().toLowerCase();
+    if (!trimmed || trimmed === file.name.toLowerCase()) return null;
+    return (
+      ws.getFilesInFolder(file.folderId).find(
+        (f) => f.id !== file.id && f.name.toLowerCase() === trimmed
+      ) ?? null
+    );
+  })();
+
   const saveEdit = () => {
-    if (!file) return;
+    if (!file || duplicateFile) return;
     ws.updateFile(file.id, { name: editName.trim() || file.name, content: editContent });
     markActivity();
     setEditing(false);
@@ -196,7 +209,8 @@ export function FileViewModal({ file, onClose, onRefresh }: Props) {
                   {editing ? (
                     <button
                       onClick={saveEdit}
-                      className="p-1.5 rounded-lg hover:bg-emerald-50 text-emerald-600 transition-colors"
+                      disabled={!!duplicateFile}
+                      className="p-1.5 rounded-lg hover:bg-emerald-50 text-emerald-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                       title="Save"
                     >
                       <Save style={{ width: 14, height: 14 }} />
@@ -225,6 +239,19 @@ export function FileViewModal({ file, onClose, onRefresh }: Props) {
                   </button>
                 </div>
               </div>
+
+              {/* Duplicate name warning (edit mode) */}
+              {duplicateFile && (
+                <div
+                  className="px-5 py-2 flex-shrink-0"
+                  style={{ background: "#fffbeb", borderBottom: "1px solid #fde68a" }}
+                >
+                  <p className="text-[11px] font-semibold" style={{ color: "#92400e" }}>
+                    A file named <b>{duplicateFile.name}</b> already exists in this folder.
+                    Choose a different name to save.
+                  </p>
+                </div>
+              )}
 
               {/* Content */}
               <div className="flex-1 overflow-y-auto px-5 py-4" style={{ background: "#f8fafc" }}>
@@ -279,7 +306,8 @@ export function FileViewModal({ file, onClose, onRefresh }: Props) {
                 {editing && (
                   <button
                     onClick={saveEdit}
-                    className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all"
+                    disabled={!!duplicateFile}
+                    className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                     style={{ background: "#0f172a", color: "#fff" }}
                   >
                     Save
