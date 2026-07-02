@@ -708,10 +708,25 @@ Summarize the current progress, key decisions made, unresolved issues, and next 
 }
 
 /** Resume Briefing: wrap the most recent working state into a quick brief prompt. */
-export function getResumeBriefingPrompt(sources: ConsolidateSource[]): string {
+export function getResumeBriefingPrompt(
+  sources: ConsolidateSource[],
+  workflow: WorkflowType | null,
+): string {
+  const workflowValue = workflow ?? "common";
   return `Below is the most recent working state of this project.
 
 ${formatSourcesBlock(sources)}
 
-Briefly explain where this project currently stands and what should happen next.`;
+Briefly explain where this project currently stands and what should happen next.
+
+Start your output with this YAML metadata header (replace the bracketed values, do not keep the brackets):
+
+---
+version: v1
+created_at: [YYYY-MM-DD HH:mm in local time]
+workflow: ${workflowValue}
+kind: resume
+summary: [one short single-line description]
+keywords: [3-5 comma-separated keywords]
+---`;
 }

@@ -433,7 +433,7 @@ export function Sidecar() {
     }
     setActivePrompt({
       label: "Resume Briefing",
-      prompt: getResumeBriefingPrompt(sources),
+      prompt: getResumeBriefingPrompt(sources, activeWorkflow),
     });
     setShowSave(false);
     setPanelOpen(true);
