@@ -689,6 +689,19 @@ Based on this, summarize what was completed this week, what was decided, and wha
 export function getProjectReportPrompt(sources: ConsolidateSource[]): string {
   return `Below is the complete work history for this project.
 
+Before processing, apply these rules:
+
+1. DEDUPLICATION
+Remove duplicate files (same filename or identical content). Keep only one copy of each.
+
+2. FILE TYPE RULES
+Each file starts with a YAML header containing a "kind" field. Apply these rules per kind:
+- kind: anchors → include ALL files regardless of date. Decisions accumulate over time and older ones remain valid.
+- kind: resume → include ONLY the most recent file. Latest state replaces previous ones.
+- kind: summary → include ONLY the most recent file. Latest summary supersedes older ones.
+- kind: next → include ONLY the most recent file. Older next steps are already past.
+- kind: backup → include ALL files. Each is a distinct snapshot of a specific moment.
+
 ${formatSourcesBlock(sources)}
 
 Summarize the current progress, key decisions made, unresolved issues, and next steps.`;
