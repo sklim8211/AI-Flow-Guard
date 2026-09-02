@@ -563,6 +563,21 @@ export function Sidecar() {
 
   const togglePanel = () => {
     const nextOpen = !panelOpen;
+    // Some browser side-panel hosts ignore resizeTo after collapsing. If the
+    // viewport is still too narrow, reopen in a fresh correctly-sized popup
+    // instead of rendering fixed cards and modals inside the collapsed width.
+    if (isSidePanel && nextOpen && window.innerWidth < 300) {
+      const popup = window.open(
+        window.location.href,
+        "qq_sidecar_expanded",
+        `width=${SIDE_PANEL_OPEN_WIDTH},height=${window.screen.availHeight},left=${isRight ? window.screen.availWidth - SIDE_PANEL_OPEN_WIDTH : 0},top=0,resizable=yes`
+      );
+      if (popup) {
+        popup.focus();
+        try { window.close(); } catch {}
+        return;
+      }
+    }
     // Restore the popup width before rendering the expanded panel. Otherwise
     // the first render can calculate fixed panels/modals against the collapsed
     // 58px viewport and leave their narrow layout behind.
