@@ -97,6 +97,9 @@ function buildPrompts(workflow: WorkflowType | null): DisplayPrompt[] {
 
 type PanelTab = "today" | "prompts" | "workspace";
 
+const SIDE_PANEL_ICON_WIDTH = 58;
+const SIDE_PANEL_OPEN_WIDTH = 380;
+
 export function Sidecar() {
   const [panelOpen, setPanelOpen] = useState(true);
   const [tab, setTab] = useState<PanelTab>("today");
@@ -541,12 +544,9 @@ export function Sidecar() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  // Resize popup window to match panel open/closed state
-  useEffect(() => {
-    if (!isSidePanel) return;
-    const ICON_W = 58;
-    const PANEL_W = 380;
-    const target = panelOpen ? PANEL_W : ICON_W;
+  // Resize popup window to match panel open/closed state.
+  const resizeSidePanelWindow = useCallback((open: boolean) => {
+    const target = open ? SIDE_PANEL_OPEN_WIDTH : SIDE_PANEL_ICON_WIDTH;
     try {
       window.resizeTo(target, window.outerHeight);
       const x = isRight ? window.screen.availWidth - target : 0;
@@ -554,7 +554,21 @@ export function Sidecar() {
     } catch {
       // resizeTo is blocked in non-popup windows — ignore silently
     }
-  }, [panelOpen, isSidePanel, isRight]);
+  }, [isRight]);
+
+  useEffect(() => {
+    if (!isSidePanel) return;
+    resizeSidePanelWindow(panelOpen);
+  }, [panelOpen, isSidePanel, resizeSidePanelWindow]);
+
+  const togglePanel = () => {
+    const nextOpen = !panelOpen;
+    // Restore the popup width before rendering the expanded panel. Otherwise
+    // the first render can calculate fixed panels/modals against the collapsed
+    // 58px viewport and leave their narrow layout behind.
+    if (isSidePanel) resizeSidePanelWindow(nextOpen);
+    setPanelOpen(nextOpen);
+  };
 
   const openAsSidePanel = () => {
     const w = 58;
@@ -592,7 +606,7 @@ export function Sidecar() {
       >
         {/* Toggle button — collapses/expands the panel (works in side panel mode too) */}
         <button
-          onClick={() => setPanelOpen((v) => !v)}
+          onClick={togglePanel}
           className="relative group w-9 h-9 rounded-xl flex items-center justify-center mb-2 transition-all"
           style={{
             background: panelOpen ? "#0f172a" : "#f1f5f9",
